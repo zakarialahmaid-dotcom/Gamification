@@ -168,6 +168,23 @@ body{
 }
 
 /* ── Voucher tiers — 30% white cards, Red 10% accent */
+/* mute button */
+#btn-mute{
+  position:absolute;
+  bottom:clamp(10px,2.5vw,14px);
+  right:clamp(10px,2.5vw,14px);
+  width:clamp(32px,8vw,40px);
+  height:clamp(32px,8vw,40px);
+  border-radius:50%;
+  background:rgba(0,0,0,.3);
+  border:none;cursor:pointer;
+  color:#fff;font-size:clamp(14px,3.5vw,18px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+
 /* ── GAME INSTRUCTIONS */
 .lb-how{
   flex:0 0 auto;
@@ -923,6 +940,56 @@ function copyCode(text, btn){
   }
 }
 
+// ── MUSIC SYSTEM
+const MUSIC_URL = "https://raw.githubusercontent.com/zakarialahmaid-dotcom/Gamification/main/Football_game.mp3";
+const music = new Audio(MUSIC_URL);
+music.loop    = true;
+music.volume  = 0;
+let musicOn   = true;
+let musicStarted = false;
+
+function musicFade(targetVol, duration=600){
+  const start   = music.volume;
+  const diff    = targetVol - start;
+  const steps   = 30;
+  const interval = duration / steps;
+  let  step     = 0;
+  const t = setInterval(()=>{
+    step++;
+    music.volume = Math.min(1, Math.max(0, start + diff * (step/steps)));
+    if(step >= steps) clearInterval(t);
+  }, interval);
+}
+
+function startMusic(){
+  if(!musicOn) return;
+  if(!musicStarted){
+    music.play().catch(()=>{});
+    musicStarted = true;
+  }
+  musicFade(0.45);
+}
+
+function stopMusic(){
+  musicFade(0, 800);
+  setTimeout(()=>{ if(music.volume < 0.05) music.pause(); }, 900);
+}
+
+function toggleMusic(btn){
+  musicOn = !musicOn;
+  if(musicOn){
+    music.play().catch(()=>{});
+    musicFade(0.45);
+    btn.textContent = '♪';
+    btn.title = 'Couper la musique';
+  } else {
+    musicFade(0, 400);
+    setTimeout(()=>music.pause(), 450);
+    btn.textContent = '♪̶';
+    btn.title = 'Activer la musique';
+  }
+}
+
 // ── GLOBAL SCREEN TRANSITION — same red wipe for every phase
 function goTo(fn){
   const t = document.getElementById('play-transition');
@@ -1060,7 +1127,7 @@ function renderLobby(){
   </div>`;
 
   const bs=$('btn-start');
-  if(bs) bs.addEventListener('pointerdown', ()=>goTo(renderForm));
+  if(bs) bs.addEventListener('pointerdown', ()=>{ startMusic(); goTo(renderForm); });
 
   // Load leaderboard async (for future use, hidden from lobby now)
   fetchLeaderboard().catch(()=>{});
@@ -1096,6 +1163,8 @@ function renderGame(){
           <div id="lives-count">3</div>
         </div>
       </div>
+      <!-- mute button -->
+      <button id="btn-mute" onclick="toggleMusic(this)" title="Couper la musique">♪</button>
     </div>
 
     <div class="gm-btns">
@@ -1125,6 +1194,7 @@ function renderGame(){
 }
 
 function startGame(){
+  startMusic();
   done=false; wid=0; itemsArr=[];
   livesVal=3; scoreVal=0; comboVal=0; speedVal=1.1; elapsedSec=0;
   lastT=null; lastSpawn=0; spawnInt=2000; pressDir=null;
@@ -1324,6 +1394,7 @@ function showFlash(x,y,text,good){
 function endGame(finalScore){
   if(done) return; done=true;
   cancelAnimationFrame(animId);
+  stopMusic();
   if(finalScore>=150) vWon++;
   totalPts+=finalScore; scoreVal=finalScore;
   attempts=Math.max(0,attempts-1);
