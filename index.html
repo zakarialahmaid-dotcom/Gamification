@@ -653,9 +653,14 @@ body{
   display:block;width:100%;background:transparent;
   color:var(--ink2);border:1.5px solid #ddd;border-radius:30px;
   padding:clamp(10px,2.5vw,13px);font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;
-  font-family:var(--H2);transition:border-color .15s,color .15s;
+  font-family:var(--H2);transition:border-color .2s,color .2s,background .2s;
 }
 .btn-replay-full:hover{border-color:var(--c60);color:var(--c60);}
+.btn-replay-full.confirm{
+  border-color:var(--c10);color:var(--c10);
+  background:rgba(236,35,38,.06);
+  font-weight:900;
+}
 .rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:var(--ink2);font-family:var(--H2);padding:8px 0;}
 </style>
 </head>
@@ -692,10 +697,10 @@ const IMG_HEART   = "https://raw.githubusercontent.com/Madzack69/Icons/main/Life
 // 'redcard' 🟥 — dodge or lose life
 
 function getVoucher(s){
-  if(s>=800) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"🏆 LÉGENDE",bg:"#ec2326"};
-  if(s>=400) return{disc:"15% DE RÉD.",code:"JMCHAMP15",label:"⭐ CHAMPION",bg:"#633185"};
-  if(s>=150) return{disc:"10% DE RÉD.",code:"JMMATCH10",label:"🔥 MATCH READY",bg:"#ff9900"};
-  return          {disc:"5% DE RÉD.", code:"JMSTART5",label:"👟 DÉBUTANT",bg:"#403b3b"};
+  if(s>=800) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"LÉGENDE",bg:"#ec2326"};
+  if(s>=400) return{disc:"15% DE RÉD.",code:"JMCHAMP15",label:"CHAMPION",bg:"#633185"};
+  if(s>=150) return{disc:"10% DE RÉD.",code:"JMMATCH10",label:"MATCH READY",bg:"#ff9900"};
+  return          {disc:"5% DE RÉD.", code:"JMSTART5",label:"DÉBUTANT",bg:"#403b3b"};
 }
 
 // ── STATE
@@ -789,9 +794,9 @@ function renderLobby(){
 
     <!-- 60% orange — header -->
     <div class="lb-top">
-      <div class="lb-eyebrow">JUMIA ÉDITION FANS ⚽</div>
+      <div class="lb-eyebrow">JUMIA ÉDITION FANS</div>
       <div class="lb-title">GARDIEN<br>DE BUT</div>
-      <div class="lb-subbanner"><span>ÉDITION FANS MAROC 🇲🇦</span></div>
+      <div class="lb-subbanner"><span>ÉDITION FANS MAROC</span></div>
     </div>
 
     <div class="lb-pitch"></div>
@@ -800,8 +805,8 @@ function renderLobby(){
     <div class="lb-stats">
       ${[
         {icon:IMG_ATTEMPTS, val:`${attempts}/4`, lbl:"TENTATIVES\nAUJOURD'HUI", badge:"GO", bc:"#22a651", tc:"#fff"},
-        {icon:IMG_TROPHY,   val:vWon,            lbl:"BONS\nGAGNÉS",            badge:"🎟", bc:"#ffba00", tc:"#403b3b"},
-        {icon:IMG_STAR,     val:totalPts,         lbl:"POINTS\nTOTAL",           badge:"⭐", bc:"#ffba00", tc:"#403b3b"}
+        {icon:IMG_TROPHY,   val:vWon,            lbl:"BONS\nGAGNÉS",            badge:"BON", bc:"#ffba00", tc:"#403b3b"},
+        {icon:IMG_STAR,     val:totalPts,         lbl:"POINTS\nTOTAL",           badge:"PTS", bc:"#ffba00", tc:"#403b3b"}
       ].map(s=>`
         <div class="stat-item">
           <div class="stat-icon-wrap">
@@ -816,8 +821,8 @@ function renderLobby(){
     <!-- 30% white — leaderboard -->
     <div class="lb-board">
       <div class="lb-board-header">
-        <span class="lb-board-title">🏆 CLASSEMENT EN DIRECT</span>
-        <span class="lb-board-live">● LIVE</span>
+        <span class="lb-board-title">CLASSEMENT EN DIRECT</span>
+        <span class="lb-board-live">LIVE</span>
       </div>
       <div class="lb-board-rows" id="lb-rows">
         <div class="lb-board-msg">Chargement...</div>
@@ -829,17 +834,17 @@ function renderLobby(){
       <div class="lb-tier">
         <div class="lb-tier-pts">150+ pts</div>
         <div class="lb-tier-disc">10%</div>
-        <div class="lb-tier-lbl">🔥 Match Ready</div>
+        <div class="lb-tier-lbl">Match Ready</div>
       </div>
       <div class="lb-tier">
         <div class="lb-tier-pts">400+ pts</div>
         <div class="lb-tier-disc">15%</div>
-        <div class="lb-tier-lbl">⭐ Champion</div>
+        <div class="lb-tier-lbl">Champion</div>
       </div>
       <div class="lb-tier">
         <div class="lb-tier-pts">800+ pts</div>
         <div class="lb-tier-disc">20%</div>
-        <div class="lb-tier-lbl">🏆 Légende</div>
+        <div class="lb-tier-lbl">Légende</div>
       </div>
     </div>
 
@@ -848,7 +853,7 @@ function renderLobby(){
     <!-- 10% red — CTA -->
     <div class="lb-cta">
       ${attempts === 0
-        ? `<div style="background:rgba(0,0,0,.2);border-radius:30px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">⏳ Plus de tentatives aujourd'hui. Reviens demain !</div>`
+        ? `<div style="background:rgba(0,0,0,.2);border-radius:30px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">Plus de tentatives aujourd'hui. Reviens demain !</div>`
         : `<button class="btn-kickoff" id="btn-start">COUP D'ENVOI !</button>`}
       <div class="cta-note">${attempts} tentative${attempts>1?"s":""} restante${attempts>1?"s":""}</div>
     </div>
@@ -862,9 +867,9 @@ function renderLobby(){
   fetchLeaderboard().then(players => {
     const rows = $('lb-rows');
     if(!rows) return;
-    const medals = ['🥇','🥈','🥉','4','5'];
+    const medals = ['1.','2.','3.','4.','5.'];
     if(!players.length){
-      rows.innerHTML=`<div class="lb-board-msg">Sois le premier à jouer ! 🧤</div>`;
+      rows.innerHTML=`<div class="lb-board-msg">Sois le premier à jouer !</div>`;
       return;
     }
     rows.innerHTML = players.map((p,i)=>{
@@ -887,7 +892,7 @@ function renderGame(){
     <div class="gm-hud">
       <div class="gm-brand">
         <div class="gm-title">GARDIEN DE BUT</div>
-        <div class="gm-tag"><span>⚽ ÉDITION FANS 🇲🇦</span></div>
+        <div class="gm-tag"><span>ÉDITION FANS</span></div>
       </div>
     </div>
 
@@ -897,7 +902,7 @@ function renderGame(){
       <div id="glove-el"><img src="${IMG_GLOVES}" alt="gloves"></div>
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
-      <div id="dodge-hint">⚠ ESQUIVE !</div>
+      <div id="dodge-hint">ESQUIVE !</div>
 
       <!-- McDonald's-style floating overlay: score + heart counter -->
       <div id="game-overlay">
@@ -1238,7 +1243,7 @@ function renderResult(){
   $('app').innerHTML=`
   <div id="screen-result">
     <div class="rs-header">
-      <div class="rs-brand">JUMIA — ÉDITION FANS 🇲🇦</div>
+      <div class="rs-brand">JUMIA — ÉDITION FANS</div>
       <div class="rs-title">${s>=400?'BIEN ARRÊTÉ !':'PRESQUE !'}</div>
       <div class="rs-sub">${s>=400?'Voici ton bon de réduction ↓':'Rejoue pour gagner un meilleur bon !'}</div>
     </div>
@@ -1250,7 +1255,7 @@ function renderResult(){
         </div>`).join('')}
     </div>
     <div class="voucher-card">
-      <div class="v-eyebrow" style="font-family:${H2}">🎟 TON BON DE RÉDUCTION</div>
+      <div class="v-eyebrow" style="font-family:${H2}">TON BON DE RÉDUCTION</div>
       <div class="v-label" style="background:${v.bg}">${v.label}</div>
       <div class="v-disc-row">
         <img src="${IMG_VOUCHER}" style="width:48px;height:48px" alt="">
@@ -1261,7 +1266,7 @@ function renderResult(){
         <div class="v-code" id="coupon-code" style="font-family:${H1}">${v.code}</div>
         <button class="btn-copy" id="btn-copy" onclick="copyCode('${v.code}',this)">COPIER</button>
       </div>
-      <div class="v-note">⏱ Valable 7 jours · Sans montant minimum</div>
+      <div class="v-note">Valable 7 jours · Sans montant minimum</div>
     </div>
     <div class="rs-cta-block">
       <a href="https://www.jumia.ma/mlp-foot-20253/" target="_blank" rel="noopener" class="btn-jumia-main">
@@ -1273,12 +1278,29 @@ function renderResult(){
     <div class="rs-replay-bar">
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">Rejouer (${attempts} tentative${attempts>1?'s':''} restante${attempts>1?'s':''})</button>`
-        :`<div class="rs-no-attempts">⏳ Plus de tentatives aujourd'hui — reviens demain !</div>`
+        :`<div class="rs-no-attempts">Plus de tentatives aujourd'hui — reviens demain !</div>`
       }
     </div>
   </div>`;
   const br=$('btn-replay');
-  if(br) br.addEventListener('click', ()=>startGame());
+  if(br){
+    let armed=false, timer=null;
+    br.addEventListener('click',()=>{
+      if(!armed){
+        armed=true;
+        br.textContent='Confirmer pour rejouer';
+        br.classList.add('confirm');
+        timer=setTimeout(()=>{
+          armed=false;
+          br.textContent=`Rejouer (${attempts} tentative${attempts>1?'s':''} restante${attempts>1?'s':''})`;
+          br.classList.remove('confirm');
+        },3000);
+      } else {
+        clearTimeout(timer);
+        startGame();
+      }
+    });
+  }
 }
 
 renderLobby();
