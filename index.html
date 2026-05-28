@@ -1511,7 +1511,7 @@ function endGame(finalScore){
     });
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
-  goTo(renderForm);
+  goTo(renderResult);
 }
 
 // ── FORM
@@ -1622,10 +1622,7 @@ function renderResult(){
       <div class="rs-url-hint">https://www.jumia.ma/mlp-foot-20253/</div>
     </div>
     <div class="rs-spacer"></div>
-    <!-- Share score -->
-    <div style="padding:0 clamp(20px,5vw,28px) 8px;">
-      <button class="btn-share" onclick="shareScore(${scoreVal})">Partager mon score</button>
-    </div>
+
     <div class="rs-replay-bar">
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">Rejouer (${attempts} tentative${attempts>1?'s':''} restante${attempts>1?'s':''})</button>`
