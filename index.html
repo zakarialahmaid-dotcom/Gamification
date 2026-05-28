@@ -50,6 +50,7 @@ body{
 @keyframes fadeIn{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes screenFlash{0%,100%{background:#ff9900}40%{background:#c01010}70%{background:#d41515}}
 @keyframes bigShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-14px)}30%{transform:translateX(14px)}45%{transform:translateX(-10px)}60%{transform:translateX(10px)}75%{transform:translateX(-6px)}90%{transform:translateX(6px)}}
+@keyframes heartBreak{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.7)}100%{transform:scale(.85)}}
 @keyframes itemIn{0%{opacity:0;transform:scale(0.4)}100%{opacity:1;transform:scale(1)}}
 @keyframes goldenSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
 @keyframes dangerPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
@@ -172,21 +173,41 @@ body{
   padding:2px 8px;width:fit-content;
 }
 .gm-tag span{font-size:clamp(8px,2vw,10px);font-weight:900;color:var(--c30);letter-spacing:.1em;}
-.gm-hud-right{display:flex;flex-direction:column;align-items:center;gap:5px;}
+/* score circle stays in top right of HUD */
 .score-circle{
-  width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);
+  width:clamp(52px,14vw,64px);height:clamp(52px,14vw,64px);
   background:var(--yellow);border-radius:50%;
   border:3px solid rgba(255,255,255,.6);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   box-shadow:0 2px 8px rgba(0,0,0,.12);
+  flex-shrink:0;
 }
 .score-num{font-size:clamp(16px,5vw,22px);font-weight:900;color:var(--ink);line-height:1;}
 .score-lbl{font-size:7px;font-weight:700;color:var(--ink);font-family:var(--H2);letter-spacing:.04em;}
-.lives-wrap{
-  display:flex;gap:3px;align-items:center;
+
+/* TikTok-style hearts sidebar — bottom right of game field */
+#lives-sidebar{
+  position:absolute;
+  right:clamp(10px,3vw,16px);
+  bottom:clamp(70px,18vw,100px); /* sits above gloves */
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:clamp(6px,2vw,10px);
+  z-index:8;
 }
-.life-heart{width:clamp(20px,5.5vw,26px);height:clamp(20px,5.5vw,26px);transition:opacity .2s;display:block;}
-.life-heart.lost{opacity:.2;filter:grayscale(1);}
+.life-heart{
+  width:clamp(32px,9vw,44px);
+  height:clamp(32px,9vw,44px);
+  display:block;
+  transition:opacity .3s, transform .3s, filter .3s;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));
+}
+.life-heart.lost{
+  opacity:.25;
+  filter:grayscale(1) drop-shadow(0 2px 4px rgba(0,0,0,.2));
+  transform:scale(.85);
+}
 
 /* pitch field */
 #game-field{
@@ -655,16 +676,9 @@ function renderGame(){
         <div class="gm-title">GARDIEN DE BUT</div>
         <div class="gm-tag"><span>⚽ WORLD CUP 2026</span></div>
       </div>
-      <div class="gm-hud-right">
-        <div class="score-circle">
-          <div class="score-num" id="score-disp">0</div>
-          <div class="score-lbl">POINTS</div>
-        </div>
-        <div class="lives-wrap" id="lives-wrap">
-          <img class="life-heart" id="lh-1" src="${IMG_HEART}" alt="">
-          <img class="life-heart" id="lh-2" src="${IMG_HEART}" alt="">
-          <img class="life-heart" id="lh-3" src="${IMG_HEART}" alt="">
-        </div>
+      <div class="score-circle">
+        <div class="score-num" id="score-disp">0</div>
+        <div class="score-lbl">POINTS</div>
       </div>
     </div>
 
@@ -675,6 +689,13 @@ function renderGame(){
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
       <div id="dodge-hint">⚠ ESQUIVE !</div>
+
+      <!-- TikTok-style hearts sidebar -->
+      <div id="lives-sidebar">
+        <img class="life-heart" id="lh-1" src="${IMG_HEART}" alt="">
+        <img class="life-heart" id="lh-2" src="${IMG_HEART}" alt="">
+        <img class="life-heart" id="lh-3" src="${IMG_HEART}" alt="">
+      </div>
     </div>
 
     <div class="gm-btns">
@@ -708,7 +729,18 @@ function startGame(){
 function updateLivesDisplay(){
   for(let i=1;i<=3;i++){
     const h=$('lh-'+i);
-    if(h) h.classList.toggle('lost', i>livesVal);
+    if(!h) continue;
+    const wasAlive = !h.classList.contains('lost');
+    const nowLost  = i > livesVal;
+    if(wasAlive && nowLost){
+      // Trigger break animation then apply lost state
+      h.style.animation='heartBreak .4s ease forwards';
+      setTimeout(()=>{
+        if(h){ h.classList.add('lost'); h.style.animation=''; }
+      }, 400);
+    } else if(!nowLost){
+      h.classList.remove('lost');
+    }
   }
 }
 
