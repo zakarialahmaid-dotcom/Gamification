@@ -211,8 +211,13 @@ body{
   width:100%;height:100%;
   object-fit:contain;
   display:block;
-  filter:drop-shadow(0 3px 8px rgba(0,0,0,.3));
-  transition:transform .2s;
+  /* white contour + depth shadow */
+  filter:
+    drop-shadow(0 0 0px #fff)
+    drop-shadow(0 0 2px #fff)
+    drop-shadow(0 0 4px #fff)
+    drop-shadow(0 3px 8px rgba(0,0,0,.35));
+  transition:transform .2s, filter .2s;
 }
 #lives-count{
   position:absolute;
@@ -231,7 +236,14 @@ body{
 /* pitch field */
 #game-field{
   flex:1;position:relative;overflow:hidden;
-  background:linear-gradient(180deg, #e8a000 0%, #ff9900 30%, #ff9900 70%, #e8a000 100%);
+  background:
+    linear-gradient(180deg,
+      rgba(255,153,0,0.55) 0%,
+      rgba(255,153,0,0.35) 40%,
+      rgba(255,153,0,0.45) 100%
+    ),
+    url('https://raw.githubusercontent.com/Madzack69/Icons/main/Terrain_BG_Resized.png')
+    center center / cover no-repeat;
 }
 
 /* subtle pitch lines */
@@ -325,15 +337,21 @@ body{
   height:clamp(64px,17vw,84px);
   width:auto;
   object-fit:contain;
-  /* crisp PNG rendering */
   image-rendering:-webkit-optimize-contrast;
   image-rendering:crisp-edges;
-  /* no filter that could cause blur artifacts */
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
+  /* soft blurry glow shadow */
+  filter:
+    drop-shadow(0 0 8px rgba(255,153,0,.6))
+    drop-shadow(0 0 18px rgba(255,100,0,.35))
+    drop-shadow(0 6px 14px rgba(0,0,0,.5));
 }
-#glove-el.catching{
-  filter:drop-shadow(0 0 16px rgba(255,255,255,.9));
+#glove-el.catching img{
+  filter:
+    drop-shadow(0 0 14px rgba(255,255,255,.9))
+    drop-shadow(0 0 28px rgba(255,200,0,.7))
+    drop-shadow(0 6px 14px rgba(0,0,0,.5));
 }
 #glove-el.shaking{animation:shake .4s ease;}
 #glove-el.big-shake{animation:bigShake .5s ease;}
@@ -776,14 +794,21 @@ function updateLivesDisplay(){
   const heart=$('lives-heart-img');
   if(badge) badge.textContent=livesVal;
   if(heart){
-    // Pulse the heart on hit
     heart.style.transform='scale(1.4)';
     setTimeout(()=>{ if(heart) heart.style.transform='scale(1)'; },200);
-    // Grey out when 1 life left
     if(livesVal===1){
-      heart.style.filter='drop-shadow(0 0 8px rgba(236,35,38,.8))';
+      heart.style.filter=`
+        drop-shadow(0 0 0px #fff)
+        drop-shadow(0 0 3px #fff)
+        drop-shadow(0 0 6px #fff)
+        drop-shadow(0 0 10px rgba(236,35,38,.9))
+        drop-shadow(0 3px 8px rgba(0,0,0,.35))`;
     } else {
-      heart.style.filter='drop-shadow(0 3px 8px rgba(0,0,0,.3))';
+      heart.style.filter=`
+        drop-shadow(0 0 0px #fff)
+        drop-shadow(0 0 2px #fff)
+        drop-shadow(0 0 4px #fff)
+        drop-shadow(0 3px 8px rgba(0,0,0,.35))`;
     }
   }
 }
