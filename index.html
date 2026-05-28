@@ -78,7 +78,8 @@ body{
   line-height:.88;text-shadow:0 4px 0 rgba(0,0,0,.18);
 }
 .lb-subbanner{
-  display:inline-flex;align-items:center;gap:6px;background:var(--c10);
+  display:inline-flex;align-items:center;gap:6px;
+  background:#006233;
   border-radius:4px;padding:4px 14px;margin-top:8px;
   box-shadow:2px 2px 0 rgba(0,0,0,.2);
 }
@@ -732,11 +733,10 @@ function copyCode(text, btn){
     btn.textContent='✓ COPIÉ';
     btn.style.background='#22a651';
     btn.style.color='#fff';
-    setTimeout(()=>{
-      btn.textContent='COPIER';
-      btn.style.background='';
-      btn.style.color='';
-    }, 2000);
+    btn.style.boxShadow='0 3px 0 #176e38';
+    btn.disabled=true;
+    btn.style.cursor='default';
+    btn.style.opacity='1';
   };
   // Try modern API first
   if(navigator.clipboard && window.isSecureContext){
@@ -789,9 +789,9 @@ function renderLobby(){
 
     <!-- 60% orange — header -->
     <div class="lb-top">
-      <div class="lb-eyebrow">JUMIA × WORLD CUP 2026</div>
+      <div class="lb-eyebrow">JUMIA ÉDITION FANS ⚽</div>
       <div class="lb-title">GARDIEN<br>DE BUT</div>
-      <div class="lb-subbanner"><span>⚽ GOALKEEPER CHALLENGE</span></div>
+      <div class="lb-subbanner"><span>ÉDITION FANS MAROC 🇲🇦</span></div>
     </div>
 
     <div class="lb-pitch"></div>
@@ -887,7 +887,7 @@ function renderGame(){
     <div class="gm-hud">
       <div class="gm-brand">
         <div class="gm-title">GARDIEN DE BUT</div>
-        <div class="gm-tag"><span>⚽ WORLD CUP 2026</span></div>
+        <div class="gm-tag"><span>⚽ ÉDITION FANS 🇲🇦</span></div>
       </div>
     </div>
 
@@ -1238,7 +1238,7 @@ function renderResult(){
   $('app').innerHTML=`
   <div id="screen-result">
     <div class="rs-header">
-      <div class="rs-brand">JUMIA × WORLD CUP 2026</div>
+      <div class="rs-brand">JUMIA — ÉDITION FANS 🇲🇦</div>
       <div class="rs-title">${s>=400?'BIEN ARRÊTÉ !':'PRESQUE !'}</div>
       <div class="rs-sub">${s>=400?'Voici ton bon de réduction ↓':'Rejoue pour gagner un meilleur bon !'}</div>
     </div>
