@@ -168,41 +168,49 @@ body{
 }
 
 /* ── Voucher tiers — 30% white cards, Red 10% accent */
-.lb-tiers{
+/* ── GAME INSTRUCTIONS */
+.lb-how{
   flex:0 0 auto;
   margin:clamp(12px,3vw,20px) clamp(20px,5vw,28px) 0;
-  display:flex;gap:8px;
 }
-.lb-tier{
-  flex:1;
-  border-radius:10px;
-  padding:clamp(10px,2.5vw,14px) 6px;
-  text-align:center;
+.lb-how-title{
+  font-size:clamp(10px,2.8vw,12px);font-weight:700;
+  color:rgba(255,255,255,.6);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:clamp(8px,2vw,10px);
+}
+.lb-how-rows{display:flex;flex-direction:column;gap:8px;}
+.lb-how-row{
+  display:flex;align-items:center;gap:14px;
   background:var(--c30);
-  box-shadow:0 2px 10px rgba(0,0,0,.08);
-  border-top:3px solid var(--c60);
+  border-radius:8px;
+  padding:clamp(10px,2.5vw,14px) clamp(14px,3.5vw,18px);
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
-.lb-tier-pts{
-  font-size:clamp(8px,2.2vw,10px);
-  color:var(--ink2);
-  font-family:var(--H2);
-  margin-bottom:3px;
+.lb-how-row.dodge{border-left:4px solid var(--c10);}
+.lb-how-row.catch{border-left:4px solid #20ac76;}
+.lb-how-row.bonus{border-left:4px solid var(--yellow);}
+.lb-how-icon{
+  width:clamp(38px,10vw,48px);height:clamp(38px,10vw,48px);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
 }
-/* Sub-headline: 50% of headline per brand */
-.lb-tier-disc{
-  font-size:clamp(20px,5.5vw,28px);
-  font-weight:900;
-  color:var(--c10);
-  font-family:var(--H1);
-  line-height:1;
+.lb-how-icon img{width:100%;height:100%;object-fit:contain;display:block;}
+.lb-how-icon.redcard img{width:65%;height:100%;}
+.lb-how-text{flex:1;}
+.lb-how-action{
+  font-size:clamp(13px,3.5vw,16px);font-weight:900;
+  color:var(--ink);font-family:var(--H1);
+  text-transform:uppercase;line-height:1;margin-bottom:2px;
 }
-.lb-tier-lbl{
-  font-size:clamp(8px,2vw,9px);
-  color:var(--ink);
-  font-family:var(--H2);
-  margin-top:4px;
-  font-weight:700;
+.lb-how-desc{font-size:clamp(10px,2.6vw,12px);color:var(--ink2);font-family:var(--H2);line-height:1.3;}
+.lb-how-tag{
+  flex-shrink:0;font-size:clamp(9px,2.4vw,11px);font-weight:900;
+  font-family:var(--H1);padding:5px 12px;border-radius:4px;
+  text-transform:uppercase;letter-spacing:.04em;
 }
+.lb-how-tag.green{background:#20ac76;color:#fff;}
+.lb-how-tag.red{background:var(--c10);color:#fff;}
+.lb-how-tag.gold{background:var(--yellow);color:var(--ink);}
 
 /* ── PLAY TRANSITION */
 #play-transition{
@@ -998,22 +1006,44 @@ function renderLobby(){
         </div>`).join('')}
     </div>
 
-    <!-- 30% white — voucher tiers -->
-    <div class="lb-tiers">
-      <div class="lb-tier">
-        <div class="lb-tier-pts">150+ pts</div>
-        <div class="lb-tier-disc">10%</div>
-        <div class="lb-tier-lbl">Match Ready</div>
-      </div>
-      <div class="lb-tier">
-        <div class="lb-tier-pts">400+ pts</div>
-        <div class="lb-tier-disc">15%</div>
-        <div class="lb-tier-lbl">Champion</div>
-      </div>
-      <div class="lb-tier">
-        <div class="lb-tier-pts">800+ pts</div>
-        <div class="lb-tier-disc">20%</div>
-        <div class="lb-tier-lbl">Légende</div>
+    <!-- HOW TO PLAY — fills negative space clearly -->
+    <div class="lb-how">
+      <div class="lb-how-title">COMMENT JOUER</div>
+      <div class="lb-how-rows">
+
+        <div class="lb-how-row catch">
+          <div class="lb-how-icon">
+            <img src="${IMG_SOCCER}" alt="ball" draggable="false">
+          </div>
+          <div class="lb-how-text">
+            <div class="lb-how-action">Attrape le ballon</div>
+            <div class="lb-how-desc">Déplace tes gants pour intercepter les ballons</div>
+          </div>
+          <div class="lb-how-tag green">+POINTS</div>
+        </div>
+
+        <div class="lb-how-row bonus">
+          <div class="lb-how-icon">
+            <img src="${IMG_GOLDEN}" alt="golden" draggable="false">
+          </div>
+          <div class="lb-how-text">
+            <div class="lb-how-action">Ballon d'or</div>
+            <div class="lb-how-desc">Attrape le ballon doré pour un bonus x3</div>
+          </div>
+          <div class="lb-how-tag gold">BONUS</div>
+        </div>
+
+        <div class="lb-how-row dodge">
+          <div class="lb-how-icon redcard">
+            <img src="${IMG_REDCARD}" alt="red card" draggable="false">
+          </div>
+          <div class="lb-how-text">
+            <div class="lb-how-action">Esquive le carton</div>
+            <div class="lb-how-desc">Évite les cartons rouges — chaque touche = une vie perdue</div>
+          </div>
+          <div class="lb-how-tag red">DANGER</div>
+        </div>
+
       </div>
     </div>
 
