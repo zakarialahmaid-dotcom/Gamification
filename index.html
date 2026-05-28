@@ -424,7 +424,7 @@ body{
 
 /* Red card — image */
 .item-redcard{
-  width:clamp(48px,13vw,64px);height:clamp(64px,17vw,82px);
+  width:clamp(60px,16vw,78px);height:clamp(80px,21vw,104px);
   filter:
     drop-shadow(0 0 6px rgba(255,0,0,.7))
     drop-shadow(0 0 14px rgba(255,0,0,.4))
@@ -827,12 +827,12 @@ function getFW(){ return document.getElementById('app').offsetWidth||window.inne
 function getFH(){ return document.getElementById('game-field')?.offsetHeight||320; }
 
 // Glove catcher size
-const GW=96, GH=54;
+const GW=90, GH=52;
 function CATCH_Y(fh){ return fh - GH - 6; }
 
 // Item sizes
 const BALL_SIZE = 46;
-const CARD_W = 52, CARD_H = 72;
+const CARD_W = 68, CARD_H = 92;
 
 const IMG_STAR    = "https://raw.githubusercontent.com/Madzack69/Icons/main/Star.png";
 const IMG_TROPHY  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Trophy.png";
