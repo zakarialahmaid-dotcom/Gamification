@@ -30,12 +30,14 @@
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-html{width:100%;height:100%;overflow:hidden;}
+html{width:100%;height:100%;overflow:hidden;margin:0;padding:0;}
 body{
   width:100%;height:100%;overflow:hidden;
   background:var(--c60);
   display:flex;align-items:stretch;justify-content:center;
   margin:0;padding:0;
+  /* Prevent any white bleed */
+  position:fixed;top:0;left:0;right:0;bottom:0;
 }
 #app{
   width:100%;max-width:100%;height:100%;
@@ -638,7 +640,10 @@ body{
 ══════════════════════════════════════════ */
 #screen-form{
   flex:1;display:flex;flex-direction:column;
-  background:var(--c60);overflow-y:auto;
+  background:var(--c60);
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
   animation:fadeIn .25s ease;
 }
 .fm-top{
@@ -1171,7 +1176,7 @@ function renderLobby(){
   </div>`;
 
   const bs=$('btn-start');
-  if(bs) bs.addEventListener('pointerdown', ()=>{ goTo(startGame); });
+  if(bs) bs.addEventListener('pointerdown', ()=>{ goTo(renderForm); });
 
   // Load leaderboard async (for future use, hidden from lobby now)
   fetchLeaderboard().catch(()=>{});
@@ -1465,22 +1470,14 @@ function endGame(finalScore){
 // ── FORM
 function renderForm(){
   startMusic();
-  const s=scoreVal;
   $('app').innerHTML=`
   <div id="screen-form">
     <div class="fm-top">
-      <span class="fm-emoji" style="display:block;margin-bottom:4px"><img src="${IMG_GLOVES}" style="height:clamp(40px,10vw,52px);width:auto;display:inline-block" alt="gloves"></span>
-      <div class="fm-title">BIEN JOUÉ !</div>
-      <div class="fm-sub">Saisis tes infos pour<br><b>recevoir ton bon de réduction</b></div>
+      <span class="fm-emoji" style="display:block;margin-bottom:8px"><img src="${IMG_GLOVES}" style="height:clamp(48px,13vw,64px);width:auto;display:inline-block" alt="gloves"></span>
+      <div class="fm-title">PRÊT(E) À JOUER ?</div>
+      <div class="fm-sub">Saisis tes infos pour<br><b>participer et gagner ton bon Jumia</b></div>
     </div>
     <div class="fm-card">
-      <div class="fm-score-strip">
-        ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(p=>`
-          <div class="fm-score-pill">
-            <div class="fm-score-pill-val" style="font-family:${H1}">${p.val}</div>
-            <div class="fm-score-pill-lbl">${p.lbl}</div>
-          </div>`).join('')}
-      </div>
       <div class="fm-field">
         <label class="fm-label" for="inp-name">Prénom</label>
         <input class="fm-input" id="inp-name" type="text" placeholder="Ex : Yasmine" autocomplete="given-name">
@@ -1500,7 +1497,7 @@ function renderForm(){
     <div class="fm-spacer"></div>
     <div style="padding:clamp(8px,2vw,12px) clamp(12px,3vw,18px) 0">
       <button class="btn-submit" id="btn-submit">
-        <span id="submit-label">VOIR MON BON</span>
+        <span id="submit-label">COUP D'ENVOI !</span>
         <div class="spinner" id="submit-spinner"></div>
       </button>
     </div>
@@ -1529,27 +1526,15 @@ function submitForm(){
   });
   if(!valid) return;
 
+  // Store credentials — sheet is called after game ends with real score
   playerName=name; playerEmail=email; playerCity=city;
-
-  // Send data to sheet
-  if(SHEET_URL.startsWith("https://")){
-    const params=new URLSearchParams({
-      timestamp: new Date().toISOString(),
-      name, email, city,
-      score:   scoreVal,
-      combo:   Math.min(maxComboVal,5),
-      survie:  Math.floor(elapsedSec),
-      voucher: getVoucher(scoreVal).code,
-      source:  'JumiaGardienDeBut'
-    });
-    fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
-  }
 
   const btn=$('btn-submit'), lbl=$('submit-label'), spn=$('submit-spinner');
   if(btn) btn.disabled=true;
   if(lbl) lbl.style.display='none';
   if(spn) spn.style.display='block';
-  goTo(renderResult);
+
+  goTo(startGame);
 }
 
 // ── RESULT
