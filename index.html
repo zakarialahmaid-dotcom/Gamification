@@ -13,21 +13,15 @@
 @font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Gotham-Black.otf') format('opentype');font-weight:900;}
 @font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/GothamBold.ttf') format('truetype');font-weight:700;}
 
-/* ────────────────────────────────────────────────
-   60 / 30 / 10 COLOUR SYSTEM
-   60% → #ff9900  Orange    — dominant background
-   30% → #ffffff  White     — surfaces, cards, text
-   10% → #ec2326  Red       — CTAs, accents, badges
-────────────────────────────────────────────────── */
 :root{
-  --c60:#ff9900;   /* orange — 60% dominant */
-  --c60d:#e68800;  /* orange dark variant    */
-  --c30:#ffffff;   /* white  — 30% secondary */
-  --c30t:rgba(255,255,255,0.12); /* white tint */
-  --c30m:rgba(255,255,255,0.55); /* white mid  */
-  --c10:#ec2326;   /* red    — 10% accent    */
-  --c10d:#a31a1d;  /* red dark               */
-  --ink:#403b3b;   /* text on white          */
+  --c60:#ff9900;
+  --c60d:#e68800;
+  --c30:#ffffff;
+  --c30t:rgba(255,255,255,0.12);
+  --c30m:rgba(255,255,255,0.55);
+  --c10:#ec2326;
+  --c10d:#a31a1d;
+  --ink:#403b3b;
   --ink2:#777;
   --yellow:#ffba00;
   --green:#22a651;
@@ -37,12 +31,18 @@
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-/* FULL SCREEN */
-html,body{width:100%;height:100%;overflow:hidden;}
-body{background:var(--c60);display:flex;align-items:stretch;justify-content:center;}
+/* ── FULL SCREEN — works standalone AND inside iframe */
+html{width:100%;height:100%;overflow:hidden;}
+body{
+  width:100%;height:100%;
+  overflow:hidden;
+  background:var(--c60);
+  display:flex;align-items:stretch;justify-content:center;
+  margin:0;padding:0;
+}
 #app{
-  width:100%;max-width:430px;
-  height:100vh;height:100dvh;
+  width:100%;max-width:100%;
+  height:100%;
   display:flex;flex-direction:column;
   background:var(--c60);
   overflow:hidden;
@@ -61,16 +61,13 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 @keyframes bigShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-14px)}30%{transform:translateX(14px)}45%{transform:translateX(-10px)}60%{transform:translateX(10px)}75%{transform:translateX(-6px)}90%{transform:translateX(6px)}}
 
 /* ══════════════════════════════════════════
-   LOBBY  — 60% orange bg, 30% white panels,
-            10% red on key actions only
+   LOBBY
 ══════════════════════════════════════════ */
 #screen-lobby{
   flex:1;display:flex;flex-direction:column;
   background:var(--c60);padding:0;overflow:hidden;
   animation:fadeIn .25s ease;
 }
-
-/* Top: 60% orange — brand headline */
 .lb-top{
   flex:0 0 auto;padding:clamp(14px,4vw,24px) clamp(16px,5vw,28px) 0;
   position:relative;
@@ -83,7 +80,6 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   font-size:clamp(38px,12vw,56px);font-weight:900;color:var(--c30);
   line-height:.88;text-shadow:0 4px 0 rgba(0,0,0,.18);
 }
-/* 10% red — the WORD CATCHER sub-banner */
 .lb-subbanner{
   display:inline-flex;align-items:center;background:var(--c10);
   border-radius:4px;padding:4px 14px;margin-top:8px;
@@ -92,11 +88,9 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .lb-subbanner span{
   font-size:clamp(10px,3vw,14px);font-weight:900;color:var(--c30);letter-spacing:.12em;
 }
-
-/* 30% white — stats band */
 .lb-stats{
   flex:0 0 auto;
-  background:var(--c30);                /* white surface — 30% */
+  background:var(--c30);
   margin:clamp(12px,3vw,20px) clamp(14px,4vw,24px) 0;
   border-radius:16px;
   padding:clamp(10px,2.5vw,16px) clamp(8px,2vw,12px);
@@ -122,28 +116,22 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   white-space:pre-line;line-height:1.35;font-family:var(--H2);margin-top:14px;
   text-transform:uppercase;letter-spacing:.04em;
 }
-
-/* 10% red — match day ribbon */
 .lb-matchday{
   flex:0 0 auto;
-  background:var(--c10);               /* red — accent 10% */
+  background:var(--c10);
   margin:clamp(10px,2.5vw,16px) clamp(14px,4vw,24px) 0;
   border-radius:12px;padding:10px 16px;
   display:flex;align-items:center;gap:10px;
 }
 .lb-matchday-title{font-size:clamp(10px,2.8vw,13px);font-weight:700;color:var(--c30);font-family:var(--H2);}
 .lb-matchday-sub{font-size:clamp(8px,2.2vw,10px);color:rgba(255,255,255,.8);font-family:var(--H2);font-weight:300;}
-
-/* spacer — orange shows through (60%) */
 .lb-spacer{flex:1;}
-
-/* 10% red CTA button */
 .lb-cta{
   flex:0 0 auto;
   padding:clamp(10px,3vw,18px) clamp(14px,4vw,24px) clamp(16px,4vw,28px);
 }
 .btn-kickoff{
-  width:100%;background:var(--c10);color:var(--c30);  /* 10% red */
+  width:100%;background:var(--c10);color:var(--c30);
   border:none;border-radius:30px;
   padding:clamp(14px,4vw,18px);
   font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;
@@ -155,33 +143,28 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .cta-note{text-align:center;font-size:10px;color:rgba(255,255,255,.55);margin-top:8px;font-family:var(--H2);}
 
 /* ══════════════════════════════════════════
-   GAME  — 60% orange field, 30% white HUD,
-           10% red score/lives accent
+   GAME
 ══════════════════════════════════════════ */
 #screen-game{
   flex:1;display:flex;flex-direction:column;
   background:var(--c60);overflow:hidden;
   animation:fadeIn .15s ease;
 }
-
-/* 30% white — top HUD bar */
 .gm-hud{
   flex:0 0 auto;
-  background:var(--c30);              /* white — 30% surface */
+  background:var(--c30);
   padding:clamp(8px,2vw,12px) clamp(14px,4vw,22px);
   display:flex;justify-content:space-between;align-items:center;
   box-shadow:0 2px 12px rgba(0,0,0,.08);
 }
 .gm-brand{display:flex;flex-direction:column;gap:3px;}
 .gm-title{font-size:clamp(20px,6vw,28px);font-weight:900;color:var(--ink);line-height:1;}
-/* 10% red accent tag */
 .gm-tag{
   display:inline-flex;background:var(--c10);border-radius:4px;
   padding:2px 8px;width:fit-content;
 }
 .gm-tag span{font-size:clamp(8px,2vw,10px);font-weight:900;color:var(--c30);letter-spacing:.1em;}
 .gm-hud-right{display:flex;flex-direction:column;align-items:center;gap:5px;}
-/* score circle — yellow (from palette, acts as highlight within 30%) */
 .score-circle{
   width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);
   background:var(--yellow);border-radius:50%;
@@ -193,7 +176,6 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .score-lbl{font-size:7px;font-weight:700;color:var(--ink);font-family:var(--H2);letter-spacing:.04em;}
 .lives-wrap{position:relative;width:clamp(38px,10vw,48px);height:clamp(35px,9vw,44px);}
 .lives-wrap img{width:100%;height:100%;display:block;}
-/* 10% red badge on lives */
 .lives-num{
   position:absolute;top:-3px;right:-5px;
   width:20px;height:20px;background:var(--c10);
@@ -201,8 +183,6 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   font-size:11px;font-weight:900;color:var(--c30);border:2px solid var(--c30);
   font-family:var(--H1);
 }
-
-/* 60% orange — category line */
 .gm-cat-line{
   flex:0 0 auto;padding:5px clamp(14px,4vw,22px);
   display:flex;align-items:center;gap:8px;
@@ -210,14 +190,10 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .gm-cat-name{font-size:clamp(12px,3.5vw,16px);font-weight:900;color:rgba(255,255,255,.5);}
 .combo-badge{background:var(--yellow);color:var(--ink);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:900;display:none;}
 .lvl-badge{background:var(--c10);color:var(--c30);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:900;display:none;animation:lvlPop 1.4s ease;}
-
-/* 60% orange — game field (dominant) */
 #game-field{
   flex:1;position:relative;overflow:hidden;
   background:var(--c60);
 }
-
-/* words — good=green(clear), bad=red(10% echo) */
 .falling-word{
   position:absolute;color:var(--c30);border-radius:8px;
   padding:clamp(4px,1.2vw,6px) clamp(10px,3vw,14px);
@@ -232,7 +208,6 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 #cart-el.big-shake{animation:bigShake .5s ease;}
 #danger-bar{position:absolute;bottom:0;left:0;right:0;height:0;background:#ec2326;transition:height .15s,opacity .15s;opacity:0;z-index:3;}
 #dodge-hint{position:absolute;left:50%;transform:translateX(-50%);background:rgba(236,35,38,.92);color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:900;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8;}
-
 .flash-msg{
   position:absolute;border-radius:20px;padding:4px 12px;
   font-size:clamp(11px,3vw,14px);font-weight:900;
@@ -241,17 +216,13 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 #cart-el{position:absolute;z-index:6;}
 #cart-el img{display:block;}
 #cart-el.shaking{animation:shake .5s ease;}
-
-
-/* 30% white — button zone */
 .gm-btns{
   flex:0 0 auto;
-  background:var(--c30);             /* white — 30% */
+  background:var(--c30);
   padding:clamp(10px,2.5vw,16px) clamp(16px,5vw,28px);
   display:flex;justify-content:space-between;align-items:center;
   box-shadow:0 -2px 12px rgba(0,0,0,.06);
 }
-/* 10% red — action buttons */
 .btn-arrow{
   width:clamp(60px,16vw,76px);height:clamp(60px,16vw,76px);
   border-radius:50%;background:var(--c10);border:none;cursor:pointer;
@@ -263,10 +234,8 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .btn-arrow:active{transform:scale(.93);}
 .hud-center{text-align:center;}
 
-
 /* ══════════════════════════════════════════
-   RESULT — 60% orange, 30% white voucher,
-            10% red accents
+   RESULT
 ══════════════════════════════════════════ */
 #screen-result{
   flex:1;display:flex;flex-direction:column;
@@ -279,24 +248,20 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .rs-brand{font-size:clamp(9px,2.5vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);letter-spacing:.1em;margin-bottom:2px;}
 .rs-title{font-size:clamp(28px,9vw,42px);font-weight:900;color:var(--c30);line-height:.9;}
 .rs-sub{font-size:clamp(11px,3vw,14px);color:rgba(255,255,255,.8);font-family:var(--H2);font-weight:300;margin-top:6px;}
-
-/* score summary — 30% white pills */
 .rs-scores{
   flex:0 0 auto;display:flex;gap:10px;
   padding:clamp(10px,2.5vw,16px) clamp(16px,4vw,24px);
 }
 .rs-score-card{
-  flex:1;background:var(--c30);border-radius:14px;    /* white 30% */
+  flex:1;background:var(--c30);border-radius:14px;
   padding:clamp(8px,2vw,12px) 6px;text-align:center;
   box-shadow:0 2px 10px rgba(0,0,0,.07);
 }
 .rs-score-val{font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--ink);}
 .rs-score-lbl{font-size:clamp(7px,1.8vw,9px);color:var(--ink2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;}
-
-/* voucher card — 30% white surface */
 .voucher-card{
   flex:0 0 auto;
-  background:var(--c30);             /* white — 30% */
+  background:var(--c30);
   margin:0 clamp(14px,4vw,22px) clamp(10px,2.5vw,14px);
   border-radius:18px;padding:clamp(14px,3.5vw,20px);text-align:center;
   box-shadow:0 4px 24px rgba(0,0,0,.1);
@@ -307,7 +272,7 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   letter-spacing:.08em;margin-bottom:8px;color:var(--c30);font-family:var(--H2);
 }
 .v-disc-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;}
-.v-disc{font-size:clamp(32px,10vw,46px);font-weight:900;color:var(--c10);line-height:1;}   /* 10% red */
+.v-disc{font-size:clamp(32px,10vw,46px);font-weight:900;color:var(--c10);line-height:1;}
 .v-cat{font-size:clamp(11px,3vw,13px);font-weight:700;color:var(--ink);font-family:var(--H2);}
 .v-code{
   background:#fff8e6;border:2px dashed var(--c60);border-radius:10px;
@@ -317,11 +282,9 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   font-family:var(--H1);
 }
 .v-note{font-size:clamp(8px,2vw,10px);color:var(--ink2);font-family:var(--H2);}
-
-/* progress — white surface */
 .rs-progress{
   flex:0 0 auto;
-  background:var(--c30);            /* white 30% */
+  background:var(--c30);
   margin:0 clamp(14px,4vw,22px) clamp(10px,2.5vw,14px);
   border-radius:14px;padding:clamp(10px,2.5vw,14px) clamp(12px,3vw,16px);
   box-shadow:0 2px 10px rgba(0,0,0,.07);
@@ -331,11 +294,9 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .prog-lbl{font-size:clamp(9px,2.5vw,11px);font-family:var(--H2);min-width:34px;font-weight:700;}
 .prog-bg{flex:1;background:#f0ece4;border-radius:99px;height:8px;overflow:hidden;}
 .prog-fill{height:100%;border-radius:99px;transition:width .6s ease;}
-
-/* products */
 .rs-products{
   flex:0 0 auto;
-  background:var(--c30);            /* white 30% */
+  background:var(--c30);
   margin:0 clamp(14px,4vw,22px) clamp(10px,2.5vw,14px);
   border-radius:14px;padding:clamp(10px,2.5vw,14px);
   box-shadow:0 2px 10px rgba(0,0,0,.07);
@@ -345,12 +306,8 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .prod-card{flex:1;background:#fff8e6;border-radius:10px;padding:8px 6px;text-align:center;border:1px solid #f0e0b0;}
 .prod-emoji{font-size:clamp(18px,5vw,24px);}
 .prod-name{font-size:clamp(7px,1.8vw,9px);font-weight:700;color:var(--ink);line-height:1.2;margin:3px 0;font-family:var(--H2);}
-.prod-disc{background:var(--c10);color:var(--c30);border-radius:20px;padding:2px 7px;font-size:clamp(8px,2.2vw,10px);font-weight:900;display:inline-block;}  /* 10% red */
-
-/* spacer */
+.prod-disc{background:var(--c10);color:var(--c30);border-radius:20px;padding:2px 7px;font-size:clamp(8px,2.2vw,10px);font-weight:900;display:inline-block;}
 .rs-spacer{flex:1;min-height:clamp(8px,2vw,16px);}
-
-/* result bottom — 10% red buttons */
 .v-eyebrow{
   font-size:clamp(9px,2.5vw,11px);color:var(--ink2);letter-spacing:.08em;
   text-transform:uppercase;margin-bottom:6px;
@@ -368,7 +325,6 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   font-family:var(--H1);letter-spacing:.06em;flex-shrink:0;
   transition:background .2s;
 }
-/* Main Jumia CTA block */
 .rs-cta-block{
   flex:0 0 auto;
   padding:0 clamp(14px,4vw,22px) clamp(8px,2vw,12px);
@@ -391,7 +347,6 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
   color:rgba(255,255,255,.5);font-family:var(--H2);
   margin-top:6px;word-break:break-all;
 }
-/* Replay bar */
 .rs-replay-bar{
   flex:0 0 auto;
   padding:clamp(8px,2vw,12px) clamp(14px,4vw,22px) clamp(14px,4vw,22px);
@@ -412,8 +367,7 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 }
 
 /* ══════════════════════════════════════════
-   FORM SCREEN — collect name / email / city
-   before showing the coupon
+   FORM SCREEN — compact to fit without scroll
 ══════════════════════════════════════════ */
 #screen-form{
   flex:1;display:flex;flex-direction:column;
@@ -422,38 +376,36 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 }
 .fm-top{
   flex:0 0 auto;
-  padding:clamp(20px,5vw,32px) clamp(18px,5vw,28px) clamp(14px,3.5vw,22px);
+  padding:clamp(10px,2.5vw,16px) clamp(16px,4vw,24px) clamp(6px,1.5vw,10px);
   text-align:center;
 }
-.fm-emoji{font-size:clamp(36px,10vw,52px);margin-bottom:8px;display:block;}
+.fm-emoji{font-size:clamp(24px,6vw,32px);margin-bottom:4px;display:block;}
 .fm-title{
-  font-size:clamp(26px,8vw,38px);font-weight:900;color:var(--c30);
-  line-height:.92;font-family:var(--H1);margin-bottom:8px;
+  font-size:clamp(20px,6vw,28px);font-weight:900;color:var(--c30);
+  line-height:.92;font-family:var(--H1);margin-bottom:4px;
 }
 .fm-sub{
-  font-size:clamp(12px,3.2vw,15px);color:rgba(255,255,255,.85);
-  font-family:var(--H2);font-weight:300;line-height:1.5;
+  font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.85);
+  font-family:var(--H2);font-weight:300;line-height:1.4;
 }
 .fm-sub b{color:var(--c30);font-weight:700;}
-
-/* white card — 30% */
 .fm-card{
   flex:0 0 auto;
   background:var(--c30);
-  margin:0 clamp(14px,4vw,22px);
-  border-radius:20px;padding:clamp(18px,4.5vw,26px);
-  box-shadow:0 6px 28px rgba(0,0,0,.1);
+  margin:0 clamp(12px,3vw,18px);
+  border-radius:16px;padding:clamp(12px,3vw,16px);
+  box-shadow:0 4px 18px rgba(0,0,0,.1);
 }
-.fm-field{margin-bottom:clamp(14px,3.5vw,20px);}
+.fm-field{margin-bottom:clamp(8px,2vw,12px);}
 .fm-label{
-  display:block;font-size:clamp(10px,2.8vw,12px);font-weight:700;
+  display:block;font-size:clamp(9px,2.4vw,11px);font-weight:700;
   color:var(--ink2);font-family:var(--H2);text-transform:uppercase;
-  letter-spacing:.06em;margin-bottom:6px;
+  letter-spacing:.06em;margin-bottom:4px;
 }
 .fm-input{
-  width:100%;border:2px solid #e8e4dc;border-radius:12px;
-  padding:clamp(12px,3vw,15px) clamp(12px,3vw,16px);
-  font-size:clamp(14px,3.8vw,16px);font-family:var(--H2);
+  width:100%;border:2px solid #e8e4dc;border-radius:10px;
+  padding:clamp(9px,2.2vw,11px) clamp(10px,2.5vw,14px);
+  font-size:clamp(13px,3.4vw,15px);font-family:var(--H2);
   color:var(--ink);background:#fafafa;outline:none;
   transition:border-color .2s,box-shadow .2s;
   -webkit-appearance:none;
@@ -461,43 +413,38 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 .fm-input:focus{border-color:var(--c60);box-shadow:0 0 0 3px rgba(255,153,0,.15);background:#fff;}
 .fm-input::placeholder{color:#bbb;}
 .fm-input.error{border-color:var(--c10);box-shadow:0 0 0 3px rgba(236,35,38,.12);}
-.fm-error-msg{font-size:11px;color:var(--c10);font-family:var(--H2);margin-top:4px;display:none;}
+.fm-error-msg{font-size:10px;color:var(--c10);font-family:var(--H2);margin-top:3px;display:none;}
 .fm-error-msg.visible{display:block;}
-
-/* score mini strip inside form */
 .fm-score-strip{
-  display:flex;gap:8px;margin-bottom:clamp(14px,3.5vw,20px);
-  padding-bottom:clamp(14px,3.5vw,18px);
+  display:flex;gap:6px;margin-bottom:clamp(10px,2.5vw,14px);
+  padding-bottom:clamp(10px,2.5vw,14px);
   border-bottom:1px solid #f0ece4;
 }
 .fm-score-pill{
-  flex:1;background:#fff8e6;border-radius:10px;padding:8px 6px;text-align:center;
+  flex:1;background:#fff8e6;border-radius:8px;padding:6px 4px;text-align:center;
   border:1px solid #f0e0b0;
 }
-.fm-score-pill-val{font-size:clamp(16px,4.5vw,20px);font-weight:900;color:var(--ink);font-family:var(--H1);}
-.fm-score-pill-lbl{font-size:clamp(7px,1.8vw,9px);color:var(--ink2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;}
-
-/* submit button — 10% red */
+.fm-score-pill-val{font-size:clamp(14px,3.8vw,17px);font-weight:900;color:var(--ink);font-family:var(--H1);}
+.fm-score-pill-lbl{font-size:clamp(6px,1.6vw,8px);color:var(--ink2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;}
 .btn-submit{
   width:100%;background:var(--c10);color:var(--c30);
-  border:none;border-radius:14px;
-  padding:clamp(15px,4vw,18px);
-  font-size:clamp(14px,4vw,17px);font-weight:900;cursor:pointer;
-  box-shadow:0 5px 0 var(--c10d),0 8px 20px rgba(236,35,38,.3);
+  border:none;border-radius:12px;
+  padding:clamp(12px,3vw,15px);
+  font-size:clamp(13px,3.6vw,16px);font-weight:900;cursor:pointer;
+  box-shadow:0 4px 0 var(--c10d),0 6px 16px rgba(236,35,38,.3);
   font-family:var(--H1);letter-spacing:.04em;
   transition:transform .1s,box-shadow .1s;
   display:flex;align-items:center;justify-content:center;gap:10px;
 }
 .btn-submit:active{transform:translateY(3px);box-shadow:0 2px 0 var(--c10d);}
 .btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-.fm-spacer{flex:1;min-height:16px;}
+.fm-spacer{flex:1;min-height:4px;max-height:8px;}
 .fm-legal{
   flex:0 0 auto;
-  padding:clamp(10px,2.5vw,14px) clamp(18px,5vw,28px) clamp(16px,4vw,24px);
-  text-align:center;font-size:clamp(9px,2.2vw,11px);
-  color:rgba(255,255,255,.5);font-family:var(--H2);line-height:1.6;
+  padding:clamp(6px,1.5vw,8px) clamp(16px,4vw,24px) clamp(8px,2vw,12px);
+  text-align:center;font-size:clamp(8px,2vw,10px);
+  color:rgba(255,255,255,.5);font-family:var(--H2);line-height:1.5;
 }
-/* loading spinner */
 .spinner{
   width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);
   border-top-color:#fff;border-radius:50%;
@@ -509,13 +456,12 @@ body{background:var(--c60);display:flex;align-items:stretch;justify-content:cent
 <body>
 <div id="app"></div>
 <script>
-// ── CONFIG
 const H1="'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif";
 const H2="'HelveticaText','Gotham',Arial,sans-serif";
 const O="var(--c60)",Y="var(--yellow)",D="var(--ink)",R="var(--c10)",GR="var(--green)";
 
-// Game dimensions — dynamic
-function getFW(){ return Math.min(document.getElementById('app').offsetWidth||390,430); }
+// Game dimensions — dynamic, no 430px cap
+function getFW(){ return document.getElementById('app').offsetWidth||window.innerWidth||390; }
 function getFH(){ return document.getElementById('game-field')?.offsetHeight||320; }
 const CW=88,CH=44,CART_SPD=7;
 function CATCH_Y(fh){ return fh-CH-4; }
@@ -553,7 +499,6 @@ function getVoucher(s){
   return          {disc:"5% DE RÉD.", code:"JMSTART5",label:"👟 DÉBUTANT",bg:"#403b3b"};
 }
 
-// ── STATE
 let selCatIdx=0,attempts=4,vWon=0,totalPts=0;
 let wordsArr=[],cartXVal=200,livesVal=3,scoreVal=0,comboVal=0,speedVal=1.1,elapsedSec=0;
 let pressDir=null,done=false,animId=null,lastT=null,lastSpawn=0,spawnInt=2000;
@@ -562,14 +507,13 @@ let wonCatIdx=0,wid=0,playerName='',playerEmail='',playerCity='';
 function $(id){return document.getElementById(id);}
 
 function spawnWord(cat,speed){
-  const isGood=Math.random()<0.28; // 28% good (bonus), 72% bad (dodge)
+  const isGood=Math.random()<0.28;
   const pool=isGood?cat.good:cat.bad;
   const text=pool[Math.floor(Math.random()*pool.length)];
   const fw=getFW(); const w=text.length*9+28;
   return{id:wid++,text,isGood,x:Math.random()*Math.max(8,fw-w-14)+4,y:-34,speed,width:w};
 }
 
-// ── LOBBY
 function renderLobby(){
   $('app').innerHTML=`
   <div id="screen-lobby">
@@ -578,7 +522,6 @@ function renderLobby(){
       <div class="lb-title">ATTRAPE<br>LES MOTS</div>
       <div class="lb-subbanner"><span>ATTRAPE-MOTS ⚽</span></div>
     </div>
-
     <div class="lb-stats">
       ${[{icon:IMG_ATTEMPTS,val:`${attempts}/4`,lbl:"TENTATIVES\nAUJOURD'HUI",badge:"GO",bc:"#22a651",tc:"#fff"},
          {icon:IMG_TROPHY,  val:vWon,           lbl:"BONS\nGAGNÉS",          badge:"🎟",bc:"#ffba00",tc:"#403b3b"},
@@ -593,7 +536,6 @@ function renderLobby(){
           <div class="stat-label">${s.lbl}</div>
         </div>`).join('')}
     </div>
-
     <div class="lb-matchday">
       <span style="font-size:20px;flex-shrink:0">🔥</span>
       <div>
@@ -601,9 +543,7 @@ function renderLobby(){
         <div class="lb-matchday-sub">Esquive les mots rouges · Attrape les bonus ⭐</div>
       </div>
     </div>
-
     <div class="lb-spacer"></div>
-
     <div class="lb-cta">
       ${attempts===0
         ?`<div style="background:rgba(0,0,0,.25);border-radius:30px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">⏳ Plus de tentatives aujourd'hui. Reviens demain !</div>`
@@ -615,7 +555,6 @@ function renderLobby(){
   if(bs) bs.addEventListener('pointerdown',()=>renderForm());
 }
 
-// ── GAME SCREEN
 function renderGame(){
   const cat=CATS[selCatIdx];
   $('app').innerHTML=`
@@ -636,12 +575,10 @@ function renderGame(){
         </div>
       </div>
     </div>
-
     <div class="gm-cat-line">
       <div class="gm-cat-name">${cat.icon} ${cat.name}</div>
       <div class="combo-badge" id="combo-badge"></div>
     </div>
-
     <div id="game-field">
       <div id="cart-el">
         <img src="${IMG_CART}" style="width:${CW}px;height:${CH}px">
@@ -649,25 +586,20 @@ function renderGame(){
       <div id="danger-bar"></div>
       <div id="dodge-hint">⚠ ESQUIVE !</div>
     </div>
-
     <div class="gm-btns" style="justify-content:space-around">
       <button class="btn-arrow" id="btn-left" style="width:clamp(72px,18vw,90px);height:clamp(72px,18vw,90px);font-size:clamp(26px,7vw,34px)">&#9664;</button>
       <button class="btn-arrow" id="btn-right" style="width:clamp(72px,18vw,90px);height:clamp(72px,18vw,90px);font-size:clamp(26px,7vw,34px)">&#9654;</button>
     </div>
   </div>`;
-
-  // position cart after render
   const fw=getFW(); cartXVal=fw/2;
   const ce=$('cart-el');
   if(ce){ce.style.left=(cartXVal-CW/2)+'px';ce.style.top=CATCH_Y(getFH())+'px';}
-
   const bl=$('btn-left'),br=$('btn-right');
   const onL=()=>{pressDir='l'},onR=()=>{pressDir='r'},off=()=>{pressDir=null};
   bl.addEventListener('pointerdown',onL);bl.addEventListener('pointerup',off);bl.addEventListener('pointerleave',off);
   br.addEventListener('pointerdown',onR);br.addEventListener('pointerup',off);br.addEventListener('pointerleave',off);
 }
 
-// ── START GAME
 function startGame(cat){
   selCatIdx=CATS.indexOf(cat);
   done=false;wid=0;wordsArr=[];
@@ -678,31 +610,23 @@ function startGame(cat){
   animId=requestAnimationFrame(tick);
 }
 
-// ── GAME LOOP
 function tick(ts){
   if(done)return;
   if(!lastT)lastT=ts;
   const dt=Math.min((ts-lastT)/16,3);lastT=ts;
   const cat=CATS[selCatIdx];
   const fw=getFW(),fh=getFH(),cy=CATCH_Y(fh);
-
-  // Smooth time-based acceleration — no levels
   elapsedSec+=dt/60;
   speedVal=Math.min(5.8, 1.1 + elapsedSec*0.038);
   spawnInt=Math.max(560, 2100 - elapsedSec*22);
-
-  // Cart speed also scales with time for responsiveness
   const spd=CART_SPD+(elapsedSec*0.08);
   if(pressDir==='l')cartXVal=Math.max(CW/2,cartXVal-spd*dt);
   if(pressDir==='r')cartXVal=Math.min(fw-CW/2,cartXVal+spd*dt);
   const ce=$('cart-el');if(ce)ce.style.left=(cartXVal-CW/2)+'px';
-
-  // Spawn — can spawn 2 at once at high levels for chaos
   if(ts-lastSpawn>spawnInt){
     const w=spawnWord(cat,speedVal);
     wordsArr.push(w);lastSpawn=ts;
     addWordEl(w);
-    // Double spawn after 30s for chaos
     if(elapsedSec>30&&Math.random()<0.40){
       setTimeout(()=>{
         if(done)return;
@@ -711,62 +635,42 @@ function tick(ts){
       },300);
     }
   }
-
   let livesLost=0,ptsGained=0,newCombo=comboVal;
   let closestBadDist=9999;
-
   wordsArr=wordsArr.filter(w=>{
     w.y+=w.speed*dt;
     const el=$('w-'+w.id);if(el)el.style.top=w.y+'px';
     const cx=w.x+w.width/2;
     const inCart=cx>=cartXVal-CW/2&&cx<=cartXVal+CW/2;
-
-    // Track closest BAD word to cart for danger indicator
     if(!w.isGood){
       const distY=cy-w.y;
       if(distY>0&&distY<closestBadDist)closestBadDist=distY;
-      // Highlight as danger when close
       if(distY<100&&el)el.classList.add('danger-close');
       else if(el)el.classList.remove('danger-close');
     }
-
     if(w.y+20>=cy&&w.y<cy+CH){
       if(inCart){
         if(w.isGood){
-          // BONUS catch — good word
           newCombo++;
           const pts=Math.round((80+Math.floor(elapsedSec)*3)*Math.min(newCombo,5)*2);
           ptsGained+=pts;
           showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-40,'+'+pts+' BONUS!',true);
         }else{
-          // BAD word hits cart — lose life + big feedback
           newCombo=0;livesLost++;
           showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'💥 TOUCHÉ!',false);
-          // Screen flash red
           const sg=$('screen-game');
           if(sg){sg.classList.add('hit-flash');setTimeout(()=>sg&&sg.classList.remove('hit-flash'),400);}
-          // Big shake on cart
           if(ce){ce.classList.remove('shaking');void ce.offsetWidth;ce.classList.add('big-shake');setTimeout(()=>ce&&ce.classList.remove('big-shake'),500);}
         }
         if(el)el.remove();return false;
       }
     }
-
-    // Word exits bottom — bad word missing is GOOD (dodged!)
     if(w.y>fh+10){
-      if(w.isGood){
-        // Missed a bonus — no penalty, just no points
-      }
-      // Dodging bad words = survival points
-      if(!w.isGood){
-        ptsGained+=Math.round(8+elapsedSec*0.4);
-      }
+      if(!w.isGood){ptsGained+=Math.round(8+elapsedSec*0.4);}
       if(el)el.remove();return false;
     }
     return true;
   });
-
-  // Danger bar — red glow at bottom when bad words are close
   const db=$('danger-bar');
   const dh=$('dodge-hint');
   if(db){
@@ -780,12 +684,10 @@ function tick(ts){
       if(dh)dh.style.opacity='0';
     }
   }
-
   comboVal=newCombo;
   if(ptsGained){scoreVal+=ptsGained;const sd=$('score-disp');if(sd)sd.textContent=scoreVal;}
   const cb=$('combo-badge');
   if(cb){cb.style.display=newCombo>1?'inline-block':'none';cb.textContent='×'+Math.min(newCombo,5);}
-
   if(livesLost){
     livesVal=Math.max(0,livesVal-livesLost);
     const ld=$('lives-disp');if(ld)ld.textContent=livesVal;
@@ -812,6 +714,8 @@ function showFlash(x,y,text,good){
   field.appendChild(el);setTimeout(()=>el.remove(),1100);
 }
 
+const SHEET_URL = "https://script.google.com/a/macros/jumia.com/s/AKfycbz7AOlulZoRfbvnv0C7k02oIUFwGtKqZwJxQ98VoxDnxnOI3KXOJ5DDRUhC9AcDS-TxtQ/exec";
+
 function endGame(finalScore){
   if(done)return;done=true;
   cancelAnimationFrame(animId);
@@ -819,7 +723,6 @@ function endGame(finalScore){
   if(finalScore>=150)vWon++;
   totalPts+=finalScore;scoreVal=finalScore;
   attempts=Math.max(0,attempts-1);
-  // Update Sheet with actual score (best effort, no-cors)
   if(SHEET_URL.startsWith("https://") && playerName){
     const sp = new URLSearchParams({
       action:  'update_score',
@@ -829,34 +732,21 @@ function endGame(finalScore){
       survie:  Math.floor(elapsedSec),
       voucher: getVoucher(finalScore).code
     });
-    fetch(SHEET_URL + '?' + sp.toString(), {
-      method: 'GET', redirect: 'follow'
-    }).catch(()=>{});
+    fetch(SHEET_URL + '?' + sp.toString(), {method:'GET',redirect:'follow'}).catch(()=>{});
   }
   renderResult();
 }
 
-// ── RESULT
-
-// ── GOOGLE SHEETS ENDPOINT
-// Replace with your deployed Apps Script Web App URL
-const SHEET_URL = "https://script.google.com/a/macros/jumia.com/s/AKfycbz7AOlulZoRfbvnv0C7k02oIUFwGtKqZwJxQ98VoxDnxnOI3KXOJ5DDRUhC9AcDS-TxtQ/exec";
-
-// ── FORM SCREEN (shown after game ends, before coupon)
 function renderForm(){
   const s=scoreVal;
   $('app').innerHTML=`
   <div id="screen-form">
-
     <div class="fm-top">
       <span class="fm-emoji">⚽</span>
       <div class="fm-title">PRÊT(E) À JOUER ?</div>
       <div class="fm-sub">Saisis tes infos pour<br><b>participer et gagner ton bon Jumia</b></div>
     </div>
-
     <div class="fm-card">
-
-      <!-- Score recap -->
       <div class="fm-score-strip">
         ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(comboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(p=>`
           <div class="fm-score-pill">
@@ -864,46 +754,35 @@ function renderForm(){
             <div class="fm-score-pill-lbl">${p.lbl}</div>
           </div>`).join('')}
       </div>
-
-      <!-- Fields -->
       <div class="fm-field">
         <label class="fm-label" for="inp-name">Prénom</label>
         <input class="fm-input" id="inp-name" type="text" placeholder="Ex : Yasmine" autocomplete="given-name">
         <div class="fm-error-msg" id="err-name">Prénom requis</div>
       </div>
-
       <div class="fm-field">
         <label class="fm-label" for="inp-email">Adresse e-mail</label>
         <input class="fm-input" id="inp-email" type="email" placeholder="Ex : yasmine@email.com" autocomplete="email">
         <div class="fm-error-msg" id="err-email">E-mail valide requis</div>
       </div>
-
       <div class="fm-field" style="margin-bottom:0">
         <label class="fm-label" for="inp-city">Ville</label>
         <input class="fm-input" id="inp-city" type="text" placeholder="Ex : Casablanca" autocomplete="address-level2">
         <div class="fm-error-msg" id="err-city">Ville requise</div>
       </div>
-
     </div>
-
     <div class="fm-spacer"></div>
-
-    <div style="padding:clamp(14px,3.5vw,20px) clamp(14px,4vw,22px) 0">
+    <div style="padding:clamp(8px,2vw,12px) clamp(12px,3vw,18px) 0">
       <button class="btn-submit" id="btn-submit">
         <span id="submit-label">⚽ JOUER &amp; GAGNER</span>
         <div class="spinner" id="submit-spinner"></div>
       </button>
     </div>
-
     <div class="fm-legal">
       En soumettant ce formulaire, tu acceptes d'être contacté(e)<br>
       par Jumia. Tes données restent confidentielles.
     </div>
-
   </div>`;
-
   $('btn-submit').addEventListener('click', submitForm);
-  // Allow Enter key on last field
   $('inp-city').addEventListener('keydown', e=>{ if(e.key==='Enter') submitForm(); });
 }
 
@@ -911,11 +790,8 @@ function submitForm(){
   const name  = $('inp-name')?.value.trim();
   const email = $('inp-email')?.value.trim();
   const city  = $('inp-city')?.value.trim();
-  // Store globally for score update after game
   playerName=name; playerEmail=email; playerCity=city;
   let valid=true;
-
-  // Validate
   const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   [['inp-name','err-name',!name],
    ['inp-email','err-email',!emailRe.test(email)],
@@ -926,16 +802,13 @@ function submitForm(){
     if(fail)valid=false;
   });
   if(!valid)return;
-
-  // Loading state
   const btn=$('btn-submit');
   const lbl=$('submit-label');
   const spn=$('submit-spinner');
   if(btn)btn.disabled=true;
   if(lbl)lbl.style.display='none';
   if(spn)spn.style.display='block';
-
-  const payload={
+  const params = new URLSearchParams({
     timestamp: new Date().toISOString(),
     name, email, city,
     score:scoreVal,
@@ -943,25 +816,8 @@ function submitForm(){
     survie:Math.floor(elapsedSec),
     voucher:getVoucher(scoreVal).code,
     source:'JumiaAttrape-Mots'
-  };
-
-  // Send to Google Sheets via GET (most reliable with Apps Script)
-  const params = new URLSearchParams({
-    timestamp: payload.timestamp,
-    name:      payload.name,
-    email:     payload.email,
-    city:      payload.city,
-    score:     payload.score,
-    combo:     payload.combo,
-    survie:    payload.survie,
-    voucher:   payload.voucher,
-    source:    payload.source
   });
-
-  fetch(SHEET_URL + '?' + params.toString(), {
-    method: 'GET',
-    redirect: 'follow'
-  })
+  fetch(SHEET_URL + '?' + params.toString(), {method:'GET',redirect:'follow'})
   .then(()=>startGame(CATS[selCatIdx]))
   .catch(()=>startGame(CATS[selCatIdx]));
 }
@@ -970,14 +826,11 @@ function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
   $('app').innerHTML=`
   <div id="screen-result">
-
-    <!-- ── SCORE BAND -->
     <div class="rs-header">
       <div class="rs-brand">JUMIA ATTRAPE-MOTS</div>
       <div class="rs-title">${s>=400?'BIEN JOUÉ !':'PRESQUE !'}</div>
       <div class="rs-sub">${s>=400?'Voici ton bon de réduction ↓':'Rejoue pour gagner un meilleur bon !'}</div>
     </div>
-
     <div class="rs-scores">
       ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(comboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card">
@@ -985,8 +838,6 @@ function renderResult(){
           <div class="rs-score-lbl">${sc.lbl}</div>
         </div>`).join('')}
     </div>
-
-    <!-- ── COUPON CARD -->
     <div class="voucher-card">
       <div class="v-eyebrow" style="font-family:${H2}">🎟 TON BON DE RÉDUCTION</div>
       <div class="v-label" style="background:${v.bg}">${v.label}</div>
@@ -995,7 +846,6 @@ function renderResult(){
         <div class="v-disc" style="font-family:${H1}">${v.disc}</div>
       </div>
       <div class="v-cat-line">sur toute la sélection football Jumia</div>
-      <!-- Code box with copy button -->
       <div class="v-code-row">
         <div class="v-code" id="coupon-code" style="font-family:${H1}">${v.code}</div>
         <button class="btn-copy" id="btn-copy" onclick="
@@ -1007,8 +857,6 @@ function renderResult(){
       </div>
       <div class="v-note">⏱ Valable 7 jours · Sans montant minimum</div>
     </div>
-
-    <!-- ── MAIN CTA → Jumia -->
     <div class="rs-cta-block">
       <a href="https://www.jumia.ma/mlp-foot-20253/" target="_blank" rel="noopener" class="btn-jumia-main" id="btn-jumia">
         <img src="${IMG_CART}" style="width:32px;height:32px" alt="">
@@ -1016,19 +864,14 @@ function renderResult(){
       </a>
       <div class="rs-url-hint">https://www.jumia.ma/mlp-foot-20253/</div>
     </div>
-
     <div class="rs-spacer"></div>
-
-    <!-- ── REPLAY / BOTTOM -->
     <div class="rs-replay-bar">
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">▶&nbsp; Rejouer (${attempts} tentative${attempts>1?'s':''} restante${attempts>1?'s':''})</button>`
         :`<div class="rs-no-attempts">⏳ Plus de tentatives aujourd'hui — reviens demain !</div>`
       }
     </div>
-
   </div>`;
-
   const br=$('btn-replay');if(br)br.addEventListener('click',()=>startGame(CATS[wonCatIdx]));
 }
 
