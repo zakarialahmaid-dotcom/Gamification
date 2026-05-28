@@ -30,20 +30,62 @@
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-html{width:100%;height:100%;overflow:hidden;margin:0;padding:0;}
+html{
+  width:100%;height:100%;
+  overflow:hidden;margin:0;padding:0;
+  /* Prevent iframe scroll on all browsers */
+  overscroll-behavior:none;
+  -webkit-overflow-scrolling:touch;
+}
 body{
   width:100%;height:100%;overflow:hidden;
   background:var(--c60);
   display:flex;align-items:stretch;justify-content:center;
   margin:0;padding:0;
-  /* Prevent any white bleed */
   position:fixed;top:0;left:0;right:0;bottom:0;
+  overscroll-behavior:none;
+  touch-action:none;
 }
 #app{
   width:100%;max-width:100%;height:100%;
   display:flex;flex-direction:column;
   background:var(--c60);overflow:hidden;
   font-family:var(--H1);position:relative;
+  touch-action:none;
+}
+
+/* ── LANDSCAPE BLOCKER — shown when fullscreen rotates */
+#rotate-screen{
+  display:none;
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--c60);
+  z-index:99998;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;
+}
+#rotate-screen.show{display:flex;}
+.rotate-icon{
+  font-size:56px;
+  animation:rotatePulse 1.5s ease infinite;
+}
+@keyframes rotatePulse{
+  0%,100%{transform:rotate(0deg);}
+  50%{transform:rotate(-90deg);}
+}
+.rotate-msg{
+  font-size:clamp(16px,5vw,20px);font-weight:900;
+  color:var(--c30);font-family:var(--H1);
+  text-align:center;line-height:1.2;
+}
+.rotate-sub{
+  font-size:clamp(11px,3vw,13px);color:rgba(255,255,255,.7);
+  font-family:var(--H2);text-align:center;
+}
+
+/* Force portrait layout always */
+@media (orientation:landscape) and (max-height:500px){
+  body{ display:none; }
 }
 
 /* ── ANIMATIONS */
@@ -927,6 +969,11 @@ body{
     <div class="loading-bar" id="loading-bar"></div>
   </div>
 </div>
+<div id="rotate-screen">
+  <div class="rotate-icon">📱</div>
+  <div class="rotate-msg">TOURNE TON TÉLÉPHONE</div>
+  <div class="rotate-sub">Le jeu est optimisé en mode portrait</div>
+</div>
 <script>
 const H1="'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif";
 const H2="'HelveticaText','Gotham',Arial,sans-serif";
@@ -1026,6 +1073,27 @@ function copyCode(text, btn){
     document.body.removeChild(ta);
   }
 }
+
+// ── PREVENT SCROLL PROPAGATION from iframe
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.addEventListener('wheel',     e => e.preventDefault(), { passive: false });
+
+// ── ORIENTATION DETECTION — show rotate screen in landscape
+function checkOrientation(){
+  const isLandscape = window.innerWidth > window.innerHeight;
+  const rotate = document.getElementById('rotate-screen');
+  if(rotate){
+    rotate.classList.toggle('show', isLandscape);
+  }
+  // Try to lock portrait if Fullscreen API + Orientation API available
+  if(document.fullscreenElement && screen.orientation?.lock){
+    screen.orientation.lock('portrait').catch(()=>{});
+  }
+}
+window.addEventListener('resize',             checkOrientation);
+window.addEventListener('orientationchange',  checkOrientation);
+document.addEventListener('fullscreenchange', checkOrientation);
+checkOrientation();
 
 // ── MUSIC SYSTEM
 const MUSIC_URL = "https://raw.githubusercontent.com/zakarialahmaid-dotcom/Gamification/main/Football_game.mp3";
