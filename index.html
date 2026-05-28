@@ -236,6 +236,9 @@ body{
 /* pitch field */
 #game-field{
   flex:1;position:relative;overflow:hidden;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
   background:
     linear-gradient(180deg,
       rgba(255,153,0,0.55) 0%,
@@ -267,7 +270,18 @@ body{
   display:flex;align-items:center;justify-content:center;
   animation:itemIn .15s ease;
   z-index:5;
-  user-select:none;pointer-events:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+  pointer-events:none;
+}
+.falling-item img{
+  user-select:none;
+  -webkit-user-select:none;
+  pointer-events:none;
+  -webkit-user-drag:none;
+  draggable:false;
 }
 
 /* Soccer ball */
@@ -942,10 +956,10 @@ function addItemEl(item){
 
   if(item.type==='ball'){
     el.className='falling-item item-ball';
-    el.innerHTML=`<img src="${IMG_SOCCER}" alt="ball">`;
+    el.innerHTML=`<img src="${IMG_SOCCER}" alt="ball" draggable="false">`;
   } else if(item.type==='golden'){
     el.className='falling-item item-golden';
-    el.innerHTML=`<img src="${IMG_GOLDEN}" alt="golden">`;
+    el.innerHTML=`<img src="${IMG_GOLDEN}" alt="golden" draggable="false">`;
   } else {
     el.className='falling-item item-redcard';
     el.style.width=item.width+'px';
