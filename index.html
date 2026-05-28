@@ -159,11 +159,13 @@ body{
   background:var(--c60);overflow:hidden;
   animation:fadeIn .15s ease;
 }
+
+/* ── Slim HUD — title only, no stats */
 .gm-hud{
   flex:0 0 auto;
   background:var(--c30);
-  padding:clamp(8px,2vw,12px) clamp(14px,4vw,22px);
-  display:flex;justify-content:space-between;align-items:center;
+  padding:clamp(8px,2vw,11px) clamp(14px,4vw,22px);
+  display:flex;align-items:center;
   box-shadow:0 2px 12px rgba(0,0,0,.08);
 }
 .gm-brand{display:flex;flex-direction:column;gap:3px;}
@@ -173,41 +175,58 @@ body{
   padding:2px 8px;width:fit-content;
 }
 .gm-tag span{font-size:clamp(8px,2vw,10px);font-weight:900;color:var(--c30);letter-spacing:.1em;}
-/* score circle stays in top right of HUD */
+
+/* ── Floating game overlay — top right inside field (McDonald's style) */
+#game-overlay{
+  position:absolute;
+  top:clamp(12px,3vw,18px);
+  right:clamp(10px,3vw,16px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:clamp(8px,2.5vw,12px);
+  z-index:8;
+}
+
+/* Score circle */
 .score-circle{
-  width:clamp(52px,14vw,64px);height:clamp(52px,14vw,64px);
+  width:clamp(56px,15vw,70px);height:clamp(56px,15vw,70px);
   background:var(--yellow);border-radius:50%;
-  border:3px solid rgba(255,255,255,.6);
+  border:3px solid rgba(255,255,255,.7);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
+  box-shadow:0 3px 12px rgba(0,0,0,.2);
   flex-shrink:0;
 }
 .score-num{font-size:clamp(16px,5vw,22px);font-weight:900;color:var(--ink);line-height:1;}
 .score-lbl{font-size:7px;font-weight:700;color:var(--ink);font-family:var(--H2);letter-spacing:.04em;}
 
-/* TikTok-style hearts sidebar — bottom right of game field */
-#lives-sidebar{
-  position:absolute;
-  right:clamp(10px,3vw,16px);
-  bottom:clamp(70px,18vw,100px); /* sits above gloves */
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:clamp(6px,2vw,10px);
-  z-index:8;
+/* Heart with counter — McDonald's style */
+#lives-counter{
+  position:relative;
+  width:clamp(48px,13vw,60px);
+  height:clamp(48px,13vw,60px);
+  display:flex;align-items:center;justify-content:center;
 }
-.life-heart{
-  width:clamp(32px,9vw,44px);
-  height:clamp(32px,9vw,44px);
+#lives-counter img{
+  width:100%;height:100%;
+  object-fit:contain;
   display:block;
-  transition:opacity .3s, transform .3s, filter .3s;
-  filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.3));
+  transition:transform .2s;
 }
-.life-heart.lost{
-  opacity:.25;
-  filter:grayscale(1) drop-shadow(0 2px 4px rgba(0,0,0,.2));
-  transform:scale(.85);
+#lives-count{
+  position:absolute;
+  top:-4px;right:-6px;
+  background:var(--ink);color:var(--c30);
+  border-radius:50%;
+  width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(10px,3vw,14px);font-weight:900;
+  font-family:var(--H1);
+  border:2px solid var(--c30);
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
 }
+/* heart shake on hit */
 
 /* pitch field */
 #game-field{
@@ -676,10 +695,6 @@ function renderGame(){
         <div class="gm-title">GARDIEN DE BUT</div>
         <div class="gm-tag"><span>⚽ WORLD CUP 2026</span></div>
       </div>
-      <div class="score-circle">
-        <div class="score-num" id="score-disp">0</div>
-        <div class="score-lbl">POINTS</div>
-      </div>
     </div>
 
     <div class="gm-net"></div>
@@ -690,11 +705,16 @@ function renderGame(){
       <div id="danger-bar"></div>
       <div id="dodge-hint">⚠ ESQUIVE !</div>
 
-      <!-- TikTok-style hearts sidebar -->
-      <div id="lives-sidebar">
-        <img class="life-heart" id="lh-1" src="${IMG_HEART}" alt="">
-        <img class="life-heart" id="lh-2" src="${IMG_HEART}" alt="">
-        <img class="life-heart" id="lh-3" src="${IMG_HEART}" alt="">
+      <!-- McDonald's-style floating overlay: score + heart counter -->
+      <div id="game-overlay">
+        <div class="score-circle">
+          <div class="score-num" id="score-disp">0</div>
+          <div class="score-lbl">POINTS</div>
+        </div>
+        <div id="lives-counter">
+          <img src="${IMG_HEART}" alt="lives" id="lives-heart-img">
+          <div id="lives-count">3</div>
+        </div>
       </div>
     </div>
 
@@ -727,19 +747,18 @@ function startGame(){
 }
 
 function updateLivesDisplay(){
-  for(let i=1;i<=3;i++){
-    const h=$('lh-'+i);
-    if(!h) continue;
-    const wasAlive = !h.classList.contains('lost');
-    const nowLost  = i > livesVal;
-    if(wasAlive && nowLost){
-      // Trigger break animation then apply lost state
-      h.style.animation='heartBreak .4s ease forwards';
-      setTimeout(()=>{
-        if(h){ h.classList.add('lost'); h.style.animation=''; }
-      }, 400);
-    } else if(!nowLost){
-      h.classList.remove('lost');
+  const badge=$('lives-count');
+  const heart=$('lives-heart-img');
+  if(badge) badge.textContent=livesVal;
+  if(heart){
+    // Pulse the heart on hit
+    heart.style.transform='scale(1.4)';
+    setTimeout(()=>{ if(heart) heart.style.transform='scale(1)'; },200);
+    // Grey out when 1 life left
+    if(livesVal===1){
+      heart.style.filter='drop-shadow(0 0 8px rgba(236,35,38,.8))';
+    } else {
+      heart.style.filter='drop-shadow(0 3px 8px rgba(0,0,0,.3))';
     }
   }
 }
