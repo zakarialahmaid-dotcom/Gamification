@@ -229,7 +229,53 @@ body{
 .lb-how-tag.red{background:var(--c10);color:#fff;}
 .lb-how-tag.gold{background:var(--yellow);color:var(--ink);}
 
-/* ── PLAY TRANSITION */
+/* ── LOADING SCREEN */
+#loading-screen{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--c60);
+  z-index:99999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:24px;
+  transition:opacity .4s ease;
+}
+#loading-screen.fade-out{opacity:0;pointer-events:none;}
+.loading-logo{
+  font-size:clamp(36px,12vw,52px);
+  font-weight:900;
+  color:var(--c30);
+  font-family:var(--H1);
+  line-height:.95;
+  text-align:center;
+}
+.loading-sub{
+  font-size:clamp(10px,2.8vw,13px);
+  color:rgba(255,255,255,.6);
+  font-family:var(--H2);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+.loading-bar-wrap{
+  width:clamp(160px,45vw,220px);
+  height:4px;
+  background:rgba(255,255,255,.2);
+  border-radius:2px;
+  overflow:hidden;
+}
+.loading-bar{
+  height:100%;
+  width:0%;
+  background:var(--c30);
+  border-radius:2px;
+  transition:width .3s ease;
+}
+.loading-gloves{
+  height:clamp(56px,15vw,72px);
+  width:auto;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));
+}
+
+
 #play-transition{
   position:fixed;top:0;left:0;right:0;bottom:0;
   background:var(--c10);z-index:9999;
@@ -386,19 +432,6 @@ body{
 }
 
 /* subtle pitch lines */
-#game-field::before{
-  content:'';position:absolute;
-  left:0;right:0;top:50%;
-  height:1px;background:rgba(255,255,255,.1);
-}
-#game-field::after{
-  content:'';position:absolute;
-  left:50%;top:40%;
-  width:clamp(60px,18vw,90px);height:clamp(60px,18vw,90px);
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:50%;
-  transform:translateX(-50%);
-}
 
 /* ── FALLING ITEMS */
 .falling-item{
@@ -639,7 +672,8 @@ body{
 .fm-input{
   width:100%;border:2px solid #e8e4dc;border-radius:4px;
   padding:clamp(10px,2.5vw,13px) clamp(12px,3vw,16px);
-  font-size:clamp(13px,3.4vw,15px);font-family:var(--H2);
+  font-size:16px; /* prevents iOS zoom on focus — must be ≥16px */
+  font-family:var(--H2);
   color:var(--ink);background:#fafafa;outline:none;
   transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;
 }
@@ -843,6 +877,14 @@ body{
 <body>
 <div id="app"></div>
 <div id="play-transition"></div>
+<div id="loading-screen">
+  <img class="loading-gloves" src="https://raw.githubusercontent.com/Madzack69/Icons/main/Gloves.png" alt="">
+  <div class="loading-logo">GARDIEN<br>DE BUT</div>
+  <div class="loading-sub">Chargement en cours...</div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar" id="loading-bar"></div>
+  </div>
+</div>
 <script>
 const H1="'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif";
 const H2="'HelveticaText','Gotham',Arial,sans-serif";
@@ -973,8 +1015,11 @@ function startMusic(){
 }
 
 function stopMusic(){
-  musicFade(0, 800);
-  setTimeout(()=>{ if(music.volume < 0.05) music.pause(); }, 900);
+  musicFade(0, 600);
+  setTimeout(()=>{
+    music.pause();
+    music.currentTime = 0;
+  }, 650);
 }
 
 function toggleMusic(btn){
@@ -1126,7 +1171,7 @@ function renderLobby(){
   </div>`;
 
   const bs=$('btn-start');
-  if(bs) bs.addEventListener('pointerdown', ()=>{ startMusic(); goTo(renderForm); });
+  if(bs) bs.addEventListener('pointerdown', ()=>{ goTo(renderForm); });
 
   // Load leaderboard async (for future use, hidden from lobby now)
   fetchLeaderboard().catch(()=>{});
@@ -1560,7 +1605,63 @@ function renderResult(){
   }
 }
 
-renderLobby();
+// ── ASSET PRELOADER
+function preloadAssets(){
+  const images = [
+    IMG_STAR, IMG_TROPHY, IMG_VOUCHER, IMG_ATTEMPTS,
+    IMG_GLOVES, IMG_SOCCER, IMG_GOLDEN, IMG_HEART, IMG_REDCARD,
+    "https://raw.githubusercontent.com/Madzack69/Icons/main/Terrain_BG_Resized.png"
+  ];
+
+  const bar   = document.getElementById('loading-bar');
+  const sub   = document.querySelector('.loading-sub');
+  const total = images.length + 1; // +1 for audio
+  let loaded  = 0;
+
+  function tick(){
+    loaded++;
+    const pct = Math.round((loaded / total) * 100);
+    if(bar) bar.style.width = pct + '%';
+    if(loaded >= total) finish();
+  }
+
+  function finish(){
+    const screen = document.getElementById('loading-screen');
+    if(sub) sub.textContent = 'Prêt !';
+    if(bar) bar.style.width = '100%';
+    setTimeout(()=>{
+      if(screen) screen.classList.add('fade-out');
+      setTimeout(()=>{
+        if(screen) screen.remove();
+        renderLobby();
+      }, 420);
+    }, 300);
+  }
+
+  // Preload all images
+  images.forEach(src => {
+    const img = new Image();
+    img.onload  = tick;
+    img.onerror = tick;
+    img.src = src;
+  });
+
+  // Preload audio
+  music.addEventListener('canplaythrough', tick, { once:true });
+  music.addEventListener('error', tick, { once:true });
+  music.load();
+
+  // Safety — show game after 6s regardless
+  setTimeout(()=>{
+    const screen = document.getElementById('loading-screen');
+    if(screen && !screen.classList.contains('fade-out')){
+      screen.classList.add('fade-out');
+      setTimeout(()=>{ if(screen) screen.remove(); renderLobby(); }, 420);
+    }
+  }, 6000);
+}
+
+preloadAssets();
 </script>
 </body>
 </html>
