@@ -422,27 +422,25 @@ body{
   border-radius:50%;
 }
 
-/* Red card — dodge */
+/* Red card — image */
 .item-redcard{
-  width:clamp(28px,7.5vw,36px);height:clamp(40px,11vw,52px);
-  background:linear-gradient(135deg,#ff3030,#b01010);
-  border-radius:3px;
-  border:2px solid rgba(255,255,255,.35);
-  box-shadow:0 3px 14px rgba(200,0,0,.7),inset 0 1px 0 rgba(255,255,255,.2);
-  flex-direction:column;gap:3px;
+  width:clamp(48px,13vw,64px);height:clamp(64px,17vw,82px);
+  filter:
+    drop-shadow(0 0 6px rgba(255,0,0,.7))
+    drop-shadow(0 0 14px rgba(255,0,0,.4))
+    drop-shadow(0 4px 10px rgba(0,0,0,.5));
 }
-.item-redcard::before{
-  content:'';
-  width:60%;height:2px;
-  background:rgba(255,255,255,.5);border-radius:1px;
-}
-.item-redcard::after{
-  content:'';
-  width:60%;height:2px;
-  background:rgba(255,255,255,.5);border-radius:1px;
+.item-redcard img{
+  width:100%;height:100%;
+  object-fit:contain;display:block;
+  pointer-events:none;
+  -webkit-user-drag:none;
 }
 .item-redcard.danger-close{
-  box-shadow:0 0 20px rgba(255,0,0,.9),0 3px 14px rgba(200,0,0,.7);
+  filter:
+    drop-shadow(0 0 10px rgba(255,0,0,1))
+    drop-shadow(0 0 22px rgba(255,0,0,.7))
+    drop-shadow(0 4px 10px rgba(0,0,0,.5));
   animation:dangerPulse .35s ease infinite;
 }
 
@@ -819,6 +817,7 @@ body{
 </head>
 <body>
 <div id="app"></div>
+<div id="play-transition"></div>
 <script>
 const H1="'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif";
 const H2="'HelveticaText','Gotham',Arial,sans-serif";
@@ -828,12 +827,12 @@ function getFW(){ return document.getElementById('app').offsetWidth||window.inne
 function getFH(){ return document.getElementById('game-field')?.offsetHeight||320; }
 
 // Glove catcher size
-const GW=72, GH=50;
+const GW=96, GH=54;
 function CATCH_Y(fh){ return fh - GH - 6; }
 
 // Item sizes
 const BALL_SIZE = 46;
-const CARD_W = 30, CARD_H = 46;
+const CARD_W = 52, CARD_H = 72;
 
 const IMG_STAR    = "https://raw.githubusercontent.com/Madzack69/Icons/main/Star.png";
 const IMG_TROPHY  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Trophy.png";
@@ -843,6 +842,7 @@ const IMG_GLOVES  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Glov
 const IMG_SOCCER  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Soccer.png";
 const IMG_GOLDEN  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon%20d'or.png";
 const IMG_HEART   = "https://raw.githubusercontent.com/Madzack69/Icons/main/Life.png";
+const IMG_REDCARD = "https://raw.githubusercontent.com/Madzack69/Icons/main/Red.png";
 
 // ── ITEM TYPES
 // 'ball'    ⚽ — catch for points
@@ -913,6 +913,33 @@ function copyCode(text, btn){
     catch(e){ btn.textContent='Code: '+text; }
     document.body.removeChild(ta);
   }
+}
+
+// ── GLOBAL SCREEN TRANSITION — same red wipe for every phase
+function goTo(fn){
+  const t = document.getElementById('play-transition');
+  if(!t){ fn(); return; }
+  // Reset animation
+  t.style.animation = 'none';
+  t.style.transform = 'scaleY(0)';
+  void t.offsetWidth; // reflow
+  t.style.animation = '';
+  t.classList.add('go');
+  setTimeout(()=>{
+    fn();
+    // Fade out after screen renders
+    setTimeout(()=>{
+      t.style.transition = 'opacity .25s ease';
+      t.style.opacity = '0';
+      setTimeout(()=>{
+        t.classList.remove('go');
+        t.style.animation = 'none';
+        t.style.transform = 'scaleY(0)';
+        t.style.opacity = '1';
+        t.style.transition = '';
+      }, 260);
+    }, 60);
+  }, 520);
 }
 
 // ── LEADERBOARD FETCH
@@ -1000,19 +1027,10 @@ function renderLobby(){
       <div class="cta-note">${attempts} tentative${attempts>1?"s":""} restante${attempts>1?"s":""}</div>
     </div>
 
-  </div>
-  <div id="play-transition"></div>`;
+  </div>`;
 
   const bs=$('btn-start');
-  if(bs) bs.addEventListener('pointerdown', ()=>{
-    const t=$('play-transition');
-    if(t){
-      t.classList.add('go');
-      setTimeout(()=>renderForm(), 520);
-    } else {
-      renderForm();
-    }
-  });
+  if(bs) bs.addEventListener('pointerdown', ()=>goTo(renderForm));
 
   // Load leaderboard async (for future use, hidden from lobby now)
   fetchLeaderboard().catch(()=>{});
@@ -1247,6 +1265,7 @@ function addItemEl(item){
     el.className='falling-item item-redcard';
     el.style.width=item.width+'px';
     el.style.height=item.height+'px';
+    el.innerHTML=`<img src="${IMG_REDCARD}" alt="red card" draggable="false">`;
   }
   field.appendChild(el);
 }
@@ -1294,7 +1313,7 @@ function endGame(finalScore){
     });
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
-  renderResult();
+  goTo(renderResult);
 }
 
 // ── FORM
@@ -1371,7 +1390,7 @@ function submitForm(){
   if(btn) btn.disabled=true;
   if(lbl) lbl.style.display='none';
   if(spn) spn.style.display='block';
-  setTimeout(()=>startGame(), 300);
+  goTo(startGame);
 }
 
 // ── RESULT
@@ -1406,9 +1425,9 @@ function renderResult(){
       <div class="v-note">Valable 7 jours · Sans montant minimum</div>
     </div>
     <div class="rs-cta-block">
-      <a href="https://www.jumia.ma/mlp-foot-20253/" target="_blank" rel="noopener" class="btn-jumia-main">
+      <button onclick="goTo(()=>{ window.open('https://www.jumia.ma/mlp-foot-20253/','_blank'); renderLobby(); })" class="btn-jumia-main">
         <span>PROFITER DE L'OFFRE SUR JUMIA</span>
-      </a>
+      </button>
       <div class="rs-url-hint">https://www.jumia.ma/mlp-foot-20253/</div>
     </div>
     <div class="rs-spacer"></div>
@@ -1434,7 +1453,7 @@ function renderResult(){
         },3000);
       } else {
         clearTimeout(timer);
-        startGame();
+        goTo(startGame);
       }
     });
   }
