@@ -46,10 +46,10 @@ body{
 
 /* ── ANIMATIONS */
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-70px) scale(0.7)}}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes shake{0%,100%{margin-left:0}20%{margin-left:-8px}40%{margin-left:8px}60%{margin-left:-5px}80%{margin-left:5px}}
 @keyframes fadeIn{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes screenFlash{0%,100%{background:#ff9900}40%{background:#c01010}70%{background:#d41515}}
-@keyframes bigShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-14px)}30%{transform:translateX(14px)}45%{transform:translateX(-10px)}60%{transform:translateX(10px)}75%{transform:translateX(-6px)}90%{transform:translateX(6px)}}
+@keyframes bigShake{0%,100%{margin-left:0}15%{margin-left:-14px}30%{margin-left:14px}45%{margin-left:-10px}60%{margin-left:10px}75%{margin-left:-6px}90%{margin-left:6px}}
 @keyframes heartBreak{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.7)}100%{transform:scale(.85)}}
 @keyframes itemIn{0%{opacity:0;transform:scale(0.4)}100%{opacity:1;transform:scale(1)}}
 @keyframes goldenSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
@@ -312,18 +312,28 @@ body{
 /* ── GOALKEEPER GLOVES */
 #glove-el{
   position:absolute;z-index:6;
+  left:0; /* base anchor — movement via transform */
   display:flex;align-items:center;justify-content:center;
-  filter:drop-shadow(0 5px 12px rgba(0,0,0,.45));
+  will-change:transform;
   transition:filter .1s;
+  /* force GPU composite layer — eliminates blur trails */
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 #glove-el img{
   display:block;
   height:clamp(64px,17vw,84px);
   width:auto;
   object-fit:contain;
+  /* crisp PNG rendering */
+  image-rendering:-webkit-optimize-contrast;
+  image-rendering:crisp-edges;
+  /* no filter that could cause blur artifacts */
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
 }
 #glove-el.catching{
-  filter:drop-shadow(0 0 16px rgba(255,255,255,.9)) drop-shadow(0 5px 12px rgba(0,0,0,.4));
+  filter:drop-shadow(0 0 16px rgba(255,255,255,.9));
 }
 #glove-el.shaking{animation:shake .4s ease;}
 #glove-el.big-shake{animation:bigShake .5s ease;}
@@ -390,9 +400,16 @@ body{
   display:flex;align-items:center;justify-content:center;
   font-size:clamp(24px,6.5vw,32px);color:var(--c30);
   box-shadow:0 4px 0 var(--c10d),0 6px 18px rgba(236,35,38,.35);
-  touch-action:none;transition:transform .08s;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  transition:transform .08s;
+  -webkit-tap-highlight-color:transparent;
+  outline:none;
 }
 .btn-arrow:active{transform:scale(.92);}
+.btn-arrow::selection{background:none;}
 .combo-badge{
   background:var(--yellow);color:var(--ink);
   border-radius:20px;padding:3px 12px;
@@ -728,12 +745,20 @@ function renderGame(){
   // position gloves
   const fw=getFW(); gloveX=fw/2;
   const ge=$('glove-el');
-  if(ge){ ge.style.left=(gloveX-GW/2)+'px'; ge.style.top=CATCH_Y(getFH())+'px'; }
+  if(ge){
+    ge.style.left='0px';
+    ge.style.top=CATCH_Y(getFH())+'px';
+    ge.style.transform=`translateX(${gloveX-GW/2}px)`;
+  }
 
   const bl=$('btn-left'), br=$('btn-right');
-  const onL=()=>{pressDir='l'}, onR=()=>{pressDir='r'}, off=()=>{pressDir=null};
-  bl.addEventListener('pointerdown',onL); bl.addEventListener('pointerup',off); bl.addEventListener('pointerleave',off);
-  br.addEventListener('pointerdown',onR); br.addEventListener('pointerup',off); br.addEventListener('pointerleave',off);
+  const onL=(e)=>{e.preventDefault();pressDir='l'};
+  const onR=(e)=>{e.preventDefault();pressDir='r'};
+  const off=(e)=>{e.preventDefault();pressDir=null};
+  bl.addEventListener('pointerdown',onL,{passive:false}); bl.addEventListener('pointerup',off,{passive:false}); bl.addEventListener('pointerleave',off,{passive:false});
+  br.addEventListener('pointerdown',onR,{passive:false}); br.addEventListener('pointerup',off,{passive:false}); br.addEventListener('pointerleave',off,{passive:false});
+  bl.addEventListener('contextmenu',e=>e.preventDefault());
+  br.addEventListener('contextmenu',e=>e.preventDefault());
 }
 
 function startGame(){
@@ -779,7 +804,7 @@ function tick(ts){
   if(pressDir==='l') gloveX=Math.max(GW/2, gloveX-spd*dt);
   if(pressDir==='r') gloveX=Math.min(fw-GW/2, gloveX+spd*dt);
   const ge=$('glove-el');
-  if(ge) ge.style.left=(gloveX-GW/2)+'px';
+  if(ge) ge.style.transform=`translateX(${gloveX-GW/2}px)`;
 
   // Spawn items
   if(ts-lastSpawn > spawnInt){
