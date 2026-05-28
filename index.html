@@ -883,7 +883,7 @@ function getVoucher(s){
 
 // ── STATE
 let attempts=4, vWon=0, totalPts=0;
-let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, speedVal=1.1, elapsedSec=0;
+let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, maxComboVal=0, speedVal=1.1, elapsedSec=0;
 let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
 let wid=0, playerName='', playerEmail='', playerCity='';
 
@@ -1196,7 +1196,7 @@ function renderGame(){
 function startGame(){
   startMusic();
   done=false; wid=0; itemsArr=[];
-  livesVal=3; scoreVal=0; comboVal=0; speedVal=1.1; elapsedSec=0;
+  livesVal=3; scoreVal=0; comboVal=0; maxComboVal=0; speedVal=1.1; elapsedSec=0;
   lastT=null; lastSpawn=0; spawnInt=2000; pressDir=null;
   renderGame();
   const fw=getFW(); gloveX=fw/2;
@@ -1336,6 +1336,7 @@ function tick(ts){
   }
 
   comboVal=newCombo;
+  if(newCombo > maxComboVal) maxComboVal=newCombo;
   if(ptsGained){ scoreVal+=ptsGained; const sd=$('score-disp'); if(sd) sd.textContent=scoreVal; }
   const cb=$('combo-badge');
   if(cb){ cb.style.display=newCombo>1?'inline-block':'none'; cb.textContent='×'+Math.min(newCombo,5)+' COMBO'; }
@@ -1407,7 +1408,7 @@ function endGame(finalScore){
       email:     playerEmail,
       city:      playerCity,
       score:     finalScore,
-      combo:     Math.min(comboVal,5),
+      combo:     Math.min(maxComboVal,5),
       survie:    Math.floor(elapsedSec),
       voucher:   getVoucher(finalScore).code,
       source:    'JumiaGardienDeBut'
@@ -1429,7 +1430,7 @@ function renderForm(){
     </div>
     <div class="fm-card">
       <div class="fm-score-strip">
-        ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(comboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(p=>`
+        ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(p=>`
           <div class="fm-score-pill">
             <div class="fm-score-pill-val" style="font-family:${H1}">${p.val}</div>
             <div class="fm-score-pill-lbl">${p.lbl}</div>
@@ -1505,7 +1506,7 @@ function renderResult(){
       <div class="rs-sub">${s>=400?'Voici ton bon de réduction ↓':'Rejoue pour gagner un meilleur bon !'}</div>
     </div>
     <div class="rs-scores">
-      ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(comboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
+      ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card">
           <div class="rs-score-val" style="font-family:${H1}">${sc.val}</div>
           <div class="rs-score-lbl">${sc.lbl}</div>
