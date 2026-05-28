@@ -1171,7 +1171,7 @@ function renderLobby(){
   </div>`;
 
   const bs=$('btn-start');
-  if(bs) bs.addEventListener('pointerdown', ()=>{ goTo(renderForm); });
+  if(bs) bs.addEventListener('pointerdown', ()=>{ goTo(startGame); });
 
   // Load leaderboard async (for future use, hidden from lobby now)
   fetchLeaderboard().catch(()=>{});
@@ -1459,18 +1459,19 @@ function endGame(finalScore){
     });
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
-  goTo(renderResult);
+  goTo(renderForm);
 }
 
 // ── FORM
 function renderForm(){
+  startMusic();
   const s=scoreVal;
   $('app').innerHTML=`
   <div id="screen-form">
     <div class="fm-top">
-      <span class="fm-emoji" style="font-size:clamp(24px,6vw,32px);display:block;margin-bottom:4px"><img src="${IMG_GLOVES}" style="height:clamp(40px,10vw,52px);width:auto;display:inline-block" alt="gloves"></span>
-      <div class="fm-title">PRÊT(E) À JOUER ?</div>
-      <div class="fm-sub">Saisis tes infos pour<br><b>participer et gagner ton bon Jumia</b></div>
+      <span class="fm-emoji" style="display:block;margin-bottom:4px"><img src="${IMG_GLOVES}" style="height:clamp(40px,10vw,52px);width:auto;display:inline-block" alt="gloves"></span>
+      <div class="fm-title">BIEN JOUÉ !</div>
+      <div class="fm-sub">Saisis tes infos pour<br><b>recevoir ton bon de réduction</b></div>
     </div>
     <div class="fm-card">
       <div class="fm-score-strip">
@@ -1499,7 +1500,7 @@ function renderForm(){
     <div class="fm-spacer"></div>
     <div style="padding:clamp(8px,2vw,12px) clamp(12px,3vw,18px) 0">
       <button class="btn-submit" id="btn-submit">
-        <span id="submit-label">JOUER &amp; GAGNER</span>
+        <span id="submit-label">VOIR MON BON</span>
         <div class="spinner" id="submit-spinner"></div>
       </button>
     </div>
@@ -1528,15 +1529,27 @@ function submitForm(){
   });
   if(!valid) return;
 
-  // Store credentials — no API call yet, score isn't known until game ends
   playerName=name; playerEmail=email; playerCity=city;
 
-  // Show loading briefly then start game
+  // Send data to sheet
+  if(SHEET_URL.startsWith("https://")){
+    const params=new URLSearchParams({
+      timestamp: new Date().toISOString(),
+      name, email, city,
+      score:   scoreVal,
+      combo:   Math.min(maxComboVal,5),
+      survie:  Math.floor(elapsedSec),
+      voucher: getVoucher(scoreVal).code,
+      source:  'JumiaGardienDeBut'
+    });
+    fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+  }
+
   const btn=$('btn-submit'), lbl=$('submit-label'), spn=$('submit-spinner');
   if(btn) btn.disabled=true;
   if(lbl) lbl.style.display='none';
   if(spn) spn.style.display='block';
-  goTo(startGame);
+  goTo(renderResult);
 }
 
 // ── RESULT
