@@ -887,7 +887,9 @@ let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, maxComboVal=0, 
 let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
 let wid=0, playerName='', playerEmail='', playerCity='';
 
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzOt1D-KQX1-ThRg8HN2aBX8NLIMnwp_xNsMiCCnP1hPHLz3qV_PoiEXzUTkcoGH_06/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
+const SHEET_ID  = '1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
+const SHEET_GID = '0';
 
 function $(id){ return document.getElementById(id); }
 
@@ -1018,9 +1020,6 @@ function goTo(fn){
 }
 
 // ── LEADERBOARD FETCH
-const SHEET_ID  = '1TLGMbNAdpDi1ZwebEFat2dpj7G_CV07goVi2tpBD_00';
-const SHEET_GID = '0';
-
 async function fetchLeaderboard(){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
   try {
