@@ -709,7 +709,7 @@ let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, speedVal=1.1, e
 let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
 let wid=0, playerName='', playerEmail='', playerCity='';
 
-const SHEET_URL = "https://script.google.com/a/macros/jumia.com/s/AKfycbxM_KtwE-7UfMpHddgAyf64iKgnTXKGnLiTRgFUS9tJj4g8f4xgpOsKU9oVXKCZBvFCyw/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzOt1D-KQX1-ThRg8HN2aBX8NLIMnwp_xNsMiCCnP1hPHLz3qV_PoiEXzUTkcoGH_06/exec";
 
 function $(id){ return document.getElementById(id); }
 
@@ -1151,7 +1151,7 @@ function endGame(finalScore){
       score:finalScore, combo:Math.min(comboVal,5),
       survie:Math.floor(elapsedSec), voucher:getVoucher(finalScore).code
     });
-    fetch(SHEET_URL+'?'+sp.toString(),{method:'GET',redirect:'follow'}).catch(()=>{});
+    fetch(SHEET_URL+'?'+sp.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
   renderResult();
 }
@@ -1232,7 +1232,7 @@ function submitForm(){
     survie:Math.floor(elapsedSec), voucher:getVoucher(scoreVal).code,
     source:'JumiaGardienDeBut'
   });
-  fetch(SHEET_URL+'?'+params.toString(),{method:'GET',redirect:'follow'})
+  fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'})
   .then(()=>startGame())
   .catch(()=>startGame());
 }
