@@ -75,13 +75,38 @@ body{
   padding:clamp(20px,5vw,32px) clamp(20px,5vw,28px) clamp(8px,2vw,12px);
 }
 .lb-eyebrow{
-  font-size:clamp(10px,2.8vw,13px);
+  font-size:clamp(11px,3vw,14px);
   font-weight:700;
   letter-spacing:.14em;
-  color:rgba(255,255,255,.7);
+  color:rgba(255,255,255,.8);
   font-family:var(--H2);
   text-transform:uppercase;
   margin-bottom:4px;
+}
+/* Best score motivational block — shown after first play */
+.lb-best-block{
+  flex:0 0 auto;
+  margin:clamp(12px,3vw,20px) clamp(20px,5vw,28px) 0;
+  background:var(--c30);
+  border-radius:8px;
+  padding:clamp(14px,3.5vw,20px);
+  text-align:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  border-top:4px solid var(--yellow);
+}
+.lb-best-label{
+  font-size:clamp(9px,2.4vw,11px);font-weight:700;
+  color:var(--ink2);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:4px;
+}
+.lb-best-score{
+  font-size:clamp(42px,13vw,56px);font-weight:900;
+  color:var(--ink);font-family:var(--H1);line-height:1;
+}
+.lb-best-hint{
+  font-size:clamp(10px,2.8vw,13px);color:var(--ink2);
+  font-family:var(--H2);margin-top:6px;line-height:1.3;
 }
 /* Headline: HelveticaDisplay Black, leading 95% per brand */
 .lb-title{
@@ -847,6 +872,18 @@ body{
   color:rgba(255,255,255,.4);font-family:var(--H2);
   margin-top:8px;word-break:break-all;
 }
+.btn-share{
+  width:100%;background:transparent;
+  color:var(--c30);
+  border:2px solid rgba(255,255,255,.4);
+  border-radius:6px;
+  padding:clamp(10px,2.5vw,13px);
+  font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;
+  font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;
+  transition:border-color .2s,background .2s;
+  margin-bottom:8px;
+}
+.btn-share:active{background:rgba(255,255,255,.1);}
 .rs-spacer{flex:1;min-height:clamp(8px,2vw,16px);}
 /* Replay bar — 30% white */
 .rs-replay-bar{
@@ -929,10 +966,11 @@ function getVoucher(s){
 }
 
 // ── STATE
-let attempts=4, vWon=0, totalPts=0;
+let attempts=4, vWon=0, totalPts=0, bestScore=0;
 let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, maxComboVal=0, speedVal=1.1, elapsedSec=0;
 let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
 let wid=0, playerName='', playerEmail='', playerCity='';
+let hasPlayedOnce=false;
 
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
 const SHEET_ID  = '1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
@@ -1093,6 +1131,10 @@ async function fetchLeaderboard(){
 
 // ── LOBBY
 function renderLobby(){
+  const attemptsLeft = attempts;
+  const attBadgeBg   = attemptsLeft <= 1 ? '#ec2326' : '#22a651';
+  const attBadgeTxt  = attemptsLeft <= 1 ? '⚠' : 'GO';
+
   $('app').innerHTML=`
   <div id="screen-lobby">
 
@@ -1108,9 +1150,9 @@ function renderLobby(){
     <!-- 30% white — stats -->
     <div class="lb-stats">
       ${[
-        {icon:IMG_ATTEMPTS, val:`${attempts}/4`, lbl:"TENTATIVES\nAUJOURD'HUI", badge:"GO", bc:"#22a651", tc:"#fff"},
-        {icon:IMG_TROPHY,   val:vWon,            lbl:"BONS\nGAGNÉS",            badge:"BON", bc:"#ffba00", tc:"#403b3b"},
-        {icon:IMG_STAR,     val:totalPts,         lbl:"POINTS\nTOTAL",           badge:"PTS", bc:"#ffba00", tc:"#403b3b"}
+        {icon:IMG_ATTEMPTS, val:`${attemptsLeft}/4`, lbl:"TENTATIVES\nAUJOURD'HUI", badge:attBadgeTxt, bc:attBadgeBg,  tc:"#fff"},
+        {icon:IMG_TROPHY,   val:vWon,                lbl:"BONS\nGAGNÉS",            badge:"BON",       bc:"#ffba00",   tc:"#403b3b"},
+        {icon:IMG_STAR,     val:bestScore||totalPts,  lbl:bestScore?"MEILLEUR\nSCORE":"POINTS\nTOTAL",  badge:"BEST",   bc:"#ffba00", tc:"#403b3b"}
       ].map(s=>`
         <div class="stat-item">
           <div class="stat-icon-wrap">
@@ -1122,11 +1164,11 @@ function renderLobby(){
         </div>`).join('')}
     </div>
 
-    <!-- HOW TO PLAY — fills negative space clearly -->
+    <!-- HOW TO PLAY — collapses after first game -->
+    ${!hasPlayedOnce ? `
     <div class="lb-how">
       <div class="lb-how-title">COMMENT JOUER</div>
       <div class="lb-how-rows">
-
         <div class="lb-how-row catch">
           <div class="lb-how-icon">
             <img src="${IMG_SOCCER}" alt="ball" draggable="false">
@@ -1137,7 +1179,6 @@ function renderLobby(){
           </div>
           <div class="lb-how-tag green">+POINTS</div>
         </div>
-
         <div class="lb-how-row bonus">
           <div class="lb-how-icon">
             <img src="${IMG_GOLDEN}" alt="golden" draggable="false">
@@ -1148,7 +1189,6 @@ function renderLobby(){
           </div>
           <div class="lb-how-tag gold">BONUS</div>
         </div>
-
         <div class="lb-how-row dodge">
           <div class="lb-how-icon redcard">
             <img src="${IMG_REDCARD}" alt="red card" draggable="false">
@@ -1159,18 +1199,23 @@ function renderLobby(){
           </div>
           <div class="lb-how-tag red">DANGER</div>
         </div>
-
       </div>
-    </div>
+    </div>` : `
+    <!-- After first play: show best score motivation instead -->
+    <div class="lb-best-block">
+      <div class="lb-best-label">TON MEILLEUR SCORE</div>
+      <div class="lb-best-score">${bestScore}</div>
+      <div class="lb-best-hint">${bestScore>=800?'Légende ! Tu as tout gagné !':bestScore>=400?'Champion ! Peux-tu faire mieux ?':bestScore>=150?'Match Ready ! Continue comme ça !':'Rejoue pour gagner un meilleur bon !'}</div>
+    </div>`}
 
     <div class="lb-spacer"></div>
 
     <!-- 10% red — CTA -->
     <div class="lb-cta">
-      ${attempts === 0
-        ? `<div style="background:rgba(0,0,0,.2);border-radius:30px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">Plus de tentatives aujourd'hui. Reviens demain !</div>`
+      ${attemptsLeft === 0
+        ? `<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">Plus de tentatives aujourd'hui. Reviens demain !</div>`
         : `<button class="btn-kickoff" id="btn-start">COUP D'ENVOI !</button>`}
-      <div class="cta-note">${attempts} tentative${attempts>1?"s":""} restante${attempts>1?"s":""}</div>
+      <div class="cta-note" style="${attemptsLeft<=1&&attemptsLeft>0?'color:#ffcdd2;font-weight:700;':''}">${attemptsLeft} tentative${attemptsLeft>1?"s":""} restante${attemptsLeft>1?"s":""}</div>
     </div>
 
   </div>`;
@@ -1448,6 +1493,8 @@ function endGame(finalScore){
   if(finalScore>=150) vWon++;
   totalPts+=finalScore; scoreVal=finalScore;
   attempts=Math.max(0,attempts-1);
+  if(finalScore > bestScore) bestScore=finalScore;
+  hasPlayedOnce=true;
 
   // Send complete entry in one shot — credentials + final score together
   if(SHEET_URL.startsWith("https://") && playerName){
@@ -1575,6 +1622,10 @@ function renderResult(){
       <div class="rs-url-hint">https://www.jumia.ma/mlp-foot-20253/</div>
     </div>
     <div class="rs-spacer"></div>
+    <!-- Share score -->
+    <div style="padding:0 clamp(20px,5vw,28px) 8px;">
+      <button class="btn-share" onclick="shareScore(${scoreVal})">Partager mon score</button>
+    </div>
     <div class="rs-replay-bar">
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">Rejouer (${attempts} tentative${attempts>1?'s':''} restante${attempts>1?'s':''})</button>`
@@ -1600,6 +1651,28 @@ function renderResult(){
         goTo(startGame);
       }
     });
+  }
+}
+
+// ── SHARE SCORE
+function shareScore(score){
+  const v   = getVoucher(score);
+  const txt = `J'ai scoré ${score} points sur Jumia Gardien de But — Édition Fans ! 🧤⚽\nJoue et gagne ${v.disc} sur Jumia.ma\nhttps://www.jumia.ma/`;
+  if(navigator.share){
+    navigator.share({ title:'Jumia Gardien de But', text:txt })
+      .catch(()=>{});
+  } else {
+    // Fallback: copy to clipboard
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    ta.style.cssText='position:fixed;opacity:0;pointer-events:none;';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    // Show feedback on button
+    const btn = document.querySelector('.btn-share');
+    if(btn){ btn.textContent='Texte copié !'; setTimeout(()=>{ btn.textContent='Partager mon score'; },2000); }
   }
 }
 
