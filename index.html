@@ -1054,7 +1054,7 @@ function startMusic(){
     music.play().catch(()=>{});
     musicStarted = true;
   }
-  musicFade(0.45);
+  musicFade(0.18);
 }
 
 function stopMusic(){
@@ -1069,7 +1069,7 @@ function toggleMusic(btn){
   musicOn = !musicOn;
   if(musicOn){
     music.play().catch(()=>{});
-    musicFade(0.45);
+    musicFade(0.18);
     btn.textContent = '♪';
     btn.title = 'Couper la musique';
   } else {
