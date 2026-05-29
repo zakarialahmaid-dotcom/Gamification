@@ -54,6 +54,31 @@ body{
   touch-action:none;
 }
 
+/* ── LOADING SCREEN */
+#loading-screen{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--c60);z-index:99999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;
+  transition:opacity .4s ease;
+}
+#loading-screen.fade-out{opacity:0;pointer-events:none;}
+.loading-logo{
+  font-size:clamp(36px,12vw,52px);font-weight:900;
+  color:var(--c30);font-family:var(--H1);line-height:.95;text-align:center;
+}
+.loading-gloves-wrap{height:clamp(56px,15vw,72px);display:flex;align-items:center;justify-content:center;}
+.loading-gloves{height:100%;width:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));}
+.loading-sub{
+  font-size:clamp(10px,2.8vw,13px);color:rgba(255,255,255,.6);
+  font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;
+}
+.loading-bar-wrap{
+  width:clamp(160px,45vw,220px);height:4px;
+  background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;
+}
+.loading-bar{height:100%;width:0%;background:var(--c30);border-radius:2px;transition:width .25s ease;}
+
 /* ── LANDSCAPE BLOCKER — shown when fullscreen rotates */
 #rotate-screen{
   display:none;
@@ -207,7 +232,10 @@ body{
   display:flex;align-items:center;justify-content:center;
   filter:drop-shadow(0 0 8px rgba(255,255,255,.5));
 }
-.lb-how-row-danger-icon img{width:55%;height:auto;display:block;object-fit:contain;}
+.lb-how-row-danger-icon img{
+  width:clamp(28px,7vw,36px);
+  height:auto;display:block;object-fit:contain;
+}
 .lb-how-row-danger-text{flex:1;}
 .lb-how-row-danger-title{
   font-size:clamp(15px,4.2vw,19px);font-weight:900;
@@ -275,7 +303,7 @@ body{
 .lb-how-tag.gold{background:var(--yellow);color:var(--ink);}
 .lb-how-tag.red{background:var(--c10);color:#fff;}
 
-.lb-spacer{flex:1;min-height:8px;}
+.lb-spacer{flex:1;min-height:4px;max-height:24px;}
 
 /* ── CTA — 10% Red, full-width, bold */
 .lb-cta{
@@ -879,9 +907,9 @@ body{
 <div id="app"></div>
 <div id="play-transition"></div>
 <div id="loading-screen">
-  <img class="loading-gloves" src="https://raw.githubusercontent.com/Madzack69/Icons/main/Gloves.png" alt="">
   <div class="loading-logo">GARDIEN<br>DE BUT</div>
-  <div class="loading-sub">Chargement en cours...</div>
+  <div class="loading-gloves-wrap" id="loading-gloves-wrap"></div>
+  <div class="loading-sub" id="loading-sub">Chargement en cours...</div>
   <div class="loading-bar-wrap">
     <div class="loading-bar" id="loading-bar"></div>
   </div>
@@ -1109,7 +1137,8 @@ async function fetchLeaderboard(){
         name:  r.c[nameIdx]?.v || 'Joueur',
         score: Number(r.c[scoreIdx].v) || 0
       }))
-      .sort((a,b) => b.score - a.score)
+      .sort((a,b) => b.score - a.score)  // highest first
+      .filter((p,i,arr) => arr.findIndex(x=>x.name===p.name)===i) // dedupe same name
       .slice(0,50);
   } catch(e){ return []; }
 }
@@ -1670,28 +1699,43 @@ function preloadAssets(){
   ];
 
   const bar   = document.getElementById('loading-bar');
-  const sub   = document.querySelector('.loading-sub');
+  const sub   = document.getElementById('loading-sub');
+  const gWrap = document.getElementById('loading-gloves-wrap');
   const total = images.length + 1; // +1 for audio
   let loaded  = 0;
+  let finished = false;
 
   function tick(){
     loaded++;
     const pct = Math.round((loaded / total) * 100);
     if(bar) bar.style.width = pct + '%';
-    if(loaded >= total) finish();
+    // Show gloves once their image is cached (IMG_GLOVES is index 4)
+    if(loaded >= 5 && gWrap && !gWrap.querySelector('img')){
+      const g = new Image();
+      g.className = 'loading-gloves';
+      g.src = IMG_GLOVES;
+      g.alt = '';
+      gWrap.appendChild(g);
+    }
+    if(loaded >= total && !finished) finish();
   }
 
   function finish(){
-    const screen = document.getElementById('loading-screen');
+    finished = true;
     if(sub) sub.textContent = 'Prêt !';
     if(bar) bar.style.width = '100%';
+    // Wait for a full paint cycle before transitioning
     setTimeout(()=>{
-      if(screen) screen.classList.add('fade-out');
-      setTimeout(()=>{
-        if(screen) screen.remove();
-        renderLobby();
-      }, 420);
-    }, 300);
+      requestAnimationFrame(()=>{
+        const screen = document.getElementById('loading-screen');
+        if(screen) screen.classList.add('fade-out');
+        setTimeout(()=>{
+          const screen2 = document.getElementById('loading-screen');
+          if(screen2) screen2.remove();
+          renderLobby();
+        }, 420);
+      });
+    }, 400);
   }
 
   // Preload all images
@@ -1707,14 +1751,10 @@ function preloadAssets(){
   music.addEventListener('error', tick, { once:true });
   music.load();
 
-  // Safety — show game after 6s regardless
+  // Safety — show game after 8s regardless
   setTimeout(()=>{
-    const screen = document.getElementById('loading-screen');
-    if(screen && !screen.classList.contains('fade-out')){
-      screen.classList.add('fade-out');
-      setTimeout(()=>{ if(screen) screen.remove(); renderLobby(); }, 420);
-    }
-  }, 6000);
+    if(!finished) finish();
+  }, 8000);
 }
 
 preloadAssets();
