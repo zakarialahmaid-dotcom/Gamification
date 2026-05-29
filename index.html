@@ -1011,6 +1011,7 @@ function getVoucher(s){
 let attempts=4, vWon=0, totalPts=0, bestScore=0;
 let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, maxComboVal=0, speedVal=1.1, elapsedSec=0;
 let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
+let lastPressTime=0; // invincibility window tracking
 let wid=0, playerName='', playerEmail='', playerCity='';
 let hasPlayedOnce=false;
 
@@ -1372,8 +1373,8 @@ function renderGame(){
   }
 
   const bl=$('btn-left'), br=$('btn-right');
-  const onL=(e)=>{e.preventDefault(); if(tutorialActive) dismissTutorial(); pressDir='l'};
-  const onR=(e)=>{e.preventDefault(); if(tutorialActive) dismissTutorial(); pressDir='r'};
+  const onL=(e)=>{e.preventDefault(); if(tutorialActive) dismissTutorial(); pressDir='l'; lastPressTime=Date.now();};
+  const onR=(e)=>{e.preventDefault(); if(tutorialActive) dismissTutorial(); pressDir='r'; lastPressTime=Date.now();};
   const off=(e)=>{e.preventDefault();pressDir=null};
   bl.addEventListener('pointerdown',onL,{passive:false}); bl.addEventListener('pointerup',off,{passive:false}); bl.addEventListener('pointerleave',off,{passive:false});
   br.addEventListener('pointerdown',onR,{passive:false}); br.addEventListener('pointerup',off,{passive:false}); br.addEventListener('pointerleave',off,{passive:false});
@@ -1500,7 +1501,11 @@ function tick(ts){
           triggerCatchRing(gloveX, cy);
           if(ge){ ge.classList.add('catching'); setTimeout(()=>ge&&ge.classList.remove('catching'),300); }
         } else {
-          // Red card hit
+          // Red card hit — skip if within 180ms of button press (swipe protection)
+          if(Date.now() - lastPressTime < 180) {
+            if(el) el.remove();
+            return false;
+          }
           newCombo=0; livesLost++;
           showFlash(Math.min(Math.max(cx-40,0),fw-100), cy-50, '🟥 CARTON!', false);
           const sg=$('screen-game');
