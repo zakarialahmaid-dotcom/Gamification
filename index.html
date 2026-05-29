@@ -345,6 +345,98 @@ body{
 }
 
 
+/* ── LEADERBOARD */
+.lb-board{
+  flex:0 0 auto;
+  margin:clamp(10px,2.5vw,14px) clamp(20px,5vw,28px) 0;
+  border-radius:8px;overflow:hidden;
+  background:var(--c30);
+  box-shadow:0 2px 12px rgba(0,0,0,.1);
+}
+.lb-board-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(8px,2vw,10px) clamp(12px,3vw,16px);
+  background:var(--c10);
+}
+.lb-board-title{
+  font-size:clamp(10px,2.8vw,12px);font-weight:900;
+  color:var(--c30);font-family:var(--H1);letter-spacing:.08em;
+}
+.lb-board-live{
+  font-size:clamp(8px,2vw,9px);font-weight:700;
+  color:rgba(255,255,255,.75);font-family:var(--H2);
+  display:flex;align-items:center;gap:4px;
+}
+.lb-board-live::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#fff;display:inline-block;
+  animation:dotPulse 1.4s ease infinite;
+}
+@keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.lb-board-rows{padding:clamp(3px,1vw,4px) 0;}
+.lb-board-row{
+  display:flex;align-items:center;
+  padding:clamp(7px,2vw,9px) clamp(12px,3vw,16px);gap:10px;
+  border-bottom:1px solid #f5f0e8;
+}
+.lb-board-row:last-child{border-bottom:none;}
+.lb-board-row.top1{background:#fffbee;}
+.lb-board-row.top2{background:#fafafa;}
+.lb-board-row.top3{background:#fdf6ee;}
+.lb-rank{
+  font-size:clamp(11px,3vw,13px);font-weight:900;
+  width:24px;text-align:center;flex-shrink:0;
+  color:var(--ink2);font-family:var(--H2);
+}
+.lb-board-row.top1 .lb-rank{color:var(--c60);}
+.lb-name{
+  flex:1;font-size:clamp(12px,3.2vw,14px);font-weight:700;
+  color:var(--ink);font-family:var(--H2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lb-score{
+  font-size:clamp(12px,3.2vw,14px);font-weight:900;
+  color:var(--c10);font-family:var(--H1);flex-shrink:0;
+}
+.lb-board-msg{
+  text-align:center;padding:clamp(12px,3vw,16px);
+  font-size:clamp(10px,2.6vw,12px);color:var(--ink2);font-family:var(--H2);
+}
+
+/* ── BIG DANGER ROW */
+.lb-how-row-danger{
+  display:flex;align-items:center;gap:14px;
+  background:var(--c10);
+  border-radius:8px;
+  padding:clamp(14px,3.5vw,18px);
+  box-shadow:0 4px 14px rgba(236,35,38,.4);
+  position:relative;overflow:hidden;
+}
+.lb-how-row-danger::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(45deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 6px,transparent 6px,transparent 14px);
+  pointer-events:none;
+}
+.lb-how-row-danger-icon{
+  width:clamp(38px,10vw,50px);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 0 8px rgba(255,255,255,.5));
+}
+.lb-how-row-danger-icon img{width:55%;height:auto;display:block;object-fit:contain;}
+.lb-how-row-danger-text{flex:1;}
+.lb-how-row-danger-title{
+  font-size:clamp(15px,4.2vw,19px);font-weight:900;
+  color:var(--c30);font-family:var(--H1);
+  text-transform:uppercase;line-height:1;margin-bottom:3px;
+}
+.lb-how-row-danger-sub{font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.8);font-family:var(--H2);}
+.lb-how-row-danger-tag{
+  flex-shrink:0;background:rgba(0,0,0,.25);color:var(--c30);
+  font-size:clamp(9px,2.4vw,11px);font-weight:900;font-family:var(--H1);
+  padding:5px 12px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;
+  border:1.5px solid rgba(255,255,255,.3);
+}
+
 #play-transition{
   position:fixed;top:0;left:0;right:0;bottom:0;
   background:var(--c10);z-index:9999;
@@ -1201,84 +1293,85 @@ async function fetchLeaderboard(){
 function renderLobby(){
   const attemptsLeft = attempts;
   const attBadgeBg   = attemptsLeft <= 1 ? '#ec2326' : '#22a651';
-  const attBadgeTxt  = attemptsLeft <= 1 ? '⚠' : 'GO';
+  const attBadgeTxt  = attemptsLeft <= 1 ? '!' : 'GO';
 
   $('app').innerHTML=`
   <div id="screen-lobby">
 
-    <!-- 60% orange — header -->
+    <!-- HEADER -->
     <div class="lb-top">
       <div class="lb-eyebrow">JUMIA ÉDITION FANS</div>
       <div class="lb-title">GARDIEN<br>DE BUT</div>
-      <div class="lb-subbanner"><span>ÉDITION FANS MAROC</span></div>
     </div>
 
     <div class="lb-pitch"></div>
 
-    <!-- 30% white — stats -->
-    <div class="lb-stats">
-      ${[
-        {icon:IMG_ATTEMPTS, val:`${attemptsLeft}/4`, lbl:"TENTATIVES\nAUJOURD'HUI", badge:attBadgeTxt, bc:attBadgeBg,  tc:"#fff"},
-        {icon:IMG_TROPHY,   val:vWon,                lbl:"BONS\nGAGNÉS",            badge:"BON",       bc:"#ffba00",   tc:"#403b3b"},
-        {icon:IMG_STAR,     val:bestScore||totalPts,  lbl:bestScore?"MEILLEUR\nSCORE":"POINTS\nTOTAL",  badge:"BEST",   bc:"#ffba00", tc:"#403b3b"}
-      ].map(s=>`
-        <div class="stat-item">
-          <div class="stat-icon-wrap">
-            <img src="${s.icon}" alt="">
-            <div class="stat-badge" style="background:${s.bc};color:${s.tc}">${s.badge}</div>
-            <div class="stat-value">${s.val}</div>
-          </div>
-          <div class="stat-label">${s.lbl}</div>
-        </div>`).join('')}
+    <!-- ATTEMPTS ONLY — strip trophy and points -->
+    <div class="lb-stats" style="justify-content:center;">
+      <div class="stat-item">
+        <div class="stat-icon-wrap">
+          <img src="${IMG_ATTEMPTS}" alt="">
+          <div class="stat-badge" style="background:${attBadgeBg};color:#fff">${attBadgeTxt}</div>
+          <div class="stat-value">${attemptsLeft}/4</div>
+        </div>
+        <div class="stat-label">TENTATIVES\nAUJOURD'HUI</div>
+      </div>
+      ${bestScore > 0 ? `
+      <div class="stat-item">
+        <div class="stat-icon-wrap">
+          <img src="${IMG_STAR}" alt="">
+          <div class="stat-badge" style="background:#ffba00;color:#403b3b">BEST</div>
+          <div class="stat-value">${bestScore}</div>
+        </div>
+        <div class="stat-label">MEILLEUR\nSCORE</div>
+      </div>` : ''}
     </div>
 
-    <!-- HOW TO PLAY — collapses after first game -->
-    ${!hasPlayedOnce ? `
+    <!-- LEADERBOARD -->
+    <div class="lb-board">
+      <div class="lb-board-header">
+        <span class="lb-board-title">CLASSEMENT EN DIRECT</span>
+        <span class="lb-board-live">LIVE</span>
+      </div>
+      <div class="lb-board-rows" id="lb-rows">
+        <div class="lb-board-msg">Chargement...</div>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY — always visible, compact 2-row -->
     <div class="lb-how">
       <div class="lb-how-title">COMMENT JOUER</div>
       <div class="lb-how-rows">
-        <div class="lb-how-row catch">
-          <div class="lb-how-icon">
+
+        <!-- CATCH row — compact -->
+        <div class="lb-how-row catch" style="padding:clamp(8px,2vw,11px) clamp(14px,3.5vw,18px);">
+          <div class="lb-how-icon" style="width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);">
             <img src="${IMG_SOCCER}" alt="ball" draggable="false">
           </div>
           <div class="lb-how-text">
-            <div class="lb-how-action">Attrape le ballon</div>
-            <div class="lb-how-desc">Déplace tes gants pour intercepter les ballons</div>
+            <div class="lb-how-action" style="font-size:clamp(11px,3vw,14px);">Attrape les ballons</div>
           </div>
           <div class="lb-how-tag green">+POINTS</div>
         </div>
-        <div class="lb-how-row bonus">
-          <div class="lb-how-icon">
-            <img src="${IMG_GOLDEN}" alt="golden" draggable="false">
-          </div>
-          <div class="lb-how-text">
-            <div class="lb-how-action">Ballon d'or</div>
-            <div class="lb-how-desc">Attrape le ballon doré pour un bonus x3</div>
-          </div>
-          <div class="lb-how-tag gold">BONUS</div>
-        </div>
-        <div class="lb-how-row dodge">
-          <div class="lb-how-icon redcard">
+
+        <!-- DODGE row — BIG and alarming -->
+        <div class="lb-how-row-danger">
+          <div class="lb-how-row-danger-icon">
             <img src="${IMG_REDCARD}" alt="red card" draggable="false">
           </div>
-          <div class="lb-how-text">
-            <div class="lb-how-action">Esquive le carton</div>
-            <div class="lb-how-desc">Évite les cartons rouges — chaque touche = une vie perdue</div>
+          <div class="lb-how-row-danger-text">
+            <div class="lb-how-row-danger-title">NE PAS ATTRAPER</div>
+            <div class="lb-how-row-danger-sub">Esquive les cartons rouges</div>
           </div>
-          <div class="lb-how-tag red">DANGER</div>
+          <div class="lb-how-row-danger-tag">DANGER</div>
         </div>
+
       </div>
-    </div>` : `
-    <!-- After first play: show best score motivation instead -->
-    <div class="lb-best-block">
-      <div class="lb-best-label">TON MEILLEUR SCORE</div>
-      <div class="lb-best-score">${bestScore}</div>
-      <div class="lb-best-hint">${bestScore>=800?'Légende ! Tu as tout gagné !':bestScore>=400?'Champion ! Peux-tu faire mieux ?':bestScore>=150?'Match Ready ! Continue comme ça !':'Rejoue pour gagner un meilleur bon !'}</div>
-    </div>`}
+    </div>
 
     <div class="lb-spacer"></div>
 
-    <!-- 10% red — CTA -->
+    <!-- CTA -->
     <div class="lb-cta">
       ${attemptsLeft === 0
         ? `<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">Plus de tentatives aujourd'hui. Reviens demain !</div>`
@@ -1291,8 +1384,29 @@ function renderLobby(){
   const bs=$('btn-start');
   if(bs) bs.addEventListener('pointerdown', ()=>{ goTo(renderForm); });
 
-  // Load leaderboard async (for future use, hidden from lobby now)
-  fetchLeaderboard().catch(()=>{});
+  // Load leaderboard
+  fetchLeaderboard().then(players => {
+    const rows = $('lb-rows');
+    if(!rows) return;
+    const medals = ['1.','2.','3.','4.','5.'];
+    if(!players.length){
+      rows.innerHTML=`<div class="lb-board-msg">Sois le premier à jouer !</div>`;
+      return;
+    }
+    rows.innerHTML = players.map((p,i)=>{
+      const cls  = i===0?'top1':i===1?'top2':i===2?'top3':'';
+      const name = (p.name||'').split(' ')[0];
+      const pts  = Number(p.score).toLocaleString('fr-FR');
+      return `<div class="lb-board-row ${cls}">
+        <span class="lb-rank">${medals[i]}</span>
+        <span class="lb-name">${name}</span>
+        <span class="lb-score">${pts} pts</span>
+      </div>`;
+    }).join('');
+  }).catch(()=>{
+    const rows = $('lb-rows');
+    if(rows) rows.innerHTML=`<div class="lb-board-msg">Classement indisponible</div>`;
+  });
 }
 
 // ── GAME SCREEN
