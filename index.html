@@ -2,15 +2,19 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ff9900">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>Jumia — Gardien de But</title>
 <style>
-@font-face{font-family:'HelveticaDisplay';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-compressed-5871d14b6903a.otf') format('opentype');font-weight:900;}
-@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica-Bold.ttf') format('truetype');font-weight:700;}
-@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica.ttf') format('truetype');font-weight:500;}
-@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-light-587ebe5a59211.ttf') format('truetype');font-weight:300;}
-@font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Gotham-Black.otf') format('opentype');font-weight:900;}
-@font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/GothamBold.ttf') format('truetype');font-weight:700;}
+@font-face{font-family:'HelveticaDisplay';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-compressed-5871d14b6903a.otf') format('opentype');font-weight:900;font-display:swap;}
+@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica-Bold.ttf') format('truetype');font-weight:700;font-display:swap;}
+@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica.ttf') format('truetype');font-weight:500;font-display:swap;}
+@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-light-587ebe5a59211.ttf') format('truetype');font-weight:300;font-display:swap;}
+@font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Gotham-Black.otf') format('opentype');font-weight:900;font-display:swap;}
+@font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/GothamBold.ttf') format('truetype');font-weight:700;font-display:swap;}
 
 :root{
   --c60:#ff9900;
@@ -31,27 +35,38 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
 html{
-  width:100%;height:100%;
-  overflow:hidden;margin:0;padding:0;
-  /* Prevent iframe scroll on all browsers */
-  overscroll-behavior:none;
-  -webkit-overflow-scrolling:touch;
+  width:100%;
+  height:100%;
+  /* Android WebView fix — avoid position:fixed on body */
+  overflow:hidden;
+  margin:0;padding:0;
+  background:#ff9900;
 }
 body{
-  width:100%;height:100%;overflow:hidden;
-  background:var(--c60);
+  width:100%;
+  /* Use min/max height approach — safer than position:fixed on Android */
+  min-height:100%;
+  min-height:-webkit-fill-available; /* Android Chrome */
+  height:100%;
+  overflow:hidden;
+  background:#ff9900;
   display:flex;align-items:stretch;justify-content:center;
   margin:0;padding:0;
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  overscroll-behavior:none;
+  /* Removed position:fixed — causes white screen on Android WebView */
   touch-action:none;
+  -webkit-touch-callout:none;
 }
 #app{
-  width:100%;max-width:100%;height:100%;
+  width:100%;max-width:100%;
+  height:100%;
+  min-height:100%;
   display:flex;flex-direction:column;
   background:var(--c60);overflow:hidden;
   font-family:var(--H1);position:relative;
   touch-action:none;
+  /* Force GPU layer on Android */
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
 }
 
 /* ── LOADING SCREEN */
@@ -1071,8 +1086,15 @@ function copyCode(text, btn){
 }
 
 // ── PREVENT SCROLL PROPAGATION from iframe
-document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-document.addEventListener('wheel',     e => e.preventDefault(), { passive: false });
+// Android needs the listener on document AND a direct style approach
+document.addEventListener('touchmove', e => {
+  if(e.target.closest('#screen-form, .lb-board-rows, #screen-result')) return; // allow scroll in these
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+// Android extra: disable overscroll via JS (CSS alone isn't enough on all versions)
+document.documentElement.style.overscrollBehavior = 'none';
+document.body.style.overscrollBehavior = 'none';
 
 // ── ORIENTATION DETECTION — show rotate screen in landscape
 function checkOrientation(){
