@@ -1122,24 +1122,24 @@ function goTo(fn){
 
 // ── LEADERBOARD FETCH
 async function fetchLeaderboard(){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
+  // Use tq query to sort server-side AND limit rows — faster and more reliable
+  const tq  = encodeURIComponent(`SELECT B,E ORDER BY E DESC LIMIT 50`);
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
   try {
     const res  = await fetch(url);
     const text = await res.text();
     const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
-    const cols = json.table.cols.map(c => c.label.toLowerCase());
-    const scoreIdx = cols.findIndex(c => c.includes('score'));
-    const nameIdx  = cols.findIndex(c => c.includes('name') || c === 'prénom');
-    if(scoreIdx < 0) return [];
+    if(!json.table?.rows) return [];
     return json.table.rows
-      .filter(r => r.c[scoreIdx]?.v)
+      .filter(r => r.c?.[1]?.v != null)
       .map(r => ({
-        name:  r.c[nameIdx]?.v || 'Joueur',
-        score: Number(r.c[scoreIdx].v) || 0
+        name:  String(r.c[0]?.v || 'Joueur'),
+        // Parse score robustly — handles "5 818", "5,818", 5818
+        score: Number(String(r.c[1]?.v || 0).replace(/[\s,]/g,'')) || 0
       }))
-      .sort((a,b) => b.score - a.score)  // highest first
-      .filter((p,i,arr) => arr.findIndex(x=>x.name===p.name)===i) // dedupe same name
-      .slice(0,50);
+      .sort((a,b) => b.score - a.score)
+      .filter((p,i,arr) => arr.findIndex(x => x.name === p.name) === i)
+      .slice(0, 50);
   } catch(e){ return []; }
 }
 
