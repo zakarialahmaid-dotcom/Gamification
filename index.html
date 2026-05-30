@@ -961,14 +961,57 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
   font-family:var(--H2);margin-top:2px;display:inline-block;
 }
 
+/* Cash-out button — voluntary game end */
+#btn-cashout{
+  position:absolute;top:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);
+  background:rgba(255,255,255,.15);
+  border:1.5px solid rgba(255,255,255,.3);
+  color:var(--white);
+  border-radius:6px;
+  padding:5px 10px;
+  font-size:clamp(9px,2.3vw,10px);
+  font-weight:700;
+  font-family:var(--H2);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  cursor:pointer;
+  z-index:9;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  display:flex;align-items:center;gap:5px;
+}
+#btn-cashout:active{background:rgba(255,255,255,.25);}
+#btn-cashout.confirm-mode{
+  background:var(--orange);color:var(--navy);
+  border-color:var(--orangeD);
+  animation:none;
+}
+
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="play-transition"></div>
 <div id="loading-screen">
+  <div style="font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.14em;color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;text-transform:uppercase;margin-bottom:4px;">JUMIA ÉDITION FANS</div>
   <div class="loading-logo">GARDIEN<br>DE BUT</div>
   <div class="loading-gloves-wrap" id="loading-gloves-wrap"></div>
+  <div style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:4px;">
+    <div style="text-align:center;">
+      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">20%</div>
+      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">max réduction</div>
+    </div>
+    <div style="width:1px;height:32px;background:rgba(26,36,56,.2);"></div>
+    <div style="text-align:center;">
+      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">3</div>
+      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">prix physiques</div>
+    </div>
+    <div style="width:1px;height:32px;background:rgba(26,36,56,.2);"></div>
+    <div style="text-align:center;">
+      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">4</div>
+      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">essais/jour</div>
+    </div>
+  </div>
   <div class="loading-sub" id="loading-sub">Chargement en cours...</div>
   <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
 </div>
@@ -1261,11 +1304,15 @@ function renderLeaderboard(){
       const rankClass=rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
       const meClass=isMe?' mine':'';
       const youBadge=isMe?'<div class="lbd-you-badge">TOI</div>':'';
+      // Gap badge — show pts needed to reach this row (for the row just above player)
+      const isJustAbove=hasPlayedOnce&&myRowIdx>0&&i===myRowIdx-1;
+      const gapBadge=isJustAbove?'<div class="lbd-gap-badge">'+Number(players[i].score-bestScore).toLocaleString('fr-FR')+' pts pour dépasser</div>':'';
       return '<div class="lbd-row '+rankClass+meClass+'" id="lbd-row-'+i+'">'+
         '<div class="lbd-medal '+medalClass+'">'+rank+'</div>'+
         '<div class="lbd-info">'+
           '<div class="lbd-name">'+firstName+youBadge+'</div>'+
           city+
+          gapBadge+
         '</div>'+
         '<div class="lbd-right">'+
           '<div class="lbd-score">'+pts+'</div>'+
@@ -1316,7 +1363,7 @@ function renderLobby(){
     <!-- ── HERO HEADER ── -->
     <div class="lb-hero">
       <div class="lb-hero-left">
-        <div class="lb-eyebrow">JUMIA ÉDITION FANS</div>
+        <div class="lb-eyebrow">JUMIA ÉDITION FANS · GAGNE UN MAILLOT MAROC</div>
         <div class="lb-title">GARDIEN<br>DE BUT</div>
       </div>
       <img class="lb-hero-ball" src="${IMG_SOCCER}" alt="" draggable="false">
@@ -1328,6 +1375,11 @@ function renderLobby(){
       </div>
     </div>
 
+    <!-- Campaign end date strip -->
+    <div style="background:rgba(26,36,56,.08);border-top:1px solid rgba(26,36,56,.1);padding:clamp(6px,1.5vw,8px) clamp(16px,4vw,22px);display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--navy);opacity:.6;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(26,36,56,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;" id="campaign-countdown">Opération jusqu'au 30 juin 2026</div>
+    </div>
     <!-- ── SCROLLABLE BODY ── -->
     <div class="lb-scroll">
 
@@ -1338,6 +1390,7 @@ function renderLobby(){
           <div class="lb-podium-title">TOP 3 DU JOUR</div>
           <div class="lb-podium-see-all" onclick="renderLeaderboard()">Voir tout ›</div>
         </div>
+        <div id="lb-podium-hint" style="display:none;font-size:clamp(10px,2.5vw,12px);font-weight:700;font-family:var(--H2);color:rgba(26,36,56,.7);background:rgba(26,36,56,.08);border:1px solid rgba(26,36,56,.12);border-radius:6px;padding:6px 10px;margin-bottom:8px;text-align:center;"></div>
         <div class="lb-podium-stage" id="lb-podium-stage">
           <div class="lb-podium-loading">Chargement...</div>
         </div>
@@ -1438,6 +1491,19 @@ function renderLobby(){
 
   </div>`;
 
+  // Live countdown to campaign end
+  const cdEl=$('campaign-countdown');
+  if(cdEl){
+    const end=new Date('2026-06-30T23:59:59');
+    const now=new Date();
+    const diffMs=end-now;
+    if(diffMs>0){
+      const diffDays=Math.ceil(diffMs/(1000*60*60*24));
+      cdEl.textContent='Fin de l\'opération dans '+diffDays+' jour'+(diffDays>1?'s':'')+' — 30 juin 2026';
+    } else {
+      cdEl.textContent='Opération terminée — merci d\'avoir joué !';
+    }
+  }
   const bs=$('btn-start');
   if(bs){
     bs.addEventListener('pointerdown',()=>{
@@ -1508,6 +1574,24 @@ function renderLobby(){
         '<div class="lb-podium-winner">'+winnerName+'</div>'+
       '</div>';
     }).join('');
+    // Show live prize gap if player has played
+    if(hasPlayedOnce&&bestScore>0&&players.length>=3){
+      const third=players[2]?.score||0;
+      const gap=third-bestScore;
+      const hint=$('lb-podium-hint');
+      if(hint){
+        if(gap>0){
+          hint.textContent='Tu es à '+Number(gap).toLocaleString('fr-FR')+' pts du podium — rejoue !';
+          hint.style.display='block';
+        } else {
+          hint.textContent='Tu es dans le TOP 3 — maintiens ta position !';
+          hint.style.display='block';
+          hint.style.background='rgba(255,153,0,.15)';
+          hint.style.color='var(--navy)';
+          hint.style.borderColor='rgba(255,153,0,.4)';
+        }
+      }
+    }
   }).catch(()=>{
     const stage=$('lb-podium-stage');
     if(stage)stage.innerHTML='<div class="lb-podium-loading">Indisponible</div>';
@@ -1549,6 +1633,7 @@ function renderGame(){
           <div id="lives-count">3</div>
         </div>
       </div>
+      <button id="btn-cashout" id="btn-cashout"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="white" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser</button>
       <button id="btn-mute" onclick="toggleMusic(this)" title="Couper la musique"><svg id="mute-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
 
     </div>
@@ -1571,6 +1656,19 @@ function renderGame(){
   br.addEventListener('pointerdown',onR,{passive:false});br.addEventListener('pointerup',off,{passive:false});br.addEventListener('pointerleave',off,{passive:false});
   bl.addEventListener('contextmenu',e=>e.preventDefault());
   br.addEventListener('contextmenu',e=>e.preventDefault());
+  // Cash-out button
+  const co=$('btn-cashout');
+  if(co){
+    let coArmed=false,coTimer=null;
+    co.addEventListener('pointerdown',()=>{
+      if(!coArmed){
+        coArmed=true;co.textContent='Confirmer ?';co.classList.add('confirm-mode');
+        coTimer=setTimeout(()=>{coArmed=false;co.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="white" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser';co.classList.remove('confirm-mode');},2500);
+      } else {
+        clearTimeout(coTimer);endGame(scoreVal);
+      }
+    });
+  }
 }
 
 function dismissTutorial(){
@@ -1993,6 +2091,9 @@ function showVoucherPopup(v){
     '<div class="vp-label">'+v.label+'</div>'+
     '<div class="vp-disc">'+v.disc+'</div>'+
     '<div class="vp-disc-sub">sur toute la sélection football Jumia</div>'+
+    '<div style="text-align:center;font-size:clamp(13px,3.5vw,16px);font-weight:700;color:rgba(255,255,255,.5);font-family:var(--H2);margin:-6px 0 clamp(14px,3.5vw,18px);">'+
+      (v.label==='LÉGENDE'?'≈ 100 MAD économisés':v.label==='CHAMPION'?'≈ 75 MAD économisés':v.label==='MATCH READY'?'≈ 50 MAD économisés':'≈ 25 MAD économisés')+
+    '</div>'+
     '<div class="vp-instruction">'+
       '<div class="vp-instruction-title">Comment utiliser ton bon ?</div>'+
       '<div class="vp-instruction-steps">'+
@@ -2006,11 +2107,20 @@ function showVoucherPopup(v){
       '<button class="vp-copy" id="vp-copy-btn">COPIER</button>'+
     '</div>'+
     '<button class="vp-cta" id="vp-cta-btn">UTILISER MON BON AVANT QU’IL EXPIRE</button>'+
-    '<button class="vp-dismiss" id="vp-dismiss-btn">Fermer — utiliser plus tard</button>';
+    '<a id="vp-share-btn" target="_blank" style="display:block;width:100%;text-align:center;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:rgba(37,211,102,1);border-radius:8px;padding:10px;font-size:clamp(11px,2.8vw,13px);font-weight:700;font-family:var(--H2);text-decoration:none;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;cursor:pointer;">&#128279; PARTAGER SUR WHATSAPP</a>'+
+    '<button class="vp-dismiss" id="vp-dismiss-btn">Fermer — utiliser plus tard</button>'+
+    (attempts>0&&v.label!=='LÉGENDE'?'<div style="text-align:center;margin-top:10px;font-size:clamp(10px,2.5vw,11px);color:rgba(255,255,255,.4);font-family:var(--H2);">Tu as encore '+attempts+' essai'+(attempts>1?'s':'')+' — rejoue pour un meilleur bon !</div>':'')+
+    '';
 
   popup.appendChild(sheet);
   document.body.appendChild(popup);
 
+  // WhatsApp share
+  const shareBtn=$('vp-share-btn');
+  if(shareBtn){
+    const shareText=encodeURIComponent('J\'ai scoré '+scoreVal+' pts au Jumia Gardien de But et gagné '+v.disc+' de réduction ! Essaie de me battre sur https://zakarialahmaid-dotcom.github.io/Gamification/');
+    shareBtn.href='https://wa.me/?text='+shareText;
+  }
   // Copy button
   const copyBtn=$('vp-copy-btn');
   if(copyBtn){
@@ -2028,7 +2138,7 @@ function showVoucherPopup(v){
       if(navigator.clipboard&&window.isSecureContext){
         navigator.clipboard.writeText(v.code).catch(()=>{});
       }
-      window.open('https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=voucher-'+v.label.toLowerCase().replace(/\s+/g,'-'),'_blank');
+      window.open('https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=voucher-'+v.label.toLowerCase().replace(/\s+/g,'-'),'_blank');
       popup.remove();
       renderLobby();
     });
@@ -2062,8 +2172,8 @@ function renderResult(){
       <div class="rs-sub">${isLowScore?'Tu peux faire beaucoup mieux !':'Voici tes récompenses'}</div>
     </div>
     <div class="rs-scores">
-      ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
-        <div class="rs-score-card"><div class="rs-score-val">${sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
+      ${[{val:s,lbl:"POINTS",id:'rs-score-val-pts'},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map((sc,i)=>`
+        <div class="rs-score-card"><div class="rs-score-val" ${i===0?'id="rs-score-val-pts"':''}>${i===0?'0':sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
     </div>
     ${isLowScore?`
     <div class="rs-low-score">
@@ -2085,7 +2195,10 @@ function renderResult(){
     </div>`}
     <div class="rs-spacer"></div>
     <div class="rs-replay-bar">
-      <button onclick="renderLeaderboard()" style="display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(12px,3.2vw,14px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
+      <button onclick="showVoucherPopup(getVoucher(scoreVal))" style="display:block;width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(14px,4vw,18px);font-size:clamp(15px,4.2vw,18px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;box-shadow:0 5px 0 var(--navyL);animation:ctaGlow 2s ease-in-out infinite;">
+        VOIR MON BON DE RÉDUCTION
+      </button>
+      <button onclick="renderLeaderboard()" style="display:block;width:100%;background:transparent;color:var(--navy);border:2px solid rgba(26,36,56,.3);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(11px,2.8vw,13px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
         VOIR MON RANG AU CLASSEMENT
       </button>
       ${attempts>0
@@ -2102,8 +2215,16 @@ function renderResult(){
     </div>
   </div>`;
 
+  // Animate score count-up
+  const scoreEl=$('rs-score-val-pts');
+  if(scoreEl&&s>0){
+    let cur=0;const step=Math.max(1,Math.ceil(s/40));const t=setInterval(()=>{
+      cur=Math.min(s,cur+step);scoreEl.textContent=Number(cur).toLocaleString('fr-FR');
+      if(cur>=s)clearInterval(t);
+    },30);
+  }
   if(!isLowScore){
-    setTimeout(()=>showVoucherPopup(v),2500); // 2.5s — let player absorb their score first
+    // Voucher shown on player's tap (see button below), not auto-popup // 2.5s — let player absorb their score first
     fetchLeaderboard().then(players=>{
       const pImgs=['https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp'];
       const pNames=['Maillot Maroc','Polo Maroc','Ballon de foot'];
