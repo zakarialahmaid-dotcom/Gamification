@@ -783,6 +783,69 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .lbd-loading{text-align:center;padding:clamp(28px,7vw,40px) 20px;color:var(--inkCard2);font-family:var(--H2);font-size:clamp(12px,3vw,14px);}
 .lbd-nav{flex:0 0 auto;background:var(--navy);display:flex;align-items:stretch;border-top:1px solid var(--navyL);}
 
+/* ── PODIUM — lobby top 3 ── */
+.lb-podium{margin-bottom:clamp(10px,2.5vw,14px);}
+.lb-podium-header{display:flex;align-items:center;gap:8px;margin-bottom:clamp(10px,2.5vw,13px);}
+.lb-podium-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:rgba(26,36,56,.12);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,2.8vw,13px);flex-shrink:0;}
+.lb-podium-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
+.lb-podium-see-all{margin-left:auto;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:var(--navy);font-family:var(--H2);text-decoration:underline;cursor:pointer;opacity:.6;}
+/* Three columns side by side: 2nd | 1st | 3rd */
+.lb-podium-stage{display:flex;align-items:flex-end;gap:clamp(6px,1.5vw,8px);justify-content:center;}
+.lb-podium-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;}
+/* Avatar circle */
+.lb-podium-avatar{
+  width:clamp(44px,12vw,56px);height:clamp(44px,12vw,56px);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(16px,4.5vw,20px);font-weight:900;
+  font-family:var(--H1);
+  color:var(--white);
+  border:3px solid var(--white);
+  box-shadow:0 3px 12px rgba(0,0,0,.2);
+  margin-bottom:6px;
+  position:relative;
+}
+.lb-podium-col.first .lb-podium-avatar{background:var(--navy);width:clamp(54px,14vw,66px);height:clamp(54px,14vw,66px);font-size:clamp(20px,5.5vw,24px);border-width:4px;}
+.lb-podium-col.second .lb-podium-avatar{background:#4a5568;}
+.lb-podium-col.third .lb-podium-avatar{background:#7a4020;}
+/* Crown on 1st */
+.lb-podium-col.first .lb-podium-avatar::before{
+  content:'';
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  width:0;height:0;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:12px solid var(--orange);
+  filter:drop-shadow(0 -1px 3px rgba(0,0,0,.2));
+}
+.lb-podium-name{font-size:clamp(11px,2.8vw,13px);font-weight:700;color:var(--navy);font-family:var(--H2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:2px;}
+.lb-podium-score{font-size:clamp(9px,2.4vw,11px);font-weight:900;color:var(--navy);font-family:var(--H1);opacity:.65;text-align:center;margin-bottom:4px;}
+/* Podium bar */
+.lb-podium-bar{
+  width:100%;border-radius:6px 6px 0 0;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(5px,1.3vw,7px) 4px;
+}
+.lb-podium-col.first .lb-podium-bar{background:var(--navy);height:clamp(52px,14vw,64px);}
+.lb-podium-col.second .lb-podium-bar{background:rgba(26,36,56,.65);height:clamp(38px,10vw,48px);}
+.lb-podium-col.third .lb-podium-bar{background:rgba(26,36,56,.45);height:clamp(28px,7.5vw,36px);}
+.lb-podium-rank{font-size:clamp(18px,5vw,22px);font-weight:900;color:var(--white);font-family:var(--H1);opacity:.9;}
+.lb-podium-col.first .lb-podium-rank{font-size:clamp(22px,6vw,28px);}
+/* Prize strip under each bar */
+.lb-podium-prize{
+  width:100%;background:var(--white);
+  border-radius:0 0 6px 6px;
+  padding:clamp(4px,1vw,6px) 4px;
+  text-align:center;
+  font-size:clamp(7px,1.8vw,9px);
+  font-weight:700;color:var(--navy);
+  font-family:var(--H2);
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  line-height:1.2;
+}
+.lb-podium-loading{text-align:center;padding:clamp(16px,4vw,22px);color:rgba(26,36,56,.45);font-family:var(--H2);font-size:clamp(11px,2.8vw,13px);}
+
 </style>
 </head>
 <body>
@@ -1055,12 +1118,25 @@ function renderLobby(){
       <div class="lb-attempts-badge">
         <img src="${IMG_ATTEMPTS}" style="width:clamp(18px,4.5vw,22px);height:clamp(18px,4.5vw,22px);object-fit:contain;display:block;margin:0 auto 2px;" alt="" draggable="false">
         <div class="lb-attempts-num ${attemptsLeft<=1?'urgent':''}">${attemptsLeft}/4</div>
-        <div class="lb-attempts-lbl">ESSAIS</div>
+        <div class="lb-attempts-lbl">CHANCES</div>
+        <div style="font-size:clamp(6px,1.5vw,7px);color:var(--inkCard2);font-family:var(--H2);letter-spacing:.03em;margin-top:1px;">PAR JOUR</div>
       </div>
     </div>
 
     <!-- ── SCROLLABLE BODY ── -->
     <div class="lb-scroll">
+
+      <!-- Podium top 3 -->
+      <div class="lb-podium">
+        <div class="lb-podium-header">
+          <div class="lb-podium-header-icon"><img src="${IMG_TROPHY}" style="width:14px;height:14px;object-fit:contain;display:block;filter:brightness(0) saturate(100%) invert(60%) sepia(90%) saturate(500%) hue-rotate(1deg) brightness(105%);" alt="" draggable="false"></div>
+          <div class="lb-podium-title">TOP 3 DU JOUR</div>
+          <div class="lb-podium-see-all" onclick="renderLeaderboard()">Voir tout ›</div>
+        </div>
+        <div class="lb-podium-stage" id="lb-podium-stage">
+          <div class="lb-podium-loading">Chargement...</div>
+        </div>
+      </div>
 
       <!-- How to play -->
       <div class="lb-how">
@@ -1132,10 +1208,43 @@ function renderLobby(){
   const bs=$('btn-start');
   if(bs){
     bs.addEventListener('pointerdown',()=>{
-      bs.style.animation='none'; // stop bounce on press for clean feedback
+      bs.style.animation='none';
       goTo(renderForm);
     });
   }
+
+  // Render podium from top 3
+  fetchLeaderboard().then(players=>{
+    const stage=$('lb-podium-stage');
+    if(!stage)return;
+    if(!players.length){
+      stage.innerHTML='<div class="lb-podium-loading">Sois le premier !</div>';
+      return;
+    }
+    const top=players.slice(0,3);
+    // Podium visual order: 2nd | 1st | 3rd
+    const order=[1,0,2]; // index into top[]
+    const colClass=['second','first','third'];
+    const rankLabels=['2','1','3'];
+    stage.innerHTML=order.map((idx,pos)=>{
+      const p=top[idx];
+      if(!p)return'';
+      const name=(p.name||'Joueur').split(' ')[0].slice(0,9);
+      const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
+      const prize=prizes[idx]||'';
+      const initial=name.charAt(0).toUpperCase();
+      return '<div class="lb-podium-col '+colClass[pos]+'">'+
+        '<div class="lb-podium-avatar">'+initial+'</div>'+
+        '<div class="lb-podium-name">'+name+'</div>'+
+        '<div class="lb-podium-score">'+pts+'</div>'+
+        '<div class="lb-podium-bar"><div class="lb-podium-rank">'+rankLabels[pos]+'</div></div>'+
+        '<div class="lb-podium-prize">'+prize+'</div>'+
+      '</div>';
+    }).join('');
+  }).catch(()=>{
+    const stage=$('lb-podium-stage');
+    if(stage)stage.innerHTML='<div class="lb-podium-loading">Indisponible</div>';
+  });
 
 }
 
