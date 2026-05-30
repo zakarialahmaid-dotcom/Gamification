@@ -750,6 +750,39 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
   letter-spacing:.04em;cursor:pointer;text-align:center;
 }
 
+/* LEADERBOARD SCREEN */
+#screen-leaderboard{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;animation:fadeIn .2s ease;}
+.lbd-header{flex:0 0 auto;background:var(--navy);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px);display:flex;align-items:center;gap:12px;}
+.lbd-back{width:clamp(36px,9vw,42px);height:clamp(36px,9vw,42px);border-radius:50%;background:rgba(255,255,255,.1);border:none;cursor:pointer;color:var(--white);font-size:clamp(16px,4vw,20px);display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.lbd-back:active{background:rgba(255,255,255,.2);}
+.lbd-header-text{flex:1;}
+.lbd-title{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;line-height:1;}
+.lbd-sub{font-size:clamp(10px,2.5vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);margin-top:2px;}
+.lbd-live{display:flex;align-items:center;gap:5px;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(255,255,255,.7);font-family:var(--H2);}
+.lbd-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--orange);display:inline-block;animation:dotPulse 1.4s ease infinite;}
+.lbd-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(12px,3vw,16px) clamp(14px,3.5vw,18px);}
+.lbd-scroll::-webkit-scrollbar{display:none;}
+.lbd-card{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1);}
+.lbd-row{display:flex;align-items:center;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);gap:12px;border-bottom:1px solid rgba(0,0,0,.06);}
+.lbd-row:last-child{border-bottom:none;}
+.lbd-row.top1{background:#fffbee;}
+.lbd-row.top2{background:#fafafa;}
+.lbd-row.top3{background:#fff8f2;}
+.lbd-medal{width:clamp(28px,7vw,34px);height:clamp(28px,7vw,34px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);flex-shrink:0;}
+.lbd-medal.gold{background:var(--orange);color:var(--navy);}
+.lbd-medal.silver{background:#dde0e8;color:#4a5568;}
+.lbd-medal.bronze{background:#f0d8c8;color:#7a4020;}
+.lbd-medal.other{background:rgba(26,36,56,.08);color:var(--navy);font-size:clamp(10px,2.5vw,12px);}
+.lbd-info{flex:1;min-width:0;}
+.lbd-name{font-size:clamp(14px,3.8vw,17px);font-weight:700;color:var(--inkCard);font-family:var(--H2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lbd-city{font-size:clamp(10px,2.5vw,11px);color:var(--inkCard2);font-family:var(--H2);margin-top:1px;}
+.lbd-right{text-align:right;flex-shrink:0;}
+.lbd-score{font-size:clamp(14px,3.8vw,17px);font-weight:900;color:var(--navy);font-family:var(--H1);}
+.lbd-prize{font-size:clamp(9px,2.3vw,10px);font-weight:700;color:var(--orange);font-family:var(--H2);margin-top:2px;white-space:nowrap;}
+.lbd-empty{text-align:center;padding:clamp(28px,7vw,40px) 20px;color:var(--inkCard2);font-family:var(--H2);font-size:clamp(12px,3vw,14px);}
+.lbd-loading{text-align:center;padding:clamp(28px,7vw,40px) 20px;color:var(--inkCard2);font-family:var(--H2);font-size:clamp(12px,3vw,14px);}
+.lbd-nav{flex:0 0 auto;background:var(--navy);display:flex;align-items:stretch;border-top:1px solid var(--navyL);}
+
 </style>
 </head>
 <body>
@@ -929,6 +962,82 @@ async function fetchLeaderboard(){
   }catch(e){return[];}
 }
 
+
+// LEADERBOARD SCREEN
+function renderLeaderboard(){
+  const prizes=['Maillot Maroc','Polo Maroc','Ballon de foot'];
+  $('app').innerHTML=`
+  <div id="screen-leaderboard">
+    <div class="lbd-header">
+      <button class="lbd-back" onclick="goTo(renderLobby)" aria-label="Retour">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="lbd-header-text">
+        <div class="lbd-title">CLASSEMENT</div>
+        <div class="lbd-sub">Top 50 des meilleurs gardiens</div>
+      </div>
+      <div class="lbd-live">LIVE</div>
+    </div>
+    <div class="lbd-scroll">
+      <div class="lbd-card" id="lbd-card">
+        <div class="lbd-loading">Chargement du classement...</div>
+      </div>
+    </div>
+    <div class="lbd-nav">
+      <button class="lb-nav-item" onclick="goTo(renderLobby)">
+        <span class="lb-nav-icon"><img src="${IMG_GLOVES}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">ACCUEIL</span>
+      </button>
+      <button class="lb-nav-item active">
+        <span class="lb-nav-icon"><img src="${IMG_TROPHY}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">CLASSEMENT</span>
+      </button>
+      <button class="lb-nav-item" onclick="navRewards()">
+        <span class="lb-nav-icon"><img src="${IMG_VOUCHER}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">RÉCOMPENSES</span>
+      </button>
+      <button class="lb-nav-item" onclick="navHelp()">
+        <span class="lb-nav-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span class="lb-nav-label">AIDE</span>
+      </button>
+    </div>
+  </div>`;
+
+  fetchLeaderboard().then(players=>{
+    const card=$('lbd-card');
+    if(!card)return;
+    if(!players.length){
+      card.innerHTML='<div class="lbd-empty">Sois le premier à jouer !<br>Ton nom apparaîtra ici.</div>';
+      return;
+    }
+    card.innerHTML=players.map((p,i)=>{
+      const rank=i+1;
+      const medalClass=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
+      const name=(p.name||'Joueur').split(' ')[0];
+      const city=p.city?'<div class="lbd-city">'+p.city+'</div>':'';
+      const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
+      const prize=i<3?'<div class="lbd-prize">'+prizes[i]+'</div>':'';
+      const rowClass=rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+      return '<div class="lbd-row '+rowClass+'">'+
+        '<div class="lbd-medal '+medalClass+'">'+rank+'</div>'+
+        '<div class="lbd-info">'+
+          '<div class="lbd-name">'+name+'</div>'+
+          city+
+        '</div>'+
+        '<div class="lbd-right">'+
+          '<div class="lbd-score">'+pts+'</div>'+
+          prize+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }).catch(()=>{
+    const card=$('lbd-card');
+    if(card)card.innerHTML='<div class="lbd-empty">Classement temporairement indisponible.</div>';
+  });
+}
+
 // LOBBY
 function renderLobby(){
   const attemptsLeft=attempts;
@@ -952,19 +1061,6 @@ function renderLobby(){
 
     <!-- ── SCROLLABLE BODY ── -->
     <div class="lb-scroll">
-
-      <!-- Leaderboard -->
-      <div class="lb-board">
-        <div class="lb-board-header">
-          <div class="lb-board-header-left">
-            <img class="lb-board-trophy" src="${IMG_TROPHY}" alt="" draggable="false">
-            <span class="lb-board-title">CLASSEMENT</span>
-          </div>
-          <span class="lb-board-live">LIVE</span>
-        </div>
-        <div class="lb-board-rows" id="lb-rows"><div class="lb-board-msg">Chargement...</div></div>
-        <div class="lb-scroll-hint">Fais défiler pour voir le top 50</div>
-      </div>
 
       <!-- How to play -->
       <div class="lb-how">
@@ -1015,13 +1111,18 @@ function renderLobby(){
         <span class="lb-nav-icon"><img src="${IMG_GLOVES}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
         <span class="lb-nav-label">ACCUEIL</span>
       </button>
-
+      <button class="lb-nav-item" onclick="renderLeaderboard()">
+        <span class="lb-nav-icon"><img src="${IMG_TROPHY}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">CLASSEMENT</span>
+      </button>
       <button class="lb-nav-item" onclick="navRewards()">
         <span class="lb-nav-icon"><img src="${IMG_VOUCHER}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
         <span class="lb-nav-label">RÉCOMPENSES</span>
       </button>
       <button class="lb-nav-item" onclick="navHelp()">
-        <span class="lb-nav-icon"><img src="${IMG_TROPHY}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
         <span class="lb-nav-label">AIDE</span>
       </button>
     </div>
@@ -1035,17 +1136,7 @@ function renderLobby(){
       goTo(renderForm);
     });
   }
-  fetchLeaderboard().then(players=>{
-    const rows=$('lb-rows'); if(!rows)return;
-    if(!players.length){rows.innerHTML=`<div class="lb-board-msg">Sois le premier à jouer !</div>`;return;}
-    rows.innerHTML=players.map((p,i)=>{
-      const cls=i===0?'top1':i===1?'top2':i===2?'top3':'';
-      const name=(p.name||'').split(' ')[0];
-      const pts=Number(p.score).toLocaleString('fr-FR');
-      const prize=i<3?`<span class="lb-prize">${prizes[i]}</span>`:'';
-      return `<div class="lb-board-row ${cls}"><span class="lb-rank">${i+1}.</span><span class="lb-name">${name}</span><span class="lb-score">${pts} pts</span>${prize}</div>`;
-    }).join('');
-  }).catch(()=>{const rows=$('lb-rows');if(rows)rows.innerHTML=`<div class="lb-board-msg">Classement indisponible</div>`;});
+
 }
 
 // GAME SCREEN
