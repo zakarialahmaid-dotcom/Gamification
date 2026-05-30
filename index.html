@@ -243,6 +243,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 @keyframes arrowBounce{0%{transform:translateY(0);}100%{transform:translateY(10px);}}
 @keyframes wipeIn{0%{transform:scaleY(0);border-radius:60% 60% 0 0/40px 40px 0 0;}65%{transform:scaleY(1.04);border-radius:4px 4px 0 0;}100%{transform:scaleY(1);border-radius:0;}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes tierUpIn{0%{opacity:0;transform:scale(.7);}60%{transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
 @keyframes ctaBounce{
   0%,100%{transform:translateY(0);}
   50%{transform:translateY(-5px);}
@@ -932,6 +933,34 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 }
 .tuto-screen-btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
 
+/* Leaderboard proximity cue */
+.lbd-proximity{
+  background:var(--orange);
+  color:var(--navy);
+  font-size:clamp(11px,2.8vw,13px);
+  font-weight:900;
+  font-family:var(--H1);
+  text-align:center;
+  padding:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);
+  border-radius:8px;
+  margin:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);
+  line-height:1.4;
+}
+.lbd-proximity span{
+  display:block;
+  font-size:clamp(9px,2.3vw,10px);
+  font-weight:500;
+  font-family:var(--H2);
+  margin-top:3px;
+  opacity:.8;
+}
+.lbd-gap-badge{
+  font-size:clamp(8px,2vw,9px);font-weight:700;
+  background:rgba(255,153,0,.15);color:var(--orange);
+  border-radius:3px;padding:1px 5px;
+  font-family:var(--H2);margin-top:2px;display:inline-block;
+}
+
 </style>
 </head>
 <body>
@@ -986,6 +1015,7 @@ let lastPressTime=0; // invincibility window
 let wid=0, playerName='', playerEmail='', playerCity='';
 let hasPlayedOnce=false;
 let tutorialActive=false;
+let lastTierReached=0; // tracks tier crossings for celebration
 
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
 const SHEET_ID  = '1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
@@ -1078,6 +1108,24 @@ function toggleMusic(btn){
   window.addEventListener('focus', onShow);
 })();
 
+// TIER-UP CELEBRATION
+function showTierUp(label,disc){
+  // Remove any existing tier-up overlay
+  const old=document.getElementById('tier-up-overlay');if(old)old.remove();
+  const el=document.createElement('div');
+  el.id='tier-up-overlay';
+  el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:tierUpIn .3s ease;';
+  el.innerHTML=
+    '<div style="background:rgba(26,36,56,.88);border-radius:16px;padding:clamp(20px,5vw,28px) clamp(28px,7vw,40px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);">'+
+      '<div style="font-size:clamp(10px,2.6vw,12px);font-weight:700;color:rgba(255,255,255,.55);font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">NOUVEAU NIVEAU</div>'+
+      '<div style="font-size:clamp(28px,8vw,40px);font-weight:900;color:var(--orange);font-family:var(--H1);line-height:1;margin-bottom:4px;">'+disc+'</div>'+
+      '<div style="font-size:clamp(14px,3.8vw,18px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;">'+label+'</div>'+
+    '</div>';
+  document.body.appendChild(el);
+  sfxTierUp();
+  setTimeout(()=>{el.style.transition='opacity .4s ease';el.style.opacity='0';setTimeout(()=>el.remove(),420);},1800);
+}
+
 // TRANSITION
 function goTo(fn){
   const t=$('play-transition');
@@ -1122,6 +1170,13 @@ function sfxGolden(){
 }
 function sfxRedCard(){playTone(180,'sawtooth',0.18,0.3,80);try{navigator.vibrate&&navigator.vibrate([60,20,60]);}catch(e){}} // descending buzz
 function sfxNoAttempts(){playTone(220,'sine',0.3,0.2,160);}  // sad tone
+function sfxTierUp(){
+  // Ascending fanfare — 3 quick notes
+  playTone(523,'sine',0.12,0.4,659);
+  setTimeout(()=>playTone(659,'sine',0.12,0.35,784),120);
+  setTimeout(()=>playTone(784,'sine',0.2,0.4,1047),240);
+  try{navigator.vibrate&&navigator.vibrate([30,20,30,20,80]);}catch(e){}
+}
 
 // LEADERBOARD
 async function fetchLeaderboard(){
@@ -1218,7 +1273,27 @@ function renderLeaderboard(){
         '</div>'+
       '</div>';
     }).join('');
-    // Scroll to player's row after render
+    // Proximity cue — show gap to next rank
+    if(hasPlayedOnce&&myEmail&&myRowIdx>=0){
+      const myScore=players[myRowIdx].score;
+      const above=players[myRowIdx-1];
+      const ptsAbove=above?above.score-myScore:null;
+      const rankAbove=myRowIdx; // 0-indexed so rank above = myRowIdx (rank myRowIdx+1 - 1)
+      let proxHTML='';
+      if(ptsAbove!==null&&ptsAbove>0){
+        proxHTML='<div class="lbd-proximity">'+
+          'Tu es à <b>'+Number(ptsAbove).toLocaleString('fr-FR')+' pts</b> de la <b>'+rankAbove+'ème place</b> !'+
+          '<span>Rejoue pour grimper dans le classement</span>'+
+        '</div>';
+      } else if(myRowIdx===0){
+        proxHTML='<div class="lbd-proximity">TU ES EN TÊTE DU CLASSEMENT !<span>Maintiens ta position</span></div>';
+      }
+      if(proxHTML){
+        const card=$('lbd-card');
+        if(card){const div=document.createElement('div');div.innerHTML=proxHTML;card.insertBefore(div.firstChild,card.firstChild);}
+      }
+    }
+    // Scroll to player row
     if(myRowIdx>=0){
       setTimeout(()=>{
         const myRow=document.getElementById('lbd-row-'+myRowIdx);
@@ -1536,6 +1611,16 @@ function showTutorialScreen(){
         '</div>'+
         '<div class="tuto-screen-rule-badge orange">×5</div>'+
       '</div>'+
+      '<div class="tuto-screen-rule">'+
+        '<div class="tuto-screen-rule-icon catch" style="background:rgba(255,153,0,.15);border-color:rgba(255,153,0,.4);">'+
+          '<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><text x="2" y="24" font-size="20" fill="#ff9900" font-weight="900">×2</text></svg>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-text">'+
+          '<div class="tuto-screen-rule-title">COMBO BONUS</div>'+
+          '<div class="tuto-screen-rule-sub">Attrape plusieurs ballons d\'affilée = multiplicateur ×2, ×3... jusqu’à ×5 !</div>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-badge orange">+COMBO</div>'+
+      '</div>'+
     '</div>'+
     '<button class="tuto-screen-btn" id="tuto-start-btn">C\'EST PARTI !</button>';
   document.body.appendChild(el);
@@ -1551,7 +1636,7 @@ function startGame(){
   startMusic();
   tutorialActive=false; // tutorial now shown as separate screen before game
   done=false;wid=0;itemsArr=[];
-  livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;
+  livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
   lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;
   renderGame();
   const fw=getFW();gloveX=fw/2;
@@ -1652,6 +1737,11 @@ function tick(ts){
   if(ptsGained){
     scoreVal+=ptsGained;
     const sd=$('score-disp');if(sd)sd.textContent=scoreVal;
+    // Tier-up celebration
+    const tierMap=[{t:800,l:'LÉGENDE',d:'20% DE RÉD.'},{t:400,l:'CHAMPION',d:'15% DE RÉD.'},{t:150,l:'MATCH READY',d:'10% DE RÉD.'}];
+    for(const tier of tierMap){
+      if(scoreVal>=tier.t&&lastTierReached<tier.t){lastTierReached=tier.t;showTierUp(tier.l,tier.d);break;}
+    }
     // Update tier bar
 
     // Update score circle ring colour by tier
@@ -1938,7 +2028,7 @@ function showVoucherPopup(v){
       if(navigator.clipboard&&window.isSecureContext){
         navigator.clipboard.writeText(v.code).catch(()=>{});
       }
-      window.open('https://www.jumia.ma/mlp-foot-20253/','_blank');
+      window.open('https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=voucher-'+v.label.toLowerCase().replace(/\s+/g,'-'),'_blank');
       popup.remove();
       renderLobby();
     });
