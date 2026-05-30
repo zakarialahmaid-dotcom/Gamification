@@ -1104,7 +1104,8 @@ function renderLeaderboard(){
       return;
     }
     const myFirstName=playerName?(playerName.split(' ')[0].toLowerCase()):'';
-    const myScore=scoreVal;
+    // Use bestScore so the player's highest game is highlighted, not their last
+    const myScore=bestScore;
     let myRowIdx=-1;
     card.innerHTML=players.map((p,i)=>{
       const rank=i+1;
@@ -1701,7 +1702,7 @@ function renderResult(){
     </div>
     <div class="rs-spacer"></div>
     <div class="rs-replay-bar">
-      <button onclick="goTo(renderLeaderboard)" style="display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(12px,3.2vw,14px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
+      <button onclick="renderLeaderboard()" style="display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(12px,3.2vw,14px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
         VOIR MON RANG AU CLASSEMENT
       </button>
       ${attempts>0
