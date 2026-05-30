@@ -4,6 +4,162 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Jumia — Gardien de But</title>
+
+<!-- ============================================================
+     WEBVIEW SAFETY LAYER — Storage Polyfill + Global Error Boundary
+     Must execute before any other script to protect against:
+       · Blocked localStorage/sessionStorage in restricted Android WebViews
+       · Silent uncaught JS exceptions that cause white-screen crashes
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ── 1. STORAGE POLYFILL ──────────────────────────────────
+     Restricted Android WebViews (e.g. inside third-party apps)
+     throw a SecurityError when any code touches window.localStorage
+     or window.sessionStorage — even just reading the property.
+     We probe each storage type with a real setItem() call inside
+     try/catch, and swap in a plain in-memory object if it fails.
+     The polyfill matches the Web Storage API surface exactly so
+     all downstream code works without modification.
+  ──────────────────────────────────────────────────────────── */
+  function MemStorage() {
+    var _s = {};
+    return {
+      get length() { return Object.keys(_s).length; },
+      key: function(n) { return Object.keys(_s)[n] || null; },
+      getItem: function(k) {
+        return Object.prototype.hasOwnProperty.call(_s, k) ? _s[k] : null;
+      },
+      setItem:    function(k, v) { _s[String(k)] = String(v); },
+      removeItem: function(k)    { delete _s[k]; },
+      clear:      function()     { _s = {}; }
+    };
+  }
+
+  ['localStorage', 'sessionStorage'].forEach(function(name) {
+    try {
+      /* A real write+delete test — property access alone isn't enough;
+         some hosts expose the object but throw on mutation.           */
+      window[name].setItem('__jg__', '1');
+      window[name].removeItem('__jg__');
+    } catch (e) {
+      var poly = MemStorage();
+      try {
+        Object.defineProperty(window, name, {
+          value: poly, writable: true, configurable: true
+        });
+      } catch (e2) {
+        try { window[name] = poly; } catch (e3) { /* fully locked — ignore */ }
+      }
+      console.warn('[JumiaGame] ' + name + ' unavailable — using in-memory polyfill.');
+    }
+  });
+
+
+  /* ── 2. GLOBAL ERROR BOUNDARY ────────────────────────────
+     Catches any unhandled JS exception that would otherwise
+     produce a completely silent white screen. Renders a
+     branded fallback so users know what happened and how to
+     proceed, while also logging diagnostic info to console.
+  ──────────────────────────────────────────────────────────── */
+  var _fallbackShown = false;
+
+  function showFallback(msg, src, line) {
+    if (_fallbackShown) return;
+    _fallbackShown = true;
+
+    /* Cancel any running rAF game loop */
+    try { if (window.animId) cancelAnimationFrame(window.animId); } catch (e) {}
+
+    var fallbackHTML = [
+      '<div style="',
+        'font-family:Arial,sans-serif;',
+        'background:#ff9900;',
+        'color:#fff;',
+        'min-height:100vh;',
+        'display:flex;',
+        'flex-direction:column;',
+        'align-items:center;',
+        'justify-content:center;',
+        'padding:32px 24px;',
+        'text-align:center;',
+        'box-sizing:border-box;',
+      '">',
+        '<div style="font-size:52px;margin-bottom:16px;">&#x26BD;</div>',
+        '<div style="font-size:26px;font-weight:900;line-height:1.1;margin-bottom:12px;letter-spacing:-0.5px;">',
+          'JUMIA<br>GARDIEN DE BUT',
+        '</div>',
+        '<div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:16px 20px;',
+          'font-size:14px;line-height:1.6;max-width:320px;margin-bottom:20px;">',
+          '<strong>Ouvre ce jeu dans ton navigateur</strong><br>',
+          'pour profiter de l\'exp&eacute;rience compl&egrave;te.<br><br>',
+          '<span style="opacity:0.7;font-size:12px;">Chrome &middot; Firefox &middot; Safari</span>',
+        '</div>',
+        '<a href="https://www.jumia.ma" style="',
+          'background:#ec2326;',
+          'color:#fff;',
+          'padding:14px 28px;',
+          'border-radius:6px;',
+          'font-weight:900;',
+          'text-decoration:none;',
+          'font-size:14px;',
+          'letter-spacing:0.06em;',
+          'box-shadow:0 4px 0 #a31a1d;',
+        '">JUMIA.MA</a>',
+        (msg
+          ? '<div style="margin-top:20px;opacity:0.4;font-size:10px;word-break:break-all;max-width:320px;">'
+            + 'ERR: ' + String(msg).substring(0, 140)
+            + (src ? ' &nbsp;|&nbsp; ' + String(src).replace(/.*\//, '') + ':' + line : '')
+            + '</div>'
+          : ''),
+      '</div>'
+    ].join('');
+
+    try {
+      var appEl  = document.getElementById('app');
+      var loadEl = document.getElementById('loading-screen');
+      if (loadEl) loadEl.style.display = 'none';
+      if (appEl) {
+        appEl.innerHTML = fallbackHTML;
+        appEl.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;z-index:999999;';
+      } else {
+        document.body.innerHTML = fallbackHTML;
+        document.body.style.cssText = 'margin:0;padding:0;overflow-y:auto;';
+      }
+    } catch (domErr) {
+      /* If even DOM writes fail we are in a totally broken environment */
+      try { document.write(fallbackHTML); } catch (e) { /* nothing more we can do */ }
+    }
+  }
+
+  /* Synchronous uncaught exceptions */
+  window.onerror = function(msg, src, line, col, errObj) {
+    var detail = (errObj && errObj.stack) ? errObj.stack : msg;
+    console.error('[JumiaGame] Uncaught error:', detail, '\n  at', src, line + ':' + col);
+    showFallback(msg, src, line);
+    return true; /* suppress default browser error dialog */
+  };
+
+  /* Async / Promise rejections */
+  window.addEventListener('unhandledrejection', function(evt) {
+    var reason = evt.reason
+      ? (evt.reason.message || String(evt.reason))
+      : 'Unhandled Promise rejection';
+    console.error('[JumiaGame] Unhandled rejection:', reason);
+    /* Only escalate to full fallback if we are still on the loading screen
+       (i.e. the game never successfully initialised).                       */
+    var loadEl  = document.getElementById('loading-screen');
+    var loading = loadEl
+      && loadEl.style.display !== 'none'
+      && !loadEl.classList.contains('fade-out');
+    if (loading) showFallback(reason, '', '');
+  });
+
+})();
+</script>
+<!-- END WEBVIEW SAFETY LAYER -->
 <style>
 @font-face{font-family:'HelveticaDisplay';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-compressed-5871d14b6903a.otf') format('opentype');font-weight:900;}
 @font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica-Bold.ttf') format('truetype');font-weight:700;}
@@ -158,7 +314,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--c60);display:flex;a
 #lives-count{position:absolute;top:-4px;right:-6px;background:var(--ink);color:var(--c30);border-radius:50%;width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,14px);font-weight:900;font-family:var(--H1);border:2px solid var(--c30);box-shadow:0 2px 6px rgba(0,0,0,.25);}
 #btn-mute{position:absolute;bottom:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.25);cursor:pointer;color:#fff;font-size:clamp(14px,3.5vw,18px);display:flex;align-items:center;justify-content:center;z-index:9;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;}
 #btn-mute:active{background:rgba(0,0,0,.5);}
-#game-field{flex:1;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:linear-gradient(180deg,rgba(255,153,0,0.55) 0%,rgba(255,153,0,0.35) 40%,rgba(255,153,0,0.45) 100%),url('https://raw.githubusercontent.com/Madzack69/Icons/main/Terrain_BG_Resized.png') center center / cover no-repeat;}
+#game-field{flex:1;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:linear-gradient(180deg,rgba(255,153,0,0.55) 0%,rgba(255,153,0,0.35) 40%,rgba(255,153,0,0.45) 100%),url('https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp') center center / cover no-repeat;}
 .falling-item{position:absolute;display:flex;align-items:center;justify-content:center;animation:itemIn .15s ease;z-index:5;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;pointer-events:none;}
 .falling-item img{user-select:none;-webkit-user-select:none;pointer-events:none;-webkit-user-drag:none;}
 .item-ball{width:clamp(44px,12vw,58px);height:clamp(44px,12vw,58px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));}
@@ -786,7 +942,7 @@ function renderResult(){
 
 // PRELOADER
 function preloadAssets(){
-  const images=[IMG_STAR,IMG_TROPHY,IMG_VOUCHER,IMG_ATTEMPTS,IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_HEART,IMG_REDCARD,"https://raw.githubusercontent.com/Madzack69/Icons/main/Terrain_BG_Resized.png"];
+  const images=[IMG_STAR,IMG_TROPHY,IMG_VOUCHER,IMG_ATTEMPTS,IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_HEART,IMG_REDCARD,"https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
   const bar=$('loading-bar'),sub=$('loading-sub'),gWrap=$('loading-gloves-wrap');
   const total=images.length+1;let loaded=0,finished=false;
   function tick(){
