@@ -172,28 +172,23 @@
 :root{
   /* ══════════════════════════════════════════════
      60 / 30 / 10  COLOUR SYSTEM
-     60% → --navy   #1a2438  Deep Navy   (dominant calm surface)
-     30% → --white  #ffffff  White       (cards, panels, text)
-     10% → --orange #ff9900  Jumia Orange (CTAs, scores, accents)
-
-     Design rationale:
-     · Navy is cool & low-stimulation → eye rests on it during gameplay
-     · White gives maximum contrast for readability on cards
-     · Orange on navy = 6.5:1 contrast ratio (WCAG AA) → pops clearly
-     · Red kept ONLY for in-game danger signals (red card items)
+     60% → --orange #ff9900  Jumia Orange (dominant brand surface)
+     30% → --white  #ffffff  White        (cards, panels, text)
+     10% → --navy   #1a2438  Deep Navy    (accents, badges, headers)
      ══════════════════════════════════════════════ */
-  --navy:   #1a2438;        /* 60% — dominant surface */
-  --navyL:  #24304f;        /* navy light — card headers, alt rows */
-  --navyM:  #2e3d5c;        /* navy mid — borders, dividers */
-  --white:  #ffffff;        /* 30% — cards, panels, text on dark */
-  --whiteT: rgba(255,255,255,0.10); /* subtle white tint */
-  --orange: #ff9900;        /* 10% — CTAs, highlights, brand accent */
+  --orange: #ff9900;        /* 60% — dominant Jumia brand surface */
   --orangeD:#e68800;        /* orange shadow */
+  --orangeL:#ffb333;        /* orange light — hover tints */
+  --white:  #ffffff;        /* 30% — cards, panels, text on orange */
+  --whiteT: rgba(255,255,255,0.15); /* subtle white tint */
+  --navy:   #1a2438;        /* 10% — CTAs, badges, card headers */
+  --navyL:  #24304f;        /* navy light — secondary accents */
+  --navyM:  #2e3d5c;        /* navy mid — borders, dividers */
   --red:    #ec2326;        /* danger only — in-game red card */
   --redD:   #a31a1d;        /* red shadow */
   /* ── Text ─────────────────────────── */
-  --ink:    #ffffff;        /* primary text on dark surfaces */
-  --inkSub: rgba(255,255,255,0.60); /* secondary text on dark */
+  --ink:    #1a2438;        /* primary text on orange surfaces */
+  --inkSub: rgba(26,36,56,0.60); /* secondary text on orange */
   --inkCard:#1a2438;        /* primary text on white cards */
   --inkCard2:#5a6a80;       /* secondary text on white cards */
   /* ── Legacy aliases (keep code working) ── */
@@ -209,29 +204,29 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html{width:100%;height:100%;overflow:hidden;margin:0;padding:0;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
-body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;align-items:stretch;justify-content:center;margin:0;padding:0;position:fixed;top:0;left:0;right:0;bottom:0;overscroll-behavior:none;touch-action:none;}
-#app{width:100%;max-width:100%;height:100%;display:flex;flex-direction:column;background:var(--navy);overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
+body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:flex;align-items:stretch;justify-content:center;margin:0;padding:0;position:fixed;top:0;left:0;right:0;bottom:0;overscroll-behavior:none;touch-action:none;}
+#app{width:100%;max-width:100%;height:100%;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
 
 /* LOADING */
 /* Loading — Orange Peel bg, white headline, progress bar */
-#loading-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--navy);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s ease;}
+#loading-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--orange);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s ease;}
 #loading-screen.fade-out{opacity:0;pointer-events:none;}
 /* Headline at 95% leading per brand type rules */
-.loading-logo{font-size:clamp(36px,12vw,52px);font-weight:900;color:var(--c30);font-family:var(--H1);line-height:.95;text-align:center;text-transform:uppercase;letter-spacing:-.01em;}
+.loading-logo{font-size:clamp(36px,12vw,52px);font-weight:900;color:var(--navy);font-family:var(--H1);line-height:.95;text-align:center;text-transform:uppercase;letter-spacing:-.01em;}
 .loading-gloves-wrap{height:clamp(56px,15vw,72px);display:flex;align-items:center;justify-content:center;}
 .loading-gloves{height:100%;width:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));}
 /* Sub = 50% headline size, subdued white */
-.loading-sub{font-size:clamp(10px,2.8vw,13px);color:rgba(255,255,255,.65);font-family:var(--H2);font-weight:700;text-transform:uppercase;letter-spacing:.12em;}
+.loading-sub{font-size:clamp(10px,2.8vw,13px);color:rgba(26,36,56,.7);font-family:var(--H2);font-weight:700;text-transform:uppercase;letter-spacing:.12em;}
 /* Progress bar — Selective Yellow on white tint track */
-.loading-bar-wrap{width:clamp(160px,45vw,220px);height:5px;background:rgba(255,255,255,.22);border-radius:3px;overflow:hidden;}
-.loading-bar{height:100%;width:0%;background:var(--orange);border-radius:3px;transition:width .25s ease;}
+.loading-bar-wrap{width:clamp(160px,45vw,220px);height:5px;background:rgba(26,36,56,.18);border-radius:3px;overflow:hidden;}
+.loading-bar{height:100%;width:0%;background:var(--navy);border-radius:3px;transition:width .25s ease;}
 
 /* ROTATE */
-#rotate-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--navy);z-index:99998;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#rotate-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--orange);z-index:99998;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 #rotate-screen.show{display:flex;}
 .rotate-icon{font-size:56px;animation:rotatePulse 1.5s ease infinite;}
 @keyframes rotatePulse{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-90deg);}}
-.rotate-msg{font-size:clamp(16px,5vw,20px);font-weight:900;color:var(--c30);font-family:var(--H1);text-align:center;line-height:1.2;}
+.rotate-msg{font-size:clamp(16px,5vw,20px);font-weight:900;color:var(--navy);font-family:var(--H1);text-align:center;line-height:1.2;}
 .rotate-sub{font-size:clamp(11px,3vw,13px);color:rgba(255,255,255,.7);font-family:var(--H2);text-align:center;}
 @media (orientation:landscape) and (max-height:500px){body{display:none;}}
 
@@ -257,20 +252,20 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
    ══════════════════════════════════════════════════════ */
 
 /* LOBBY */
-#screen-lobby{flex:1;display:flex;flex-direction:column;background:var(--navy);padding:0;overflow:hidden;animation:fadeIn .25s ease;}
+#screen-lobby{flex:1;display:flex;flex-direction:column;background:var(--orange);padding:0;overflow:hidden;animation:fadeIn .25s ease;}
 
 /* ── 60% Orange hero header ── */
-.lb-hero{flex:0 0 auto;background:var(--navy);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
+.lb-hero{flex:0 0 auto;background:var(--orange);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
 .lb-hero-left{flex:1;min-width:0;}
-.lb-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.13em;color:rgba(255,255,255,.85);font-family:var(--H2);text-transform:uppercase;margin-bottom:4px;}
-.lb-title{font-size:clamp(38px,11vw,54px);font-weight:900;color:var(--c30);line-height:.88;font-family:var(--H1);letter-spacing:-.01em;text-transform:uppercase;}
+.lb-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.13em;color:rgba(26,36,56,.75);font-family:var(--H2);text-transform:uppercase;margin-bottom:4px;}
+.lb-title{font-size:clamp(38px,11vw,54px);font-weight:900;color:var(--navy);line-height:.88;font-family:var(--H1);letter-spacing:-.01em;text-transform:uppercase;}
 .lb-hero-ball{position:absolute;right:clamp(80px,22vw,110px);bottom:clamp(-4px,0vw,0px);width:clamp(56px,16vw,76px);height:auto;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3));}
 /* ── 30% White badge with red accent ── */
 .lb-attempts-badge{flex-shrink:0;background:var(--white);border-radius:10px;padding:clamp(8px,2vw,12px) clamp(12px,3vw,16px);text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);min-width:clamp(72px,18vw,88px);}
 .lb-attempts-icon{font-size:clamp(14px,3.5vw,18px);margin-bottom:2px;display:block;}
 .lb-attempts-num{font-size:clamp(26px,7.5vw,34px);font-weight:900;font-family:var(--H1);line-height:1;color:var(--inkCard);}
 .lb-attempts-num.urgent{color:var(--red);}
-.lb-attempts-lbl{font-size:clamp(7px,1.8vw,9px);font-weight:700;color:var(--orange);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.lb-attempts-lbl{font-size:clamp(7px,1.8vw,9px);font-weight:700;color:var(--navy);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
 
 /* ── Scrollable body ── */
 .lb-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(10px,2.5vw,14px) clamp(14px,3.5vw,18px) 0;}
@@ -291,19 +286,19 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 .lb-board-row{display:flex;align-items:center;padding:clamp(9px,2.3vw,12px) clamp(14px,3.5vw,18px);gap:10px;border-bottom:1px solid rgba(0,0,0,.06);}
 .lb-board-row:last-child{border-bottom:none;}
 .lb-rank{font-size:clamp(12px,3.2vw,15px);font-weight:900;width:24px;text-align:center;flex-shrink:0;color:var(--inkCard2);font-family:var(--H2);}
-.lb-board-row.top1 .lb-rank{color:var(--orange);}
-.lb-board-row.top3 .lb-rank{color:var(--orange);}
+.lb-board-row.top1 .lb-rank{color:var(--navy);}
+.lb-board-row.top3 .lb-rank{color:var(--navy);}
 .lb-name{flex:1;font-size:clamp(13px,3.5vw,16px);font-weight:700;color:var(--inkCard);font-family:var(--H2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lb-score{font-size:clamp(12px,3.2vw,14px);font-weight:900;color:var(--orange);font-family:var(--H1);flex-shrink:0;}
-.lb-prize{flex-shrink:0;font-size:clamp(9px,2.3vw,11px);font-weight:700;font-family:var(--H2);padding:3px 9px;border-radius:5px;white-space:nowrap;margin-left:4px;background:rgba(255,153,0,.12);color:var(--orange);}
+.lb-score{font-size:clamp(12px,3.2vw,14px);font-weight:900;color:var(--navy);font-family:var(--H1);flex-shrink:0;}
+.lb-prize{flex-shrink:0;font-size:clamp(9px,2.3vw,11px);font-weight:700;font-family:var(--H2);padding:3px 9px;border-radius:5px;white-space:nowrap;margin-left:4px;background:rgba(26,36,56,.1);color:var(--navy);}
 .lb-scroll-hint{text-align:center;padding:clamp(6px,1.5vw,8px);font-size:clamp(9px,2.3vw,11px);color:var(--inkCard2);font-family:var(--H2);border-top:1px solid rgba(0,0,0,.06);}
 .lb-board-msg{text-align:center;padding:clamp(14px,3.5vw,18px);font-size:clamp(11px,2.8vw,13px);color:var(--inkCard2);font-family:var(--H2);}
 
 /* ── How-to-play — 30% white cards ── */
 .lb-how{margin-bottom:clamp(10px,2.5vw,14px);}
 .lb-how-header{display:flex;align-items:center;gap:8px;margin-bottom:clamp(8px,2vw,11px);}
-.lb-how-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:var(--navyL);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,2.8vw,13px);flex-shrink:0;}
-.lb-how-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--c30);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
+.lb-how-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:rgba(26,36,56,.15);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,2.8vw,13px);flex-shrink:0;}
+.lb-how-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
 .lb-how-rows{display:flex;flex-direction:column;gap:clamp(8px,2vw,10px);}
 
 /* White how-to card */
@@ -314,9 +309,9 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 .lb-how-action{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--inkCard);font-family:var(--H1);text-transform:uppercase;line-height:1.1;margin-bottom:3px;}
 .lb-how-sub{font-size:clamp(10px,2.6vw,12px);color:var(--inkCard2);font-family:var(--H2);line-height:1.3;}
 /* 10% Red tags */
-.lb-how-tag{flex-shrink:0;font-size:clamp(10px,2.6vw,12px);font-weight:900;font-family:var(--H1);padding:clamp(6px,1.5vw,8px) clamp(10px,2.5vw,14px);border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:var(--orange);color:var(--navy);box-shadow:0 3px 0 var(--orangeD);}
-.lb-how-tag.green{background:var(--orange);color:var(--navy);box-shadow:0 3px 0 var(--orangeD);}
-.lb-how-tag.red{background:var(--orange);color:var(--navy);box-shadow:0 3px 0 var(--orangeD);}
+.lb-how-tag{flex-shrink:0;font-size:clamp(10px,2.6vw,12px);font-weight:900;font-family:var(--H1);padding:clamp(6px,1.5vw,8px) clamp(10px,2.5vw,14px);border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:var(--navy);color:var(--white);box-shadow:0 3px 0 var(--navyL);}
+.lb-how-tag.green{background:var(--navy);color:var(--white);box-shadow:0 3px 0 var(--navyL);}
+.lb-how-tag.red{background:var(--navy);color:var(--white);box-shadow:0 3px 0 var(--navyL);}
 
 /* Danger card — still white, red icon circle */
 .lb-how-row-danger{display:flex;align-items:center;gap:clamp(10px,2.5vw,14px);background:var(--white);border-radius:10px;padding:clamp(12px,3vw,16px);box-shadow:0 3px 10px rgba(0,0,0,.1);}
@@ -335,19 +330,19 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 .btn-kickoff-icon{width:clamp(36px,9vw,44px);height:clamp(36px,9vw,44px);object-fit:contain;flex-shrink:0;}
 /* ── SHARED PRIMARY CTA ── same green on every screen ── */
 /* Shared primary CTA — 10% Red across all screens */
-.btn-primary{width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 var(--c10d);transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;text-decoration:none;}
-.btn-primary:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-primary{width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 var(--c10d);transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;text-decoration:none;}
+.btn-primary:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-primary:disabled,.btn-primary[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
 
 
 /* ── Bottom nav — 30% white bar, 10% red active ── */
-.lb-nav{flex:0 0 auto;background:var(--navyL);display:flex;align-items:stretch;border-top:1px solid var(--navyM);}
+.lb-nav{flex:0 0 auto;background:var(--orange);display:flex;align-items:stretch;border-top:1px solid rgba(26,36,56,.15);}
 .lb-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,2vw,11px) 4px clamp(10px,2.5vw,13px);gap:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border:none;background:transparent;}
-.lb-nav-icon{font-size:clamp(16px,4.3vw,20px);line-height:1;color:var(--inkSub);}
-.lb-nav-label{font-size:clamp(8px,2vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;color:var(--inkSub);}
-.lb-nav-item.active .lb-nav-icon{color:var(--orange);}
-.lb-nav-item.active .lb-nav-label{color:var(--orange);}
-.lb-nav-item:not(.active) .lb-nav-icon{color:var(--inkSub);}
+.lb-nav-icon{font-size:clamp(16px,4.3vw,20px);line-height:1;color:rgba(26,36,56,.5);}
+.lb-nav-label{font-size:clamp(8px,2vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;color:rgba(26,36,56,.5);}
+.lb-nav-item.active .lb-nav-icon{color:var(--navy);}
+.lb-nav-item.active .lb-nav-label{color:var(--navy);}
+.lb-nav-item:not(.active) .lb-nav-icon{color:rgba(26,36,56,.45);}
 
 /* TUTORIAL */
 #tutorial-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:clamp(90px,24vw,120px);animation:fadeIn .3s ease;}
@@ -375,7 +370,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 
 
 /* GAME */
-#screen-game{flex:1;display:flex;flex-direction:column;background:var(--navy);overflow:hidden;animation:fadeIn .15s ease;}
+#screen-game{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;animation:fadeIn .15s ease;}
 /* Game HUD — Orange Peel header, white logo text */
 .gm-hud{flex:0 0 auto;background:var(--navyL);padding:clamp(8px,2vw,11px) clamp(14px,4vw,22px);display:flex;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,.18);}
 .gm-brand{display:flex;flex-direction:column;gap:3px;}
@@ -383,19 +378,19 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 .gm-title{font-size:clamp(18px,5.5vw,26px);font-weight:900;color:var(--white);line-height:1;font-family:var(--H1);text-transform:uppercase;}
 /* Sub-tag — Selective Yellow, Jumia warm accent */
 /* Sub-tag — 30% white, 10% red text */
-.gm-tag{display:inline-flex;background:rgba(255,153,0,.2);border-radius:4px;padding:2px 8px;width:fit-content;}
-.gm-tag span{font-size:clamp(8px,2vw,10px);font-weight:900;color:var(--orange);letter-spacing:.1em;font-family:var(--H2);}
+.gm-tag{display:inline-flex;background:rgba(26,36,56,.2);border-radius:4px;padding:2px 8px;width:fit-content;}
+.gm-tag span{font-size:clamp(8px,2vw,10px);font-weight:900;color:var(--white);letter-spacing:.1em;font-family:var(--H2);}
 #game-overlay{position:absolute;top:clamp(12px,3vw,18px);right:clamp(10px,3vw,16px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.5vw,12px);z-index:8;}
 /* Score circle — 30% white card, 10% red number */
 .score-circle{width:clamp(56px,15vw,70px);height:clamp(56px,15vw,70px);background:var(--white);border-radius:50%;border:3px solid rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 14px rgba(0,0,0,.25);flex-shrink:0;}
-.score-num{font-size:clamp(16px,5vw,22px);font-weight:900;color:var(--orange);line-height:1;font-family:var(--H1);}
+.score-num{font-size:clamp(16px,5vw,22px);font-weight:900;color:var(--navy);line-height:1;font-family:var(--H1);}
 .score-lbl{font-size:7px;font-weight:700;color:var(--inkCard2);font-family:var(--H2);letter-spacing:.06em;text-transform:uppercase;}
 #lives-counter{position:relative;width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);display:flex;align-items:center;justify-content:center;}
 #lives-counter img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 0px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff) drop-shadow(0 3px 8px rgba(0,0,0,.35));transition:transform .2s,filter .2s;}
-#lives-count{position:absolute;top:-4px;right:-6px;background:var(--orange);color:var(--navy);border-radius:50%;width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,14px);font-weight:900;font-family:var(--H1);border:2px solid var(--c30);box-shadow:0 2px 6px rgba(0,0,0,.25);}
+#lives-count{position:absolute;top:-4px;right:-6px;background:var(--navy);color:var(--white);border-radius:50%;width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,14px);font-weight:900;font-family:var(--H1);border:2px solid var(--c30);box-shadow:0 2px 6px rgba(0,0,0,.25);}
 #btn-mute{position:absolute;bottom:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.25);cursor:pointer;color:#fff;font-size:clamp(14px,3.5vw,18px);display:flex;align-items:center;justify-content:center;z-index:9;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;}
 #btn-mute:active{background:rgba(0,0,0,.5);}
-#game-field{flex:1;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:linear-gradient(180deg,rgba(255,153,0,0.55) 0%,rgba(255,153,0,0.35) 40%,rgba(255,153,0,0.45) 100%),url('https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp') center center / cover no-repeat;}
+#game-field{flex:1;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:url('https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp') center center / cover no-repeat;}
 .falling-item{position:absolute;display:flex;align-items:center;justify-content:center;animation:itemIn .15s ease;z-index:5;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;pointer-events:none;}
 .falling-item img{user-select:none;-webkit-user-select:none;pointer-events:none;-webkit-user-drag:none;}
 .item-ball{width:clamp(44px,12vw,58px);height:clamp(44px,12vw,58px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));}
@@ -421,20 +416,20 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 /* Game controls — Orange Peel bg, Jumia Red arrow buttons */
 .gm-btns{flex:0 0 auto;background:var(--navyL);padding:clamp(10px,2.5vw,16px) clamp(20px,5vw,28px);display:flex;justify-content:space-between;align-items:center;box-shadow:0 -3px 14px rgba(0,0,0,.15);position:relative;min-height:clamp(84px,22vw,110px);}
 /* Arrow buttons — Jumia Red (Flash Sale / urgency colour) */
-.btn-arrow{width:clamp(72px,18vw,88px);height:clamp(72px,18vw,88px);flex-shrink:0;border-radius:50%;background:var(--orange);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,7vw,32px);color:var(--navy);box-shadow:0 5px 0 var(--orangeD);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;outline:none;transition:box-shadow .08s;}
-.btn-arrow:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-arrow{width:clamp(72px,18vw,88px);height:clamp(72px,18vw,88px);flex-shrink:0;border-radius:50%;background:var(--navy);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,7vw,32px);color:var(--white);box-shadow:0 5px 0 var(--navyL);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;outline:none;transition:box-shadow .08s;}
+.btn-arrow:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-arrow::selection{background:none;}
 /* Combo badge — 30% white, 10% red text */
-.combo-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--orange);color:var(--navy);border-radius:6px;padding:5px 16px;font-size:clamp(11px,3vw,14px);font-weight:900;display:none;font-family:var(--H1);box-shadow:0 3px 0 #c89200;white-space:nowrap;pointer-events:none;}
+.combo-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--navy);color:var(--white);border-radius:6px;padding:5px 16px;font-size:clamp(11px,3vw,14px);font-weight:900;display:none;font-family:var(--H1);box-shadow:0 3px 0 #c89200;white-space:nowrap;pointer-events:none;}
 
 /* FORM ─ Jumia brand: orange header, white card, dark ink text */
-#screen-form{flex:1;display:flex;flex-direction:column;background:var(--navy);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;min-height:0;}
+#screen-form{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;min-height:0;}
 /* Angled orange header strip */
-.fm-top{flex:0 0 auto;background:var(--navyL);padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(32px,8vw,44px);text-align:center;position:relative;clip-path:polygon(0 0,100% 0,100% 80%,0 100%);}
+.fm-top{flex:0 0 auto;background:var(--navyL);padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);text-align:center;position:relative;}
 .fm-emoji{margin-bottom:8px;display:block;}
-.fm-title{font-size:clamp(26px,7.5vw,34px);font-weight:900;color:var(--c30);line-height:.92;font-family:var(--H1);margin-bottom:8px;text-transform:uppercase;letter-spacing:-.01em;}
+.fm-title{font-size:clamp(26px,7.5vw,34px);font-weight:900;color:var(--white);line-height:.92;font-family:var(--H1);margin-bottom:8px;text-transform:uppercase;letter-spacing:-.01em;}
 /* Sub-headline = 50% of headline per brand scale */
-.fm-sub{font-size:clamp(12px,3.2vw,15px);color:rgba(255,255,255,.82);font-family:var(--H2);font-weight:500;line-height:1.4;}
+.fm-sub{font-size:clamp(12px,3.2vw,15px);color:rgba(255,255,255,.75);font-family:var(--H2);font-weight:500;line-height:1.4;}
 .fm-sub b{color:var(--c30);font-weight:700;}
 /* White card — Jumia ink dark text */
 .fm-card{flex:0 0 auto;background:var(--white);margin:clamp(-18px,-4vw,-14px) clamp(16px,4vw,22px) 0;border-radius:10px;padding:clamp(16px,4vw,22px);box-shadow:0 4px 20px rgba(0,0,0,.13);}
@@ -447,18 +442,18 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 .fm-error-msg{font-size:clamp(10px,2.5vw,12px);color:var(--c10);font-family:var(--H2);font-weight:700;margin-top:5px;display:none;}
 .fm-error-msg.visible{display:block;}
 /* Submit — 10% Red CTA, same across all screens */
-.btn-submit{width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;box-shadow:0 5px 0 var(--orangeD);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
-.btn-submit:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-submit{width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;box-shadow:0 5px 0 var(--navyL);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
+.btn-submit:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
 .fm-spacer{flex:1;min-height:4px;max-height:10px;}
 /* Legal — body copy = 25% of headline, subdued white */
-.fm-legal{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(20px,5vw,28px) clamp(12px,3vw,16px);text-align:center;font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.42);font-family:var(--H2);line-height:1.55;}
+.fm-legal{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(20px,5vw,28px) clamp(12px,3vw,16px);text-align:center;font-size:clamp(9px,2.3vw,11px);color:rgba(26,36,56,.5);font-family:var(--H2);line-height:1.55;}
 .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
 
 /* RESULT ─ Jumia brand: orange top, white score cards, yellow voucher accent */
-#screen-result{flex:1;display:flex;flex-direction:column;background:var(--navy);overflow-y:auto;animation:fadeIn .25s ease;}
+#screen-result{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow-y:auto;animation:fadeIn .25s ease;}
 /* Angled orange header — mirrors form screen for consistency */
-.rs-header{flex:0 0 auto;background:var(--navyL);padding:clamp(18px,4.5vw,26px) clamp(20px,5vw,28px) clamp(36px,9vw,50px);position:relative;clip-path:polygon(0 0,100% 0,100% 78%,0 100%);}
+.rs-header{flex:0 0 auto;background:var(--navyL);padding:clamp(18px,4.5vw,26px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);position:relative;}
 .rs-brand{font-size:clamp(9px,2.4vw,11px);color:rgba(255,255,255,.6);font-family:var(--H2);letter-spacing:.14em;margin-bottom:4px;text-transform:uppercase;font-weight:700;}
 /* Headline — Helvetica Display Black, 95% leading */
 .rs-title{font-size:clamp(34px,10.5vw,50px);font-weight:900;color:var(--c30);line-height:.93;font-family:var(--H1);text-transform:uppercase;letter-spacing:-.01em;}
@@ -467,7 +462,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 /* Score cards — white, Jumia ink, orange value */
 .rs-scores{flex:0 0 auto;display:flex;gap:8px;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px);margin-top:clamp(-22px,-5vw,-16px);}
 .rs-score-card{flex:1;background:var(--white);border-radius:10px;padding:clamp(10px,2.5vw,14px) 6px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.12);}
-.rs-score-val{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:var(--orange);font-family:var(--H1);}
+.rs-score-val{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:var(--navy);font-family:var(--H1);}
 .rs-score-lbl{font-size:clamp(8px,2vw,10px);color:var(--inkCard2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
 /* Voucher card — white, brand-tier label, yellow tint code box */
 .voucher-card{flex:0 0 auto;background:var(--white);margin:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);border-radius:10px;padding:clamp(16px,4vw,22px);text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.1);}
@@ -476,29 +471,29 @@ body{width:100%;height:100%;overflow:hidden;background:var(--navy);display:flex;
 .v-label{display:inline-block;border-radius:5px;padding:5px 18px;font-size:clamp(10px,2.6vw,12px);font-weight:900;letter-spacing:.1em;margin-bottom:12px;color:var(--c30);font-family:var(--H1);text-transform:uppercase;}
 .v-disc-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px;}
 /* Discount % — headline size, Jumia Red for urgency/flash */
-.v-disc{font-size:clamp(30px,9vw,44px);font-weight:900;color:var(--orange);line-height:1;font-family:var(--H1);}
+.v-disc{font-size:clamp(30px,9vw,44px);font-weight:900;color:var(--navy);line-height:1;font-family:var(--H1);}
 .v-cat-line{font-size:clamp(11px,3vw,13px);color:var(--inkCard2);font-family:var(--H2);margin:5px 0 14px;font-weight:500;}
 .v-code-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
 /* Code box — Selective Yellow tint (#fff2d6) per brand palette */
-.v-code{background:#fff5e0;border:2px dashed var(--orange);border-radius:6px;padding:clamp(9px,2.2vw,13px) 20px;font-size:clamp(14px,4vw,18px);font-weight:900;color:var(--ink);letter-spacing:.18em;display:inline-block;font-family:var(--H1);}
+.v-code{background:#f0f4ff;border:2px dashed var(--navy);border-radius:6px;padding:clamp(9px,2.2vw,13px) 20px;font-size:clamp(14px,4vw,18px);font-weight:900;color:var(--ink);letter-spacing:.18em;display:inline-block;font-family:var(--H1);}
 .v-note{font-size:clamp(9px,2.2vw,10px);color:var(--inkCard2);font-family:var(--H2);font-weight:500;}
 /* Copy button — 10% Red accent */
-.btn-copy{background:var(--orange);color:var(--navy);border:none;border-radius:6px;padding:9px 16px;font-size:clamp(10px,2.8vw,13px);font-weight:900;cursor:pointer;font-family:var(--H1);letter-spacing:.07em;flex-shrink:0;text-transform:uppercase;box-shadow:0 4px 0 var(--c10d);transition:box-shadow .1s,transform .1s;}
-.btn-copy:active{transform:translateY(4px);box-shadow:0 0 0 var(--orangeD);}
+.btn-copy{background:var(--navy);color:var(--white);border:none;border-radius:6px;padding:9px 16px;font-size:clamp(10px,2.8vw,13px);font-weight:900;cursor:pointer;font-family:var(--H1);letter-spacing:.07em;flex-shrink:0;text-transform:uppercase;box-shadow:0 4px 0 var(--c10d);transition:box-shadow .1s,transform .1s;}
+.btn-copy:active{transform:translateY(4px);box-shadow:0 0 0 var(--navyL);}
 .rs-cta-block{flex:0 0 auto;padding:0 clamp(16px,4vw,22px) clamp(8px,2vw,12px);}
 /* Result CTA — 10% Red, consistent with all other primary CTAs */
-.btn-jumia-main{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px) clamp(14px,3.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 5px 0 var(--c10d);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;}
-.btn-jumia-main:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-jumia-main{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px) clamp(14px,3.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 5px 0 var(--c10d);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;}
+.btn-jumia-main:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-jumia-main span{line-height:1.2;}
-.rs-url-hint{text-align:center;font-size:clamp(8px,2vw,10px);color:rgba(255,255,255,.38);font-family:var(--H2);margin-top:8px;word-break:break-all;}
+.rs-url-hint{text-align:center;font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.4);font-family:var(--H2);margin-top:8px;word-break:break-all;}
 .rs-spacer{flex:1;min-height:clamp(8px,2vw,14px);}
 /* Replay bar — white footer, consistent with form card style */
-.rs-replay-bar{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(16px,4vw,22px);background:var(--navyL);box-shadow:0 -3px 12px rgba(0,0,0,.07);}
+.rs-replay-bar{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(16px,4vw,22px);background:var(--orange);box-shadow:0 -3px 12px rgba(0,0,0,.07);}
 /* Replay button — ink border, brand orange on hover */
-.btn-replay-full{display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;transition:border-color .2s,color .2s,background .2s;}
-.btn-replay-full:hover{border-color:var(--orangeD);color:var(--orangeD);}
+.btn-replay-full{display:block;width:100%;background:transparent;color:var(--navy);border:2px solid var(--navy);border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;transition:border-color .2s,color .2s,background .2s;}
+.btn-replay-full:hover{border-color:var(--navyL);color:var(--navyL);}
 .btn-replay-full.confirm{border-color:var(--red);color:var(--red);background:rgba(236,35,38,.05);font-weight:900;}
-.rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:var(--inkSub);font-family:var(--H2);padding:10px 0;font-weight:500;}
+.rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:rgba(26,36,56,.6);font-family:var(--H2);padding:10px 0;font-weight:500;}
 </style>
 </head>
 <body>
@@ -570,7 +565,7 @@ function spawnItem(speed){
 }
 
 function copyCode(text,btn){
-  const success=()=>{btn.textContent='✓ COPIÉ';btn.style.background='#ff9900';btn.style.color='#1a2438';btn.style.boxShadow='0 3px 0 #e68800';btn.disabled=true;btn.style.cursor='default';btn.style.opacity='1';};
+  const success=()=>{btn.textContent='✓ COPIÉ';btn.style.background='#1a2438';btn.style.color='#ffffff';btn.style.boxShadow='0 3px 0 #24304f';btn.disabled=true;btn.style.cursor='default';btn.style.opacity='1';};
   if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(success).catch(()=>fallback());}
   else{fallback();}
   function fallback(){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');success();}catch(e){btn.textContent='Code: '+text;}document.body.removeChild(ta);}
@@ -754,10 +749,7 @@ function renderLobby(){
         <span class="lb-nav-icon">🏠</span>
         <span class="lb-nav-label">ACCUEIL</span>
       </button>
-      <button class="lb-nav-item" onclick="navScrollBoard()">
-        <span class="lb-nav-icon">🏆</span>
-        <span class="lb-nav-label">CLASSEMENT</span>
-      </button>
+
       <button class="lb-nav-item" onclick="navRewards()">
         <span class="lb-nav-icon">🎁</span>
         <span class="lb-nav-label">RÉCOMPENSES</span>
@@ -1009,7 +1001,7 @@ function renderForm(){
   startMusic();
   $('app').innerHTML=`
   <div id="screen-form">
-    <!-- Angled orange header — 78.5° brand angle via clip-path -->
+    <!-- Header strip -->
     <div class="fm-top">
       <img src="${IMG_GLOVES}" style="height:clamp(52px,14vw,68px);width:auto;display:block;margin:0 auto clamp(10px,2.5vw,14px);filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))" alt="gloves">
       <div class="fm-title">PRÊT(E) À JOUER ?</div>
@@ -1143,14 +1135,7 @@ function renderResult(){
 }
 
 // NAV HELPERS
-function navScrollBoard(){
-  // Ensure we are on lobby then scroll the leaderboard into view
-  if(!$('screen-lobby')){renderLobby();}
-  setTimeout(()=>{
-    const el=$('lb-rows');
-    if(el)el.closest('.lb-board').scrollIntoView({behavior:'smooth',block:'start'});
-  },80);
-}
+
 
 function navRewards(){
   // If the player has played at least once, show their result screen
