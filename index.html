@@ -874,6 +874,47 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
   letter-spacing:.04em;margin-top:2px;display:inline-block;
 }
 
+/* ── LOBBY: voucher tier strip ── */
+.lb-tiers{background:var(--white);border-radius:10px;padding:clamp(12px,3vw,16px);margin-bottom:clamp(10px,2.5vw,14px);box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.lb-tiers-title{font-size:clamp(9px,2.4vw,11px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center;}
+.lb-tiers-rows{display:flex;flex-direction:column;gap:6px;}
+.lb-tier-row{display:flex;align-items:center;gap:10px;padding:clamp(7px,1.8vw,9px) clamp(10px,2.5vw,12px);border-radius:7px;background:#f8f9fa;}
+.lb-tier-row.active{background:rgba(255,153,0,.12);border:1.5px solid var(--orange);}
+.lb-tier-row.locked{opacity:.45;}
+.lb-tier-disc{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--navy);font-family:var(--H1);min-width:clamp(54px,14vw,68px);}
+.lb-tier-row.active .lb-tier-disc{color:var(--orange);}
+.lb-tier-label{flex:1;font-size:clamp(10px,2.6vw,12px);font-weight:700;color:var(--inkCard2);font-family:var(--H2);}
+.lb-tier-pts{font-size:clamp(9px,2.3vw,10px);font-weight:700;color:var(--inkCard2);font-family:var(--H2);white-space:nowrap;}
+.lb-tier-you{font-size:clamp(8px,2vw,9px);font-weight:900;background:var(--orange);color:var(--navy);border-radius:3px;padding:1px 5px;font-family:var(--H2);white-space:nowrap;}
+
+/* ── GAME HUD: tier progress bar ── */
+.gm-tier-bar{flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding-right:2px;}
+.gm-tier-label{font-size:clamp(7px,1.8vw,8px);font-weight:700;color:rgba(255,255,255,.7);font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;}
+.gm-tier-disc{font-size:clamp(10px,2.6vw,12px);font-weight:900;color:var(--orange);font-family:var(--H1);}
+.gm-tier-progress{width:clamp(60px,16vw,80px);height:5px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;margin-top:2px;}
+.gm-tier-fill{height:100%;background:var(--orange);border-radius:3px;transition:width .3s ease;}
+.gm-tier-next{font-size:clamp(7px,1.8vw,8px);color:rgba(255,255,255,.5);font-family:var(--H2);}
+
+/* ── RESULT: dual reward card ── */
+.rs-reward-split{display:flex;gap:8px;padding:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);}
+.rs-reward-half{flex:1;border-radius:10px;padding:clamp(12px,3vw,16px) clamp(10px,2.5vw,14px);text-align:center;}
+.rs-reward-half.voucher{background:var(--white);box-shadow:0 2px 10px rgba(0,0,0,.1);}
+.rs-reward-half.physical{background:var(--navy);box-shadow:0 2px 10px rgba(0,0,0,.2);}
+.rs-reward-eyebrow{font-size:clamp(8px,2vw,9px);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--H2);margin-bottom:4px;}
+.rs-reward-half.voucher .rs-reward-eyebrow{color:var(--inkCard2);}
+.rs-reward-half.physical .rs-reward-eyebrow{color:rgba(255,255,255,.5);}
+.rs-reward-val{font-size:clamp(18px,5vw,24px);font-weight:900;font-family:var(--H1);line-height:1;margin-bottom:4px;}
+.rs-reward-half.voucher .rs-reward-val{color:var(--navy);}
+.rs-reward-half.physical .rs-reward-val{color:var(--orange);}
+.rs-reward-sub{font-size:clamp(9px,2.3vw,10px);font-family:var(--H2);line-height:1.3;}
+.rs-reward-half.voucher .rs-reward-sub{color:var(--inkCard2);}
+.rs-reward-half.physical .rs-reward-sub{color:rgba(255,255,255,.6);}
+.rs-reward-img{width:clamp(36px,10vw,48px);height:clamp(36px,10vw,48px);object-fit:contain;display:block;margin:6px auto 4px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.3));}
+/* Low score warning */
+.rs-low-score{background:rgba(236,35,38,.08);border:1.5px solid rgba(236,35,38,.2);border-radius:10px;padding:clamp(12px,3vw,16px);margin:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);text-align:center;}
+.rs-low-score-title{font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--red);font-family:var(--H1);margin-bottom:4px;}
+.rs-low-score-sub{font-size:clamp(11px,2.8vw,13px);color:var(--inkCard2);font-family:var(--H2);line-height:1.4;}
+
 </style>
 </head>
 <body>
@@ -1181,6 +1222,33 @@ function renderLobby(){
         </div>
       </div>
 
+      <!-- Voucher tier strip — what score = what discount -->
+      <div class="lb-tiers" id="lb-tiers-strip">
+        <div class="lb-tiers-title">TA RÉCOMPENSE GARANTIE</div>
+        <div class="lb-tiers-rows">
+          <div class="lb-tier-row locked">
+            <div class="lb-tier-disc">20% DE RÉD.</div>
+            <div class="lb-tier-label">LÉGENDE</div>
+            <div class="lb-tier-pts">800+ pts</div>
+          </div>
+          <div class="lb-tier-row locked">
+            <div class="lb-tier-disc">15% DE RÉD.</div>
+            <div class="lb-tier-label">CHAMPION</div>
+            <div class="lb-tier-pts">400+ pts</div>
+          </div>
+          <div class="lb-tier-row locked">
+            <div class="lb-tier-disc">10% DE RÉD.</div>
+            <div class="lb-tier-label">MATCH READY</div>
+            <div class="lb-tier-pts">150+ pts</div>
+          </div>
+          <div class="lb-tier-row locked">
+            <div class="lb-tier-disc">5% DE RÉD.</div>
+            <div class="lb-tier-label">DÉBUTANT</div>
+            <div class="lb-tier-pts">0+ pts</div>
+          </div>
+        </div>
+      </div>
+
       <!-- How to play -->
       <div class="lb-how">
         <div class="lb-how-header">
@@ -1255,6 +1323,28 @@ function renderLobby(){
       goTo(renderForm);
     });
   }
+  // Highlight the tier the player has already reached
+  if(hasPlayedOnce&&bestScore>0){
+    const tiers=$('lb-tiers-strip');
+    if(tiers){
+      const rows=tiers.querySelectorAll('.lb-tier-row');
+      const thresholds=[800,400,150,0];
+      let activeSet=false;
+      rows.forEach((row,i)=>{
+        if(!activeSet&&bestScore>=thresholds[i]){
+          row.classList.remove('locked');
+          row.classList.add('active');
+          const badge=document.createElement('div');
+          badge.className='lb-tier-you';
+          badge.textContent='TON MEILLEUR';
+          row.appendChild(badge);
+          activeSet=true;
+        } else if(activeSet){
+          row.classList.remove('locked');
+        }
+      });
+    }
+  }
 
   // Render podium from top 3
   fetchLeaderboard().then(players=>{
@@ -1305,6 +1395,11 @@ function renderGame(){
       <div class="gm-brand">
         <div class="gm-title">GARDIEN DE BUT</div>
         <div class="gm-tag"><span>ÉDITION FANS</span></div>
+      </div>
+      <div class="gm-tier-bar" id="gm-tier-bar">
+        <div class="gm-tier-disc" id="gm-tier-disc">5% DE RÉD.</div>
+        <div class="gm-tier-progress"><div class="gm-tier-fill" id="gm-tier-fill" style="width:0%"></div></div>
+        <div class="gm-tier-next" id="gm-tier-next">150 pts → 10%</div>
       </div>
     </div>
     <div class="gm-net"></div>
@@ -1479,7 +1574,20 @@ function tick(ts){
   }
   comboVal=newCombo;
   if(newCombo>maxComboVal)maxComboVal=newCombo;
-  if(ptsGained){scoreVal+=ptsGained;const sd=$('score-disp');if(sd)sd.textContent=scoreVal;}
+  if(ptsGained){
+    scoreVal+=ptsGained;
+    const sd=$('score-disp');if(sd)sd.textContent=scoreVal;
+    // Update tier bar
+    const disc=$('gm-tier-disc'),fill=$('gm-tier-fill'),next=$('gm-tier-next');
+    if(disc&&fill&&next){
+      const tiers=[{t:800,d:'20% DE RÉD.'},{t:400,d:'15% DE RÉD.'},{t:150,d:'10% DE RÉD.'},{t:0,d:'5% DE RÉD.'}];
+      let cur=tiers[3],nxt=null;
+      for(let i=0;i<tiers.length;i++){if(scoreVal>=tiers[i].t){cur=tiers[i];nxt=tiers[i-1]||null;break;}}
+      disc.textContent=cur.d;
+      if(nxt){const pct=Math.min(100,Math.round((scoreVal-cur.t)/(nxt.t-cur.t)*100));fill.style.width=pct+'%';next.textContent=nxt.t+' pts → '+nxt.d;}
+      else{fill.style.width='100%';next.textContent='MAX !';}
+    }
+  }
   const cb=$('combo-badge');
   if(cb){cb.style.display=newCombo>1?'inline-block':'none';cb.textContent='×'+Math.min(newCombo,5)+' COMBO';}
   if(livesLost){livesVal=Math.max(0,livesVal-livesLost);updateLivesDisplay();if(livesVal<=0){endGame(scoreVal);return;}}
@@ -1689,17 +1797,36 @@ function showVoucherPopup(v){
 // RESULT
 function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
+  const isLowScore=s<50;
   $('app').innerHTML=`
   <div id="screen-result">
     <div class="rs-header">
-      <div class="rs-brand">JUMIA — ÉDITION FANS</div>
-      <div class="rs-title">${s>=150?'BIEN JOUÉ !':'PRESQUE !'}</div>
-      <div class="rs-sub">Voici ton score — ton bon arrive !</div>
+      <div class="rs-brand">JUMIA \u2014 \u00c9DITION FANS</div>
+      <div class="rs-title">${isLowScore?'PRESQUE\u00a0!':s>=150?'BIEN JOU\u00c9\u00a0!':'CONTINUE\u00a0!'}</div>
+      <div class="rs-sub">${isLowScore?'Tu peux faire beaucoup mieux\u00a0!':'Voici tes r\u00e9compenses'}</div>
     </div>
     <div class="rs-scores">
-      ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
+      ${[{val:s,lbl:"POINTS"},{val:'\u00d7'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card"><div class="rs-score-val">${sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
     </div>
+    ${isLowScore?`
+    <div class="rs-low-score">
+      <div class="rs-low-score-title">SCORE TROP BAS</div>
+      <div class="rs-low-score-sub">Atteins <b>150 pts</b> minimum pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons\u00a0!</div>
+    </div>`:`
+    <div class="rs-reward-split">
+      <div class="rs-reward-half voucher">
+        <div class="rs-reward-eyebrow">TON BON GARANTI</div>
+        <div class="rs-reward-val">${v.disc}</div>
+        <div class="rs-reward-sub">${v.label}<br>sur Jumia</div>
+      </div>
+      <div class="rs-reward-half physical">
+        <div class="rs-reward-eyebrow">PRIX PHYSIQUE</div>
+        <img class="rs-reward-img" src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp" alt="Prix" id="rs-prize-img" draggable="false">
+        <div class="rs-reward-val" id="rs-prize-rank" style="font-size:clamp(13px,3.5vw,16px);">TOP 3</div>
+        <div class="rs-reward-sub" id="rs-prize-sub">Maillot \u00b7 Polo \u00b7 Ballon<br>Sois dans le top 3\u00a0!</div>
+      </div>
+    </div>`}
     <div class="rs-spacer"></div>
     <div class="rs-replay-bar">
       <button onclick="renderLeaderboard()" style="display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(12px,3.2vw,14px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
@@ -1707,27 +1834,39 @@ function renderResult(){
       </button>
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">
-              REJOUE — TON MEILLEUR BON EST EN JEU
+              ${isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE \u2014 TON MEILLEUR BON EST EN JEU'}
               <div style="font-size:clamp(9px,2.3vw,10px);font-weight:600;opacity:.7;margin-top:3px;letter-spacing:.04em;text-transform:none;">
-                Il te reste ${attempts} essai${attempts>1?'s':''} — ne les perds pas
+                Il te reste ${attempts} essai${attempts>1?'s':''} \u2014 ne les perds pas
               </div>
            </button>`
         :`<div class="rs-no-attempts">
-            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:var(--navy);margin-bottom:3px;">REVIENS DEMAIN !</div>
-            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t’attendent — ton bon aussi.</div>
+            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:var(--navy);margin-bottom:3px;">REVIENS DEMAIN\u00a0!</div>
+            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t\u2019attendent \u2014 ton bon aussi.</div>
           </div>`}
     </div>
   </div>`;
 
-  // Show voucher popup automatically after a short delay
-  // so the player sees their score first
-  setTimeout(()=>showVoucherPopup(v), 800);
+  if(!isLowScore){
+    setTimeout(()=>showVoucherPopup(v),800);
+    fetchLeaderboard().then(players=>{
+      const pImgs=['https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp'];
+      const pNames=['Maillot Maroc','Polo Maroc','Ballon de foot'];
+      const myFirst=playerName?(playerName.split(' ')[0].toLowerCase()):'';
+      const myIdx=myFirst?players.findIndex(p=>(p.name||'').split(' ')[0].toLowerCase()===myFirst):-1;
+      const myRank=myIdx>=0?myIdx+1:null;
+      const rankEl=$('rs-prize-rank'),subEl=$('rs-prize-sub'),imgEl=$('rs-prize-img');
+      if(rankEl&&subEl&&imgEl){
+        if(myRank&&myRank<=3){imgEl.src=pImgs[myRank-1];rankEl.textContent='#'+myRank+' \u2014 '+pNames[myRank-1];subEl.innerHTML='<b style="color:var(--orange)">Tu gagnes ce prix\u00a0!</b>';}
+        else if(myRank&&myRank<=10){rankEl.textContent='TU ES #'+myRank;subEl.textContent='Rejoue pour entrer dans le top 3\u00a0!';}
+      }
+    }).catch(()=>{});
+  }
 
   const br=$('btn-replay');
   if(br){
     let armed=false,timer=null;
     br.addEventListener('click',()=>{
-      if(!armed){armed=true;br.innerHTML='CONFIRMER — LANCER MA PROCHAINE PARTIE';br.classList.add('confirm');timer=setTimeout(()=>{armed=false;br.innerHTML='REJOUE — TON MEILLEUR BON EST EN JEU<div style="font-size:clamp(9px,2.3vw,10px);font-weight:600;opacity:.7;margin-top:3px;letter-spacing:.04em;text-transform:none;">Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' — ne les perds pas</div>';br.classList.remove('confirm');},3000);}
+      if(!armed){armed=true;br.innerHTML='CONFIRMER \u2014 LANCER MA PROCHAINE PARTIE';br.classList.add('confirm');timer=setTimeout(()=>{armed=false;br.innerHTML=(isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE \u2014 TON MEILLEUR BON EST EN JEU')+'<div style="font-size:clamp(9px,2.3vw,10px);font-weight:600;opacity:.7;margin-top:3px;letter-spacing:.04em;text-transform:none;">Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' \u2014 ne les perds pas</div>';br.classList.remove('confirm');},3000);}
       else{clearTimeout(timer);goTo(startGame);}
     });
   }
