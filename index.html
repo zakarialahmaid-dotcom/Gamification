@@ -1044,9 +1044,9 @@ const IMG_HEART   = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 const IMG_REDCARD = "https://raw.githubusercontent.com/Madzack69/Icons/main/Red.png";
 
 function getVoucher(s){
-  if(s>=800) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"LÉGENDE",bg:"#1a2438"};
-  if(s>=400) return{disc:"15% DE RÉD.",code:"JMCHAMP15",label:"CHAMPION",bg:"#1a2438"};
-  if(s>=150) return{disc:"10% DE RÉD.",code:"JMMATCH10",label:"MATCH READY",bg:"#1a2438"};
+  if(s>=600) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"LÉGENDE",bg:"#1a2438"};
+  if(s>=250) return{disc:"15% DE RÉD.",code:"JMCHAMP15",label:"CHAMPION",bg:"#1a2438"};
+  if(s>=80)  return{disc:"10% DE RÉD.",code:"JMMATCH10",label:"MATCH READY",bg:"#1a2438"};
   return          {disc:"5% DE RÉD.", code:"JMSTART5",label:"DÉBUTANT",bg:"#1a2438"};
 }
 
@@ -1404,17 +1404,17 @@ function renderLobby(){
           <div class="lb-tier-row locked">
             <div class="lb-tier-disc">20% DE RÉD.</div>
             <div class="lb-tier-label">LÉGENDE</div>
-            <div class="lb-tier-pts">800+ pts</div>
+            <div class="lb-tier-pts">600+ pts</div>
           </div>
           <div class="lb-tier-row locked">
             <div class="lb-tier-disc">15% DE RÉD.</div>
             <div class="lb-tier-label">CHAMPION</div>
-            <div class="lb-tier-pts">400+ pts</div>
+            <div class="lb-tier-pts">250+ pts</div>
           </div>
           <div class="lb-tier-row locked">
             <div class="lb-tier-disc">10% DE RÉD.</div>
             <div class="lb-tier-label">MATCH READY</div>
-            <div class="lb-tier-pts">150+ pts</div>
+            <div class="lb-tier-pts">80+ pts</div>
           </div>
           <div class="lb-tier-row locked">
             <div class="lb-tier-disc">5% DE RÉD.</div>
@@ -1520,7 +1520,7 @@ function renderLobby(){
     const tiers=$('lb-tiers-strip');
     if(tiers){
       const rows=tiers.querySelectorAll('.lb-tier-row');
-      const thresholds=[800,400,150,0];
+      const thresholds=[600,250,80,0];
       let activeSet=false;
       rows.forEach((row,i)=>{
         if(!activeSet&&bestScore>=thresholds[i]){
@@ -1838,7 +1838,7 @@ function tick(ts){
     scoreVal+=ptsGained;
     const sd=$('score-disp');if(sd)sd.textContent=scoreVal;
     // Tier-up celebration
-    const tierMap=[{t:800,l:'LÉGENDE',d:'20% DE RÉD.'},{t:400,l:'CHAMPION',d:'15% DE RÉD.'},{t:150,l:'MATCH READY',d:'10% DE RÉD.'}];
+    const tierMap=[{t:600,l:'LÉGENDE',d:'20% DE RÉD.'},{t:250,l:'CHAMPION',d:'15% DE RÉD.'},{t:80,l:'MATCH READY',d:'10% DE RÉD.'}];
     for(const tier of tierMap){
       if(scoreVal>=tier.t&&lastTierReached<tier.t){lastTierReached=tier.t;showTierUp(tier.l,tier.d);break;}
     }
@@ -1849,9 +1849,9 @@ function tick(ts){
     const badge=$('gm-tier-badge');
     if(circle){
       let ring,label;
-      if(scoreVal>=800){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,230,100,1),0 0 14px 4px rgba(255,220,50,.6)';label='20%';}
-      else if(scoreVal>=400){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,186,0,1),0 0 10px 2px rgba(255,186,0,.5)';label='15%';}
-      else if(scoreVal>=150){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,153,0,1),0 0 8px 2px rgba(255,153,0,.4)';label='10%';}
+      if(scoreVal>=600){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,230,100,1),0 0 14px 4px rgba(255,220,50,.6)';label='20%';}
+      else if(scoreVal>=250){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,186,0,1),0 0 10px 2px rgba(255,186,0,.5)';label='15%';}
+      else if(scoreVal>=80){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,153,0,1),0 0 8px 2px rgba(255,153,0,.4)';label='10%';}
       else{ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,255,255,.25)';label='5%';}
       circle.style.boxShadow=ring;
       if(badge&&badge.textContent!==label){badge.textContent=label;badge.style.opacity='1';setTimeout(()=>{if(badge)badge.style.opacity='.65';},800);}
@@ -2176,7 +2176,7 @@ function showVoucherPopup(v){
 // RESULT
 function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
-  const isLowScore=s<50;
+  const isLowScore=s<30;
   const replayLabel=isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE - TON MEILLEUR BON EST EN JEU';
   const attemptsLabel='Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' - ne les perds pas';
   $('app').innerHTML=`
@@ -2193,7 +2193,7 @@ function renderResult(){
     ${isLowScore?`
     <div class="rs-low-score">
       <div class="rs-low-score-title">SCORE TROP BAS</div>
-      <div class="rs-low-score-sub">Atteins <b>150 pts</b> minimum pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons !</div>
+      <div class="rs-low-score-sub">Atteins <b>80 pts</b> minimum pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons !</div>
     </div>`:`
     <div class="rs-reward-split">
       <div class="rs-reward-half voucher">
@@ -2296,7 +2296,7 @@ function navHelp(){
     IMG_TROPHY,
     'FAQ Récompenses',
     '<b>Quels sont les prix ?</b><br>Top 1 : Maillot Maroc · Top 2 : Polo Maroc · Top 3 : Ballon de foot.<br><br>' +
-    '<b>Le bon de réduction ?</b><br>Score 150+ pts = 10% · 400+ = 15% · 800+ = 20%. Copie le code et colle-le au paiement sur Jumia.<br><br>' +
+    '<b>Le bon de réduction ?</b><br>Score 80+ pts = 10% · 250+ = 15% · 600+ = 20%. Copie le code et colle-le au paiement sur Jumia.<br><br>' +
     '<b>Combien de tentatives ?</b><br>4 essais par jour, renouvelés à minuit.<br><br>' +
     '<b>Durée du bon ?</b><br>Valable <b>7 jours</b> sans montant minimum.<br><br>' +
     '<b>Prix physique ?</b><br>Les 3 meilleurs scores à la fin de l\'opération.',
