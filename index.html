@@ -1294,7 +1294,8 @@ function renderLeaderboard(){
     card.innerHTML=players.map((p,i)=>{
       const rank=i+1;
       const medalClass=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
-      const firstName=(p.name||'Joueur').split(' ')[0];
+      const fullName=(p.name||'Joueur').trim();
+      const firstName=fullName.split(' ')[0]; // kept for matching only
       // Match on email — unique and exact, unlike name
       const isMe=hasPlayedOnce&&myEmail&&(p.email||'')=== myEmail;
       if(isMe)myRowIdx=i;
@@ -1310,7 +1311,7 @@ function renderLeaderboard(){
       return '<div class="lbd-row '+rankClass+meClass+'" id="lbd-row-'+i+'">'+
         '<div class="lbd-medal '+medalClass+'">'+rank+'</div>'+
         '<div class="lbd-info">'+
-          '<div class="lbd-name">'+firstName+youBadge+'</div>'+
+          '<div class="lbd-name">'+fullName+youBadge+'</div>'+
           city+
           gapBadge+
         '</div>'+
@@ -1378,7 +1379,7 @@ function renderLobby(){
     <!-- Campaign end date strip -->
     <div style="background:rgba(26,36,56,.08);border-top:1px solid rgba(26,36,56,.1);padding:clamp(6px,1.5vw,8px) clamp(16px,4vw,22px);display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--navy);opacity:.6;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(26,36,56,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;" id="campaign-countdown">Opération jusqu'au 30 juin 2026</div>
+      <div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(26,36,56,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;" id="campaign-countdown">Opération jusqu'au 19 juillet 2026</div>
     </div>
     <!-- ── SCROLLABLE BODY ── -->
     <div class="lb-scroll">
@@ -1494,12 +1495,12 @@ function renderLobby(){
   // Live countdown to campaign end
   const cdEl=$('campaign-countdown');
   if(cdEl){
-    const end=new Date('2026-06-30T23:59:59');
+    const end=new Date('2026-07-19T23:59:59');
     const now=new Date();
     const diffMs=end-now;
     if(diffMs>0){
       const diffDays=Math.ceil(diffMs/(1000*60*60*24));
-      cdEl.textContent='Fin de l\'opération dans '+diffDays+' jour'+(diffDays>1?'s':'')+' — 30 juin 2026';
+      cdEl.textContent='Fin de l\'opération dans '+diffDays+' jour'+(diffDays>1?'s':'')+' — 19 juillet 2026';
     } else {
       cdEl.textContent='Opération terminée — merci d\'avoir joué !';
     }
@@ -1563,7 +1564,7 @@ function renderLobby(){
       const prizeName=prizes[idx]||'';
       const prizeImg=prizeImgs[idx]||'';
       const rankNum=rankLabels[pos]; // '2','1','3'
-      const winnerName=(p.name||'').split(' ')[0].slice(0,10)||'—';
+      const winnerName=(p.name||'').trim().slice(0,14)||'—';
       return '<div class="lb-podium-col '+colClass[pos]+'">'+
         '<div class="lb-podium-product">'+
           '<div class="lb-podium-rank-badge">'+rankNum+'</div>'+
