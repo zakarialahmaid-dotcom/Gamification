@@ -427,65 +427,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
    A spotlight halo on each button + label above it shows exactly what to press.
    One centered instruction line on the field. Tap anywhere to dismiss.
 */
-#tutorial-overlay{
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,.72);
-  z-index:50;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  animation:fadeIn .3s ease;
-  pointer-events:auto;
-}
-/* Central instruction card */
-.tuto-card{
-  background:rgba(255,255,255,.1);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:14px;
-  padding:clamp(18px,5vw,26px) clamp(20px,5.5vw,30px);
-  text-align:center;
-  max-width:clamp(240px,70vw,300px);
-  margin-bottom:clamp(20px,6vw,28px);
-}
-.tuto-title{font-size:clamp(20px,6vw,24px);font-weight:900;color:#fff;font-family:var(--H1);text-transform:uppercase;line-height:1;margin-bottom:8px;}
-.tuto-sub{font-size:clamp(12px,3.2vw,14px);color:rgba(255,255,255,.8);font-family:var(--H2);line-height:1.5;}
-/* Rule row: ball/card icons with catch/dodge labels */
-.tuto-rules{display:flex;gap:clamp(10px,3vw,16px);justify-content:center;margin-top:clamp(12px,3vw,16px);}
-.tuto-rule{display:flex;align-items:center;gap:6px;font-size:clamp(11px,3vw,13px);font-weight:700;font-family:var(--H2);color:#fff;}
-.tuto-rule img{width:clamp(22px,5.5vw,26px);height:clamp(22px,5.5vw,26px);object-fit:contain;flex-shrink:0;}
-.tuto-rule-sep{color:rgba(255,255,255,.3);font-size:18px;}
-/* Button hint row — positioned just above the actual buttons */
-.tuto-btn-row{
-  display:flex;
-  width:100%;
-  justify-content:space-between;
-  padding:0 clamp(20px,5.5vw,28px);
-  pointer-events:none;
-}
-.tuto-btn-hint{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-}
-.tuto-btn-hint-label{
-  font-size:clamp(10px,2.8vw,12px);font-weight:900;
-  color:var(--orange);font-family:var(--H1);
-  text-transform:uppercase;letter-spacing:.06em;
-  text-shadow:0 2px 8px rgba(0,0,0,.8);
-}
-.tuto-btn-hint-arrow{
-  font-size:clamp(18px,5vw,22px);color:var(--orange);
-  animation:arrowBounce .65s ease infinite alternate;
-  text-shadow:0 0 12px rgba(255,153,0,.8);
-}
-.tuto-btn-hint-arrow.right{animation-delay:.2s;}
-.tuto-tap{
-  font-size:clamp(10px,2.6vw,11px);
-  color:rgba(255,255,255,.45);
-  font-family:var(--H2);
-  text-align:center;
-  margin-top:clamp(14px,4vw,20px);
-  letter-spacing:.04em;
-}
+
 
 /* DANGER ROW */
 
@@ -540,6 +482,23 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 #dodge-hint{position:absolute;left:50%;transform:translateX(-50%);background:rgba(236,35,38,.92);color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:900;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8;font-family:var(--H2);}
 #screen-game.hit-flash{animation:screenFlash .4s ease;}
 .gm-net{flex:0 0 auto;height:0;}
+/* Goalkeeper zone — visual anchor at bottom of field */
+#goal-zone{
+  position:absolute;bottom:0;left:0;right:0;
+  height:clamp(70px,19vw,90px);
+  pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,153,0,.08) 100%);
+  border-top:2px solid rgba(255,255,255,.25);
+}
+#goal-zone::before{
+  content:'';position:absolute;top:-1px;left:10%;right:10%;height:2px;
+  background:rgba(255,255,255,.4);border-radius:1px;
+}
+#goal-posts{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:flex-end;gap:clamp(60px,18vw,90px);
+}
+.goal-post{width:4px;height:clamp(20px,5.5vw,26px);background:rgba(255,255,255,.5);border-radius:2px 2px 0 0;}
 /* Game controls — Orange Peel bg, Jumia Red arrow buttons */
 .gm-btns{flex:0 0 auto;background:var(--navy);padding:clamp(10px,2.5vw,16px) clamp(20px,5vw,28px);display:flex;justify-content:space-between;align-items:center;box-shadow:0 -3px 14px rgba(0,0,0,.15);position:relative;min-height:clamp(84px,22vw,110px);}
 /* Arrow buttons — Jumia Red (Flash Sale / urgency colour) */
@@ -915,6 +874,69 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .rs-low-score-title{font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--red);font-family:var(--H1);margin-bottom:4px;}
 .rs-low-score-sub{font-size:clamp(11px,2.8vw,13px);color:var(--inkCard2);font-family:var(--H2);line-height:1.4;}
 
+/* ── FULL-SCREEN TUTORIAL (before first game) ── */
+#screen-tutorial{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--navy);z-index:100;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(24px,6vw,36px) clamp(20px,5vw,28px);
+  animation:fadeIn .3s ease;
+}
+.tuto-screen-title{
+  font-size:clamp(26px,7.5vw,34px);font-weight:900;
+  color:var(--white);font-family:var(--H1);
+  text-transform:uppercase;text-align:center;
+  line-height:.95;margin-bottom:6px;
+}
+.tuto-screen-sub{
+  font-size:clamp(12px,3.2vw,14px);color:rgba(255,255,255,.6);
+  font-family:var(--H2);text-align:center;margin-bottom:clamp(24px,6vw,32px);
+}
+.tuto-screen-rules{
+  display:flex;flex-direction:column;gap:clamp(10px,2.5vw,14px);
+  width:100%;max-width:340px;margin-bottom:clamp(24px,6vw,32px);
+}
+.tuto-screen-rule{
+  display:flex;align-items:center;gap:clamp(12px,3vw,16px);
+  background:rgba(255,255,255,.07);border-radius:12px;
+  padding:clamp(14px,3.5vw,18px);
+}
+.tuto-screen-rule-icon{
+  width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.tuto-screen-rule-icon.catch{background:rgba(255,153,0,.2);border:2px solid rgba(255,153,0,.4);}
+.tuto-screen-rule-icon.dodge{background:rgba(236,35,38,.15);border:2px solid rgba(236,35,38,.3);}
+.tuto-screen-rule-icon img{width:clamp(26px,7vw,32px);height:clamp(26px,7vw,32px);object-fit:contain;}
+.tuto-screen-rule-text{flex:1;}
+.tuto-screen-rule-title{
+  font-size:clamp(13px,3.5vw,16px);font-weight:900;
+  color:var(--white);font-family:var(--H1);text-transform:uppercase;margin-bottom:3px;
+}
+.tuto-screen-rule-sub{
+  font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);
+}
+.tuto-screen-rule-badge{
+  font-size:clamp(10px,2.6vw,11px);font-weight:900;font-family:var(--H1);
+  padding:5px 12px;border-radius:6px;text-transform:uppercase;white-space:nowrap;
+}
+.tuto-screen-rule-badge.orange{background:var(--orange);color:var(--navy);box-shadow:0 3px 0 var(--orangeD);}
+.tuto-screen-rule-badge.red{background:var(--red);color:var(--white);box-shadow:0 3px 0 var(--redD);}
+.tuto-screen-btn{
+  width:100%;max-width:340px;
+  background:var(--orange);color:var(--navy);
+  border:none;border-radius:12px;
+  padding:clamp(18px,5vw,22px);
+  font-size:clamp(17px,4.8vw,21px);font-weight:900;
+  font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;
+  cursor:pointer;
+  box-shadow:0 5px 0 var(--orangeD);
+  transition:transform .1s,box-shadow .1s;
+}
+.tuto-screen-btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+
 </style>
 </head>
 <body>
@@ -1078,7 +1100,7 @@ function goTo(fn){
 
 // LEADERBOARD
 async function fetchLeaderboard(){
-  const tq=encodeURIComponent('SELECT B,E ORDER BY E DESC LIMIT 50');
+  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 50'); // C=email for player matching
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
   try{
     const res=await fetch(url);
@@ -1086,8 +1108,8 @@ async function fetchLeaderboard(){
     const json=JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
     if(!json.table?.rows)return[];
     return json.table.rows
-      .filter(r=>r.c?.[1]?.v!=null)
-      .map(r=>({name:String(r.c[0]?.v||'Joueur'),score:Number(String(r.c[1]?.v||0).replace(/[\s,]/g,''))||0}))
+      .filter(r=>r.c?.[2]?.v!=null)
+      .map(r=>({name:String(r.c[0]?.v||'Joueur'),email:String(r.c[1]?.v||'').toLowerCase().trim(),score:Number(String(r.c[2]?.v||0).replace(/[\s,]/g,''))||0}))
       .sort((a,b)=>b.score-a.score)
       .filter((p,i,arr)=>arr.findIndex(x=>x.name===p.name)===i)
       .slice(0,50);
@@ -1144,15 +1166,14 @@ function renderLeaderboard(){
       card.innerHTML='<div class="lbd-empty">Sois le premier à jouer !<br>Ton nom apparaîtra ici.</div>';
       return;
     }
-    const myFirstName=playerName?(playerName.split(' ')[0].toLowerCase()):'';
-    // Use bestScore so the player's highest game is highlighted, not their last
-    const myScore=bestScore;
+    const myEmail=playerEmail?playerEmail.toLowerCase().trim():'';
     let myRowIdx=-1;
     card.innerHTML=players.map((p,i)=>{
       const rank=i+1;
       const medalClass=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
       const firstName=(p.name||'Joueur').split(' ')[0];
-      const isMe=hasPlayedOnce&&myFirstName&&firstName.toLowerCase()===myFirstName&&Number(p.score)===myScore;
+      // Match on email — unique and exact, unlike name
+      const isMe=hasPlayedOnce&&myEmail&&(p.email||'')=== myEmail;
       if(isMe)myRowIdx=i;
       const city=p.city?'<div class="lbd-city">'+p.city+'</div>':'';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
@@ -1251,11 +1272,12 @@ function renderLobby(){
 
       <!-- How to play -->
       <div class="lb-how">
-        <div class="lb-how-header">
+        <div class="lb-how-header" onclick="toggleHow()" style="cursor:pointer;">
           <div class="lb-how-header-icon"><img src="${IMG_STAR}" style="width:14px;height:14px;object-fit:contain;display:block;" alt="" draggable="false"></div>
           <div class="lb-how-title">COMMENT JOUER</div>
+          <div id="lb-how-chevron" style="margin-left:auto;font-size:12px;color:var(--navy);opacity:.5;transition:transform .25s;">▼</div>
         </div>
-        <div class="lb-how-rows">
+        <div class="lb-how-rows" id="lb-how-rows" style="${hasPlayedOnce?'display:none':''}">
           <div class="lb-how-row">
             <div class="lb-how-icon"><img src="${IMG_SOCCER}" alt="ball" draggable="false"></div>
             <div class="lb-how-text">
@@ -1282,12 +1304,12 @@ function renderLobby(){
       ${attemptsLeft===0
         ?`<div style="background:rgba(0,0,0,.18);border-radius:10px;padding:16px 18px;text-align:center;">
             <div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--navy);font-family:${H1};margin-bottom:4px;">TES ESSAIS D'AUJOURD'HUI SONT &Eacute;PUIS&Eacute;S</div>
-            <div style="font-size:clamp(11px,2.8vw,13px);color:rgba(26,36,56,.65);font-family:${H2};">Reviens demain \u2014 ton bon t\u2019attend\u00a0!</div>
+            <div style="font-size:clamp(11px,2.8vw,13px);color:rgba(26,36,56,.65);font-family:${H2};">Reviens demain &mdash; ton bon t&rsquo;attend&nbsp;!</div>
           </div>`
-        :`<div class="lb-cta-hint">${hasPlayedOnce?"Il te reste <b>"+attemptsLeft+" essai"+(attemptsLeft>1?"s":"")+"</b> \u2014 ne les gaspille pas\u00a0!":"Tu peux gagner jusqu\u2019\u00e0 <b>20% de r\u00e9duction</b>"}</div>
+        :`<div class="lb-cta-hint">${hasPlayedOnce?"Il te reste <b>"+attemptsLeft+" essai"+(attemptsLeft>1?"s":"")+"</b> &mdash; ne les gaspille pas&nbsp;!":"Tu peux gagner jusqu’à <b>20% de réduction</b>"}</div>
           <button class="btn-kickoff" id="btn-start">
             <img class="btn-kickoff-icon" src="${IMG_SOCCER}" alt="" draggable="false">
-            ${hasPlayedOnce?"NE RATE PAS TES ESSAIS\u00a0!":"NE RATE PAS TON BON JUMIA\u00a0!"}
+            ${hasPlayedOnce?"NE RATE PAS TES ESSAIS !":"NE RATE PAS TON BON JUMIA !"}
             <span class="btn-kickoff-arrow">›</span>
           </button>`}
     </div>
@@ -1320,7 +1342,10 @@ function renderLobby(){
   if(bs){
     bs.addEventListener('pointerdown',()=>{
       bs.style.animation='none';
-      goTo(renderForm);
+      // Play first, collect info after — better conversion
+      // First time: show tutorial before game
+      if(!hasPlayedOnce){ showTutorialScreen(); }
+      else { goTo(startGame); }
     });
   }
   // Highlight the tier the player has already reached
@@ -1404,6 +1429,13 @@ function renderGame(){
     </div>
     <div class="gm-net"></div>
     <div id="game-field">
+      <!-- Goalkeeper zone — spatial anchor -->
+      <div id="goal-zone">
+        <div id="goal-posts">
+          <div class="goal-post"></div>
+          <div class="goal-post"></div>
+        </div>
+      </div>
       <div id="glove-el"><img src="${IMG_GLOVES}" alt="gloves"></div>
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
@@ -1419,31 +1451,7 @@ function renderGame(){
         </div>
       </div>
       <button id="btn-mute" onclick="toggleMusic(this)" title="Couper la musique"><svg id="mute-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
-      ${!hasPlayedOnce?`
-      <div id="tutorial-overlay" onclick="dismissTutorial()">
-        <!-- Central instruction card — clearly informational, not a button -->
-        <div class="tuto-card">
-          <div class="tuto-title">Comment jouer</div>
-          <div class="tuto-sub">Utilise les boutons ci-dessous<br>pour déplacer les gants</div>
-          <div class="tuto-rules">
-            <div class="tuto-rule"><img src="${IMG_SOCCER}" alt="" draggable="false"><span>ATTRAPE</span></div>
-            <div class="tuto-rule-sep">·</div>
-            <div class="tuto-rule"><img src="${IMG_REDCARD}" alt="" draggable="false"><span>ESQUIVE</span></div>
-          </div>
-        </div>
-        <!-- Labels float directly above the real buttons -->
-        <div class="tuto-btn-row">
-          <div class="tuto-btn-hint">
-            <div class="tuto-btn-hint-label">GAUCHE</div>
-            <div class="tuto-btn-hint-arrow">↓</div>
-          </div>
-          <div class="tuto-btn-hint">
-            <div class="tuto-btn-hint-label">DROITE</div>
-            <div class="tuto-btn-hint-arrow right">↓</div>
-          </div>
-        </div>
-        <div class="tuto-tap">Appuie n'importe où pour commencer</div>
-      </div>`:''}
+
     </div>
     <div class="gm-btns">
       <button class="btn-arrow" id="btn-left">&#9664;</button>
@@ -1467,14 +1475,57 @@ function renderGame(){
 }
 
 function dismissTutorial(){
-  const t=$('tutorial-overlay');if(!t)return;
-  t.style.transition='opacity .25s ease';t.style.opacity='0';
-  setTimeout(()=>{if(t)t.remove();tutorialActive=false;},260);
+  // Tutorial is now a separate screen — this function is kept for safety
+  tutorialActive=false;
+}
+
+function showTutorialScreen(){
+  // Remove any existing tutorial screen
+  const old=$('screen-tutorial');if(old)old.remove();
+  const el=document.createElement('div');
+  el.id='screen-tutorial';
+  el.innerHTML=
+    '<div class="tuto-screen-title">COMMENT<br>JOUER</div>'+
+    '<div class="tuto-screen-sub">Lis les règles avant de commencer</div>'+
+    '<div class="tuto-screen-rules">'+
+      '<div class="tuto-screen-rule">'+
+        '<div class="tuto-screen-rule-icon catch"><img src="'+IMG_SOCCER+'" alt="" draggable="false"></div>'+
+        '<div class="tuto-screen-rule-text">'+
+          '<div class="tuto-screen-rule-title">ATTRAPE LES BALLONS</div>'+
+          '<div class="tuto-screen-rule-sub">Déplace les gants avec les boutons pour attraper les ballons et gagner des points</div>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-badge orange">+POINTS</div>'+
+      '</div>'+
+      '<div class="tuto-screen-rule">'+
+        '<div class="tuto-screen-rule-icon dodge"><img src="'+IMG_REDCARD+'" alt="" draggable="false"></div>'+
+        '<div class="tuto-screen-rule-text">'+
+          '<div class="tuto-screen-rule-title">ESQUIVE LES CARTONS</div>'+
+          '<div class="tuto-screen-rule-sub">Chaque carton rouge attrapé te coûte une vie. Tu as 3 vies.</div>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-badge red">DANGER</div>'+
+      '</div>'+
+      '<div class="tuto-screen-rule">'+
+        '<div class="tuto-screen-rule-icon catch" style="background:rgba(255,186,0,.2);border-color:rgba(255,186,0,.4);"><img src="'+IMG_GOLDEN+'" alt="" draggable="false"></div>'+
+        '<div class="tuto-screen-rule-text">'+
+          '<div class="tuto-screen-rule-title">BALLON D’OR</div>'+
+          '<div class="tuto-screen-rule-sub">Bonus spécial — vaut 5× plus de points !</div>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-badge orange">×5</div>'+
+      '</div>'+
+    '</div>'+
+    '<button class="tuto-screen-btn" id="tuto-start-btn">C\'EST PARTI !</button>';
+  document.body.appendChild(el);
+  const btn=document.getElementById('tuto-start-btn');
+  if(btn)btn.addEventListener('pointerdown',()=>{
+    el.style.transition='opacity .2s ease';
+    el.style.opacity='0';
+    setTimeout(()=>{el.remove();startGame();},220);
+  });
 }
 
 function startGame(){
   startMusic();
-  tutorialActive=!hasPlayedOnce;
+  tutorialActive=false; // tutorial now shown as separate screen before game
   done=false;wid=0;itemsArr=[];
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;
   lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;
@@ -1632,10 +1683,95 @@ function endGame(finalScore){
     const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName,email:playerEmail,city:playerCity,score:finalScore,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(finalScore).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
+  // If player hasn't given info yet, show form then result
+  // If already registered, go straight to result
+  if(!playerName){
+    goTo(()=>renderFormPost());
+  } else {
+    goTo(renderResult);
+  }
+}
+
+// FORM — post-game version (appears after first game to collect info)
+function renderFormPost(){
+  startMusic();
+  $('app').innerHTML=`
+  <div id="screen-form">
+    <div class="fm-top">
+      <img src="${IMG_GLOVES}" style="height:clamp(52px,14vw,68px);width:auto;display:block;margin:0 auto clamp(10px,2.5vw,14px);filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))" alt="gloves">
+      <div class="fm-title">BIEN JOUÉ !</div>
+      <div class="fm-sub">Saisis tes infos pour<br><b>recevoir ton bon de réduction Jumia</b></div>
+    </div>
+    <div class="fm-card">
+      <div class="fm-field">
+        <label class="fm-label" for="inp-name">Prénom</label>
+        <input class="fm-input" id="inp-name" type="text" placeholder="Ex : Yasmine" autocomplete="given-name">
+        <div class="fm-error-msg" id="err-name">Prénom requis</div>
+      </div>
+      <div class="fm-field">
+        <label class="fm-label" for="inp-email">Adresse e-mail</label>
+        <input class="fm-input" id="inp-email" type="email" placeholder="Ex : yasmine@email.com" autocomplete="email">
+        <div class="fm-error-msg" id="err-email">E-mail valide requis</div>
+      </div>
+      <div class="fm-field" style="margin-bottom:0">
+        <label class="fm-label" for="inp-city">Ville</label>
+        <input class="fm-input" id="inp-city" type="text" placeholder="Ex : Casablanca" autocomplete="address-level2">
+        <div class="fm-error-msg" id="err-city">Ville requise</div>
+      </div>
+    </div>
+    <div class="fm-spacer"></div>
+    <div style="padding:clamp(12px,3vw,16px) clamp(16px,4vw,22px) 0;">
+      <button class="btn-submit" id="btn-submit">
+        <span id="submit-label">VOIR MON BON DE RÉDUCTION</span>
+        <div class="spinner" id="submit-spinner"></div>
+      </button>
+    </div>
+    <div class="fm-legal">En soumettant ce formulaire, tu acceptes d'être contacté(e)<br>par Jumia. Tes données restent confidentielles.</div>
+  </div>`;
+  $('btn-submit').addEventListener('click',submitFormPost);
+  $('inp-city').addEventListener('keydown',e=>{if(e.key==='Enter')submitFormPost();});
+  ['inp-name','inp-email','inp-city'].forEach(id=>{
+    const el=$(id);
+    if(el)el.addEventListener('focus',()=>{setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),300);});
+  });
+}
+
+function submitFormPost(){
+  const name=$('inp-name')?.value.trim();
+  const email=$('inp-email')?.value.trim();
+  const city=$('inp-city')?.value.trim();
+  let valid=true;
+  const emailRe=new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+  const testNameRe=/^(test|tset|demo|user|admin|fake|dummy|azerty|qwerty|asdf|aaa+|bbb+|xxx+|abc|123|nom|name|prénom|prenom|foo|bar|baz)$/i;
+  const testEmailRe=/(test|fake|demo|dummy|mailinator|guerrillamail|yopmail|trashmail|tempmail|maildrop|spambox)/i;
+  const testCityRe=/^(test|tset|demo|fake|city|ville|abc|aaa+|xxx+|123|azerty|foo|bar|na|none|aucune|nowhere)$/i;
+  const repeatedRe=/^(.){2,}$/;
+  const nameIsTest=testNameRe.test(name)||repeatedRe.test(name)||name.length<2;
+  const emailIsTest=testEmailRe.test(email);
+  const cityIsTest=testCityRe.test(city)||repeatedRe.test(city)||city.length<2;
+  const fields=[
+    ['inp-name','err-name',!name||nameIsTest,nameIsTest?'Prénom invalide':'Prénom requis'],
+    ['inp-email','err-email',!emailRe.test(email)||emailIsTest,emailIsTest?'E-mail invalide':'E-mail valide requis'],
+    ['inp-city','err-city',!city||cityIsTest,cityIsTest?'Ville invalide':'Ville requise'],
+  ];
+  fields.forEach(([inp,err,fail,msg])=>{
+    $(inp)?.classList.toggle('error',fail);
+    const em=$(err);if(em){em.textContent=msg;em.classList.toggle('visible',fail);}
+    if(fail)valid=false;
+  });
+  if(!valid)return;
+  playerName=name;playerEmail=email;playerCity=city;
+  // Submit score to sheet now that we have info
+  if(SHEET_URL.startsWith("https://")){
+    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+    fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+  }
+  const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
+  if(btn)btn.disabled=true;if(lbl)lbl.style.display='none';if(spn)spn.style.display='block';
   goTo(renderResult);
 }
 
-// FORM
+// FORM — pre-game version (for replay when info already known — not shown anymore)
 function renderForm(){
   startMusic();
   $('app').innerHTML=`
@@ -1643,7 +1779,7 @@ function renderForm(){
     <!-- Header strip -->
     <div class="fm-top">
       <img src="${IMG_GLOVES}" style="height:clamp(52px,14vw,68px);width:auto;display:block;margin:0 auto clamp(10px,2.5vw,14px);filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))" alt="gloves">
-      <div class="fm-title">PRÊT(E) À JOUER ?</div>
+      <div class="fm-title">UNE AUTRE<br>PARTIE ?</div>
       <div class="fm-sub">Saisis tes infos pour<br><b>participer et gagner ton bon Jumia</b></div>
     </div>
     <!-- White card — Jumia ink dark text, warm tint inputs -->
@@ -1751,8 +1887,8 @@ function showVoucherPopup(v){
       '<div class="vp-code" id="vp-code-text">'+v.code+'</div>'+
       '<button class="vp-copy" id="vp-copy-btn">COPIER</button>'+
     '</div>'+
-    '<button class="vp-cta" id="vp-cta-btn">UTILISER MON BON AVANT QU\u2019IL EXPIRE</button>'+
-    '<button class="vp-dismiss" id="vp-dismiss-btn">Je renonce \u00e0 ma r\u00e9duction</button>';
+    '<button class="vp-cta" id="vp-cta-btn">UTILISER MON BON AVANT QU’IL EXPIRE</button>'+
+    '<button class="vp-dismiss" id="vp-dismiss-btn">Fermer — utiliser plus tard</button>';
 
   popup.appendChild(sheet);
   document.body.appendChild(popup);
@@ -1798,21 +1934,23 @@ function showVoucherPopup(v){
 function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
   const isLowScore=s<50;
+  const replayLabel=isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE - TON MEILLEUR BON EST EN JEU';
+  const attemptsLabel='Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' - ne les perds pas';
   $('app').innerHTML=`
   <div id="screen-result">
     <div class="rs-header">
-      <div class="rs-brand">JUMIA \u2014 \u00c9DITION FANS</div>
-      <div class="rs-title">${isLowScore?'PRESQUE\u00a0!':s>=150?'BIEN JOU\u00c9\u00a0!':'CONTINUE\u00a0!'}</div>
-      <div class="rs-sub">${isLowScore?'Tu peux faire beaucoup mieux\u00a0!':'Voici tes r\u00e9compenses'}</div>
+      <div class="rs-brand">JUMIA — ÉDITION FANS</div>
+      <div class="rs-title">${isLowScore?'PRESQUE !':s>=150?'BIEN JOUÉ !':'CONTINUE !'}</div>
+      <div class="rs-sub">${isLowScore?'Tu peux faire beaucoup mieux !':'Voici tes récompenses'}</div>
     </div>
     <div class="rs-scores">
-      ${[{val:s,lbl:"POINTS"},{val:'\u00d7'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
+      ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card"><div class="rs-score-val">${sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
     </div>
     ${isLowScore?`
     <div class="rs-low-score">
       <div class="rs-low-score-title">SCORE TROP BAS</div>
-      <div class="rs-low-score-sub">Atteins <b>150 pts</b> minimum pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons\u00a0!</div>
+      <div class="rs-low-score-sub">Atteins <b>150 pts</b> minimum pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons !</div>
     </div>`:`
     <div class="rs-reward-split">
       <div class="rs-reward-half voucher">
@@ -1824,7 +1962,7 @@ function renderResult(){
         <div class="rs-reward-eyebrow">PRIX PHYSIQUE</div>
         <img class="rs-reward-img" src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp" alt="Prix" id="rs-prize-img" draggable="false">
         <div class="rs-reward-val" id="rs-prize-rank" style="font-size:clamp(13px,3.5vw,16px);">TOP 3</div>
-        <div class="rs-reward-sub" id="rs-prize-sub">Maillot \u00b7 Polo \u00b7 Ballon<br>Sois dans le top 3\u00a0!</div>
+        <div class="rs-reward-sub" id="rs-prize-sub">Maillot · Polo · Ballon<br>Sois dans le top 3 !</div>
       </div>
     </div>`}
     <div class="rs-spacer"></div>
@@ -1834,42 +1972,49 @@ function renderResult(){
       </button>
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">
-              ${isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE \u2014 TON MEILLEUR BON EST EN JEU'}
+              ${replayLabel}
               <div style="font-size:clamp(9px,2.3vw,10px);font-weight:600;opacity:.7;margin-top:3px;letter-spacing:.04em;text-transform:none;">
-                Il te reste ${attempts} essai${attempts>1?'s':''} \u2014 ne les perds pas
+                ${attemptsLabel}
               </div>
            </button>`
         :`<div class="rs-no-attempts">
-            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:var(--navy);margin-bottom:3px;">REVIENS DEMAIN\u00a0!</div>
-            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t\u2019attendent \u2014 ton bon aussi.</div>
+            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:var(--navy);margin-bottom:3px;">REVIENS DEMAIN !</div>
+            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t’attendent — ton bon aussi.</div>
           </div>`}
     </div>
   </div>`;
 
   if(!isLowScore){
-    setTimeout(()=>showVoucherPopup(v),800);
+    setTimeout(()=>showVoucherPopup(v),2500); // 2.5s — let player absorb their score first
     fetchLeaderboard().then(players=>{
       const pImgs=['https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp'];
       const pNames=['Maillot Maroc','Polo Maroc','Ballon de foot'];
-      const myFirst=playerName?(playerName.split(' ')[0].toLowerCase()):'';
-      const myIdx=myFirst?players.findIndex(p=>(p.name||'').split(' ')[0].toLowerCase()===myFirst):-1;
+      const myEmail2=playerEmail?playerEmail.toLowerCase().trim():'';
+      const myIdx=myEmail2?players.findIndex(p=>(p.email||'')===myEmail2):-1;
       const myRank=myIdx>=0?myIdx+1:null;
       const rankEl=$('rs-prize-rank'),subEl=$('rs-prize-sub'),imgEl=$('rs-prize-img');
       if(rankEl&&subEl&&imgEl){
-        if(myRank&&myRank<=3){imgEl.src=pImgs[myRank-1];rankEl.textContent='#'+myRank+' \u2014 '+pNames[myRank-1];subEl.innerHTML='<b style="color:var(--orange)">Tu gagnes ce prix\u00a0!</b>';}
-        else if(myRank&&myRank<=10){rankEl.textContent='TU ES #'+myRank;subEl.textContent='Rejoue pour entrer dans le top 3\u00a0!';}
+        if(myRank&&myRank<=3){imgEl.src=pImgs[myRank-1];rankEl.textContent='#'+myRank+' — '+pNames[myRank-1];subEl.innerHTML='<b style="color:var(--orange)">Tu gagnes ce prix !</b>';}
+        else if(myRank&&myRank<=10){rankEl.textContent='TU ES #'+myRank;subEl.textContent='Rejoue pour entrer dans le top 3 !';}
       }
     }).catch(()=>{});
   }
 
   const br=$('btn-replay');
   if(br){
-    let armed=false,timer=null;
     br.addEventListener('click',()=>{
-      if(!armed){armed=true;br.innerHTML='CONFIRMER \u2014 LANCER MA PROCHAINE PARTIE';br.classList.add('confirm');timer=setTimeout(()=>{armed=false;br.innerHTML=(isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE \u2014 TON MEILLEUR BON EST EN JEU')+'<div style="font-size:clamp(9px,2.3vw,10px);font-weight:600;opacity:.7;margin-top:3px;letter-spacing:.04em;text-transform:none;">Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' \u2014 ne les perds pas</div>';br.classList.remove('confirm');},3000);}
-      else{clearTimeout(timer);goTo(startGame);}
+      goTo(startGame);
     });
   }
+}
+
+// LOBBY HELPERS
+function toggleHow(){
+  const rows=$('lb-how-rows'),chevron=$('lb-how-chevron');
+  if(!rows)return;
+  const hidden=rows.style.display==='none';
+  rows.style.display=hidden?'':'none';
+  if(chevron)chevron.style.transform=hidden?'':'rotate(-90deg)';
 }
 
 // NAV HELPERS
@@ -1885,7 +2030,7 @@ function navRewards(){
     showNavOverlay(
       IMG_VOUCHER,
       'Tes récompenses',
-      'Ne pars pas sans ton bon\u00a0! Joue une partie et gagne jusqu\u2019\u00e0 <b>20% de r\u00e9duction</b> sur Jumia.',
+      'Ne pars pas sans ton bon ! Joue une partie et gagne jusqu’à <b>20% de réduction</b> sur Jumia.',
       'NE PAS RATER MON BON',
       ()=>{ if(attempts>0) goTo(renderForm); }
     );
