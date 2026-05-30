@@ -1055,7 +1055,7 @@ let attempts=4, vWon=0, totalPts=0, bestScore=0;
 let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, maxComboVal=0, speedVal=1.1, elapsedSec=0;
 let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
 let lastPressTime=0; // invincibility window
-let wid=0, playerName='', playerEmail='', playerCity='';
+let wid=0, playerName='', playerLastName='', playerEmail='', playerCity='';
 let hasPlayedOnce=false;
 let tutorialActive=false;
 let lastTierReached=0; // tracks tier crossings for celebration
@@ -1068,8 +1068,8 @@ function $(id){ return document.getElementById(id); }
 
 function spawnItem(speed){
   const rand=Math.random(); let type,w,h;
-  if(rand<0.08){type='golden';w=BALL_SIZE;h=BALL_SIZE;}
-  else if(rand<0.36){type='ball';w=BALL_SIZE;h=BALL_SIZE;}
+  if(rand<0.06){type='golden';w=BALL_SIZE;h=BALL_SIZE;}
+  else if(rand<0.30){type='ball';w=BALL_SIZE;h=BALL_SIZE;}
   else{type='redcard';w=CARD_W;h=CARD_H;}
   const fw=getFW();
   return{id:wid++,type,x:Math.random()*Math.max(8,fw-w-14)+4,y:-h-4,speed,width:w,height:h};
@@ -1762,8 +1762,8 @@ function tick(ts){
   const dt=Math.min((ts-lastT)/16,3);lastT=ts;
   const fw=getFW(),fh=getFH(),cy=CATCH_Y(fh);
   elapsedSec+=dt/60;
-  speedVal=Math.min(6.0,1.1+elapsedSec*0.04);
-  spawnInt=Math.max(520,2100-elapsedSec*24);
+  speedVal=Math.min(6.5,1.1+elapsedSec*0.08);
+  spawnInt=Math.max(420,2100-elapsedSec*48);
   const spd=7+elapsedSec*0.08;
   if(pressDir==='l')gloveX=Math.max(GW/2,gloveX-spd*dt);
   if(pressDir==='r')gloveX=Math.min(fw-GW/2,gloveX+spd*dt);
@@ -1771,7 +1771,7 @@ function tick(ts){
   if(ge)ge.style.transform=`translateX(${gloveX-GW/2}px)`;
   if(ts-lastSpawn>spawnInt){
     const item=spawnItem(speedVal);itemsArr.push(item);lastSpawn=ts;addItemEl(item);
-    if(elapsedSec>30&&Math.random()<0.38){
+    if(elapsedSec>15&&Math.random()<0.55){
       setTimeout(()=>{if(done)return;const item2=spawnItem(speedVal*0.85);itemsArr.push(item2);addItemEl(item2);},350);
     }
   }
@@ -1792,14 +1792,14 @@ function tick(ts){
       if(inGlove){
         if(item.type==='ball'){
           newCombo++;
-          const pts=Math.round((60+Math.floor(elapsedSec)*2)*Math.min(newCombo,5));
+          const pts=Math.round((28+Math.floor(elapsedSec)*1)*Math.min(newCombo,5));
           ptsGained+=pts;
           showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' GOAL!',true);sfxCatch();
           triggerCatchRing(gloveX,cy);
           if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
         } else if(item.type==='golden'){
           newCombo++;
-          const pts=Math.round((200+Math.floor(elapsedSec)*4)*Math.min(newCombo,5));
+          const pts=Math.round((80+Math.floor(elapsedSec)*2)*Math.min(newCombo,5));
           ptsGained+=pts;
           showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'BONUS +'+pts,true);sfxGolden();
           triggerCatchRing(gloveX,cy);
@@ -1817,7 +1817,8 @@ function tick(ts){
       }
     }
     if(item.y>fh+10){
-      if(item.type==='redcard')ptsGained+=Math.round(10+elapsedSec*0.5);
+      // Missed ball resets combo — catch streak must be maintained
+      if(item.type==='ball'||item.type==='golden'){comboVal=0;const cb=$('combo-badge');if(cb)cb.style.display='none';}
       if(el)el.remove();return false;
     }
     return true;
@@ -1896,7 +1897,7 @@ function endGame(finalScore){
   if(finalScore>bestScore)bestScore=finalScore;
   hasPlayedOnce=true;
   if(SHEET_URL.startsWith("https://")&&playerName){
-    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName,email:playerEmail,city:playerCity,score:finalScore,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(finalScore).code,source:'JumiaGardienDeBut'});
+    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+(playerLastName?' '+playerLastName:''),email:playerEmail,city:playerCity,score:finalScore,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(finalScore).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
   // If player hasn't given info yet, show form then result
@@ -1925,6 +1926,11 @@ function renderFormPost(){
         <div class="fm-error-msg" id="err-name">Prénom requis</div>
       </div>
       <div class="fm-field">
+        <label class="fm-label" for="inp-lastname">Nom de famille</label>
+        <input class="fm-input" id="inp-lastname" type="text" placeholder="Ex : Alaoui" autocomplete="family-name">
+        <div class="fm-error-msg" id="err-lastname">Nom requis</div>
+      </div>
+      <div class="fm-field">
         <label class="fm-label" for="inp-email">Adresse e-mail</label>
         <input class="fm-input" id="inp-email" type="email" placeholder="Ex : yasmine@email.com" autocomplete="email">
         <div class="fm-error-msg" id="err-email">E-mail valide requis</div>
@@ -1946,7 +1952,7 @@ function renderFormPost(){
   </div>`;
   $('btn-submit').addEventListener('click',submitFormPost);
   $('inp-city').addEventListener('keydown',e=>{if(e.key==='Enter')submitFormPost();});
-  ['inp-name','inp-email','inp-city'].forEach(id=>{
+  ['inp-name','inp-lastname','inp-email','inp-city'].forEach(id=>{
     const el=$(id);
     if(el)el.addEventListener('focus',()=>{setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),300);});
   });
@@ -1954,6 +1960,7 @@ function renderFormPost(){
 
 function submitFormPost(){
   const name=$('inp-name')?.value.trim();
+  const lastname=$('inp-lastname')?.value.trim()||'';
   const email=$('inp-email')?.value.trim();
   const city=$('inp-city')?.value.trim();
   let valid=true;
@@ -1967,6 +1974,7 @@ function submitFormPost(){
   const cityIsTest=testCityRe.test(city)||repeatedRe.test(city)||city.length<2;
   const fields=[
     ['inp-name','err-name',!name||nameIsTest,nameIsTest?'Prénom invalide':'Prénom requis'],
+    ['inp-lastname','err-lastname',!lastname||testNameRe.test(lastname)||repeatedRe.test(lastname)||lastname.length<2,'Nom invalide ou requis'],
     ['inp-email','err-email',!emailRe.test(email)||emailIsTest,emailIsTest?'E-mail invalide':'E-mail valide requis'],
     ['inp-city','err-city',!city||cityIsTest,cityIsTest?'Ville invalide':'Ville requise'],
   ];
@@ -1976,10 +1984,10 @@ function submitFormPost(){
     if(fail)valid=false;
   });
   if(!valid)return;
-  playerName=name;playerEmail=email;playerCity=city;
+  playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
   // Submit score to sheet now that we have info
   if(SHEET_URL.startsWith("https://")){
-    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
   }
   const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
@@ -2004,6 +2012,11 @@ function renderForm(){
         <label class="fm-label" for="inp-name">Prénom</label>
         <input class="fm-input" id="inp-name" type="text" placeholder="Ex : Yasmine" autocomplete="given-name">
         <div class="fm-error-msg" id="err-name">Prénom requis</div>
+      </div>
+      <div class="fm-field">
+        <label class="fm-label" for="inp-lastname">Nom de famille</label>
+        <input class="fm-input" id="inp-lastname" type="text" placeholder="Ex : Alaoui" autocomplete="family-name">
+        <div class="fm-error-msg" id="err-lastname">Nom requis</div>
       </div>
       <div class="fm-field">
         <label class="fm-label" for="inp-email">Adresse e-mail</label>
@@ -2036,6 +2049,7 @@ function renderForm(){
 
 function submitForm(){
   const name=$('inp-name')?.value.trim();
+  const lastname=$('inp-lastname')?.value.trim()||'';
   const email=$('inp-email')?.value.trim();
   const city=$('inp-city')?.value.trim();
   let valid=true;
@@ -2067,7 +2081,7 @@ function submitForm(){
   // ─────────────────────────────────────────────────────────────────────────
 
   if(!valid)return;
-  playerName=name;playerEmail=email;playerCity=city;
+  playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
   const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
   if(btn)btn.disabled=true;if(lbl)lbl.style.display='none';if(spn)spn.style.display='block';
   goTo(startGame);
