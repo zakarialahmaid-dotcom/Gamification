@@ -176,7 +176,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html{width:100%;height:100%;overflow:hidden;margin:0;padding:0;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
-body{width:100%;height:100%;overflow:hidden;background:var(--c60);display:flex;align-items:stretch;justify-content:center;margin:0;padding:0;position:fixed;top:0;left:0;right:0;bottom:0;overscroll-behavior:none;touch-action:none;}
+body{width:100%;height:100%;overflow:hidden;background:#1a2235;display:flex;align-items:stretch;justify-content:center;margin:0;padding:0;position:fixed;top:0;left:0;right:0;bottom:0;overscroll-behavior:none;touch-action:none;}
 #app{width:100%;max-width:100%;height:100%;display:flex;flex-direction:column;background:var(--c60);overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
 
 /* LOADING */
@@ -214,39 +214,90 @@ body{width:100%;height:100%;overflow:hidden;background:var(--c60);display:flex;a
 
 /* LOBBY */
 #screen-lobby{flex:1;display:flex;flex-direction:column;background:var(--c60);padding:0;overflow:hidden;animation:fadeIn .25s ease;}
-.lb-top{flex:0 0 auto;padding:clamp(12px,3vw,18px) clamp(20px,5vw,28px) clamp(6px,1.5vw,10px);display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.lb-top-left{flex:1;}
-.lb-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.7);font-family:var(--H2);text-transform:uppercase;margin-bottom:2px;}
-.lb-title{font-size:clamp(28px,8.5vw,42px);font-weight:900;color:var(--c30);line-height:.92;font-family:var(--H1);letter-spacing:-.01em;}
-.lb-attempts-badge{flex-shrink:0;background:var(--c30);border-radius:8px;padding:clamp(6px,1.5vw,10px) clamp(10px,2.5vw,14px);text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1);min-width:clamp(56px,15vw,72px);}
-.lb-attempts-num{font-size:clamp(20px,6vw,28px);font-weight:900;font-family:var(--H1);line-height:1;}
+
+/* Hero header — orange band with title + attempts badge */
+.lb-hero{flex:0 0 auto;background:var(--c60);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
+.lb-hero-left{flex:1;min-width:0;}
+.lb-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.13em;color:rgba(255,255,255,.85);font-family:var(--H2);text-transform:uppercase;margin-bottom:4px;}
+.lb-title{font-size:clamp(38px,11vw,54px);font-weight:900;color:var(--c30);line-height:.88;font-family:var(--H1);letter-spacing:-.01em;text-transform:uppercase;}
+.lb-hero-ball{position:absolute;right:clamp(80px,22vw,110px);bottom:clamp(-4px,0vw,0px);width:clamp(56px,16vw,76px);height:auto;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3));}
+.lb-attempts-badge{flex-shrink:0;background:#1a2235;border-radius:10px;padding:clamp(8px,2vw,12px) clamp(12px,3vw,16px);text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);min-width:clamp(72px,18vw,88px);}
+.lb-attempts-icon{font-size:clamp(14px,3.5vw,18px);margin-bottom:2px;display:block;}
+.lb-attempts-num{font-size:clamp(26px,7.5vw,34px);font-weight:900;font-family:var(--H1);line-height:1;color:var(--c30);}
 .lb-attempts-num.urgent{color:var(--c10);}
-.lb-attempts-num.ok{color:#22a651;}
-.lb-attempts-lbl{font-size:clamp(7px,1.8vw,9px);font-weight:700;color:var(--ink2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;margin-top:1px;}
-.lb-pitch{flex:0 0 auto;margin:clamp(6px,1.5vw,8px) clamp(20px,5vw,28px) 0;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0,rgba(255,255,255,.3) 14px,transparent 14px,transparent 22px);}
-.lb-board{flex:0 0 auto;margin:clamp(10px,2.5vw,14px) clamp(20px,5vw,28px) 0;border-radius:8px;overflow:hidden;background:var(--c30);box-shadow:0 2px 12px rgba(0,0,0,.1);}
-.lb-board-header{display:flex;align-items:center;justify-content:space-between;padding:clamp(7px,1.8vw,9px) clamp(12px,3vw,16px);background:var(--c10);}
-.lb-board-title{font-size:clamp(10px,2.8vw,12px);font-weight:900;color:var(--c30);font-family:var(--H1);letter-spacing:.08em;}
-.lb-board-live{font-size:clamp(8px,2vw,9px);font-weight:700;color:rgba(255,255,255,.75);font-family:var(--H2);display:flex;align-items:center;gap:4px;}
-.lb-board-live::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block;animation:dotPulse 1.4s ease infinite;}
-.lb-board-rows{max-height:clamp(130px,35vw,160px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(3px,1vw,4px) 0;}
+.lb-attempts-lbl{font-size:clamp(7px,1.8vw,9px);font-weight:700;color:#22a651;font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+/* Scrollable content area */
+.lb-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(10px,2.5vw,14px) clamp(14px,3.5vw,18px) 0;}
+.lb-scroll::-webkit-scrollbar{display:none;}
+
+/* Leaderboard card — dark navy */
+.lb-board{border-radius:12px;overflow:hidden;background:#1a2235;box-shadow:0 4px 20px rgba(0,0,0,.25);margin-bottom:clamp(10px,2.5vw,14px);}
+.lb-board-header{display:flex;align-items:center;justify-content:space-between;padding:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);background:#1a2235;border-bottom:1px solid rgba(255,255,255,.07);}
+.lb-board-header-left{display:flex;align-items:center;gap:8px;}
+.lb-board-trophy{width:clamp(18px,4.5vw,22px);height:clamp(18px,4.5vw,22px);object-fit:contain;}
+.lb-board-title{font-size:clamp(11px,3vw,14px);font-weight:900;color:var(--c30);font-family:var(--H1);letter-spacing:.08em;text-transform:uppercase;}
+.lb-board-live{font-size:clamp(9px,2.3vw,11px);font-weight:700;color:var(--c30);font-family:var(--H2);display:flex;align-items:center;gap:5px;}
+.lb-board-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--c10);display:inline-block;animation:dotPulse 1.4s ease infinite;}
+.lb-board-rows{max-height:clamp(190px,52vw,240px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .lb-board-rows::-webkit-scrollbar{width:3px;}
-.lb-board-rows::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px;}
-.lb-board-row{display:flex;align-items:center;padding:clamp(6px,1.6vw,8px) clamp(12px,3vw,16px);gap:8px;border-bottom:1px solid #f5f0e8;}
+.lb-board-rows::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.lb-board-row{display:flex;align-items:center;padding:clamp(9px,2.3vw,12px) clamp(14px,3.5vw,18px);gap:10px;border-bottom:1px solid rgba(255,255,255,.05);}
 .lb-board-row:last-child{border-bottom:none;}
-.lb-board-row.top1{background:#fffbee;}
-.lb-board-row.top2{background:#fafafa;}
-.lb-board-row.top3{background:#fdf6ee;}
-.lb-rank{font-size:clamp(11px,3vw,13px);font-weight:900;width:22px;text-align:center;flex-shrink:0;color:var(--ink2);font-family:var(--H2);}
+.lb-rank{font-size:clamp(12px,3.2vw,15px);font-weight:900;width:24px;text-align:center;flex-shrink:0;color:rgba(255,255,255,.4);font-family:var(--H2);}
 .lb-board-row.top1 .lb-rank{color:var(--c60);}
-.lb-name{flex:1;font-size:clamp(12px,3.2vw,14px);font-weight:700;color:var(--ink);font-family:var(--H2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lb-score{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--c10);font-family:var(--H1);flex-shrink:0;}
-.lb-prize{flex-shrink:0;font-size:clamp(8px,2vw,9px);font-weight:700;font-family:var(--H2);padding:2px 7px;border-radius:4px;white-space:nowrap;margin-left:4px;}
-.lb-board-row.top1 .lb-prize{background:#fff3cc;color:#b8860b;}
-.lb-board-row.top2 .lb-prize{background:#f0f0f0;color:#666;}
-.lb-board-row.top3 .lb-prize{background:#fde8d8;color:#a0522d;}
-.lb-scroll-hint{text-align:center;padding:3px;font-size:clamp(8px,2vw,9px);color:var(--ink2);font-family:var(--H2);background:#fafafa;border-top:1px solid #f0ece4;}
-.lb-board-msg{text-align:center;padding:clamp(10px,2.5vw,14px);font-size:clamp(10px,2.6vw,12px);color:var(--ink2);font-family:var(--H2);}
+.lb-board-row.top3 .lb-rank{color:var(--c60);}
+.lb-name{flex:1;font-size:clamp(13px,3.5vw,16px);font-weight:700;color:var(--c30);font-family:var(--H2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-score{font-size:clamp(12px,3.2vw,14px);font-weight:900;color:var(--c60);font-family:var(--H1);flex-shrink:0;}
+.lb-prize{flex-shrink:0;font-size:clamp(9px,2.3vw,11px);font-weight:700;font-family:var(--H2);padding:3px 9px;border-radius:5px;white-space:nowrap;margin-left:4px;}
+.lb-board-row.top1 .lb-prize{background:#fff3cc;color:#7a5c00;}
+.lb-board-row.top2 .lb-prize{background:#e8e8e8;color:#444;}
+.lb-board-row.top3 .lb-prize{background:#fde0c8;color:#7a3010;}
+.lb-scroll-hint{text-align:center;padding:clamp(6px,1.5vw,8px);font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.35);font-family:var(--H2);border-top:1px solid rgba(255,255,255,.05);}
+.lb-board-msg{text-align:center;padding:clamp(14px,3.5vw,18px);font-size:clamp(11px,2.8vw,13px);color:rgba(255,255,255,.4);font-family:var(--H2);}
+
+/* How-to-play section */
+.lb-how{margin-bottom:clamp(10px,2.5vw,14px);}
+.lb-how-header{display:flex;align-items:center;gap:8px;margin-bottom:clamp(8px,2vw,11px);}
+.lb-how-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:#1a2235;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,2.8vw,13px);flex-shrink:0;}
+.lb-how-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--c30);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
+.lb-how-rows{display:flex;flex-direction:column;gap:clamp(8px,2vw,10px);}
+
+/* Catch card — dark navy */
+.lb-how-row{display:flex;align-items:center;gap:clamp(10px,2.5vw,14px);background:#1a2235;border-radius:10px;padding:clamp(12px,3vw,16px);box-shadow:0 3px 10px rgba(0,0,0,.2);}
+.lb-how-icon{flex-shrink:0;width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,153,0,.4);display:flex;align-items:center;justify-content:center;}
+.lb-how-icon img{width:clamp(28px,7vw,34px);height:clamp(28px,7vw,34px);object-fit:contain;display:block;}
+.lb-how-text{flex:1;min-width:0;}
+.lb-how-action{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--c30);font-family:var(--H1);text-transform:uppercase;line-height:1.1;margin-bottom:3px;}
+.lb-how-sub{font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);line-height:1.3;}
+.lb-how-tag{flex-shrink:0;font-size:clamp(10px,2.6vw,12px);font-weight:900;font-family:var(--H1);padding:clamp(6px,1.5vw,8px) clamp(10px,2.5vw,14px);border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+.lb-how-tag.green{background:#22a651;color:#fff;box-shadow:0 3px 0 #176e38;}
+.lb-how-tag.red{background:var(--c10);color:#fff;box-shadow:0 3px 0 var(--c10d);}
+
+/* Danger row */
+.lb-how-row-danger{display:flex;align-items:center;gap:clamp(10px,2.5vw,14px);background:#1a2235;border-radius:10px;padding:clamp(12px,3vw,16px);box-shadow:0 3px 10px rgba(0,0,0,.2);}
+.lb-how-row-danger-icon{flex-shrink:0;width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);border-radius:50%;background:rgba(236,35,38,.1);border:2px solid rgba(236,35,38,.35);display:flex;align-items:center;justify-content:center;}
+.lb-how-row-danger-icon img{width:clamp(24px,6vw,30px);height:auto;object-fit:contain;display:block;}
+.lb-how-row-danger-text{flex:1;min-width:0;}
+.lb-how-row-danger-title{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--c30);font-family:var(--H1);text-transform:uppercase;line-height:1.1;margin-bottom:3px;}
+.lb-how-row-danger-sub{font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);line-height:1.3;}
+.lb-how-row-danger-tag{flex-shrink:0;}
+
+/* CTA + spacer */
+.lb-cta{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(14px,3.5vw,18px) clamp(8px,2vw,12px);}
+.btn-kickoff{width:100%;background:#22a651;color:var(--c30);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 #176e38;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
+.btn-kickoff:active{transform:translateY(5px);box-shadow:0 0 0 #176e38;}
+.btn-kickoff:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-kickoff-icon{width:clamp(36px,9vw,44px);height:clamp(36px,9vw,44px);object-fit:contain;flex-shrink:0;}
+
+/* Bottom nav */
+.lb-nav{flex:0 0 auto;background:#1a2235;display:flex;align-items:stretch;border-top:1px solid rgba(255,255,255,.07);}
+.lb-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,2vw,11px) 4px clamp(10px,2.5vw,13px);gap:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border:none;background:transparent;}
+.lb-nav-icon{font-size:clamp(16px,4.3vw,20px);line-height:1;}
+.lb-nav-label{font-size:clamp(8px,2vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.35);}
+.lb-nav-item.active .lb-nav-icon{color:var(--c60);}
+.lb-nav-item.active .lb-nav-label{color:var(--c60);}
+.lb-nav-item:not(.active) .lb-nav-icon{color:rgba(255,255,255,.35);}
 
 /* TUTORIAL */
 #tutorial-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:clamp(90px,24vw,120px);animation:fadeIn .3s ease;}
@@ -265,38 +316,13 @@ body{width:100%;height:100%;overflow:hidden;background:var(--c60);display:flex;a
 .tuto-tap{font-size:clamp(10px,2.8vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);text-align:center;padding:0 clamp(20px,5vw,28px);}
 
 /* DANGER ROW */
-.lb-how-row-danger{display:flex;align-items:center;gap:14px;background:var(--c10);border-radius:8px;padding:clamp(14px,3.5vw,18px);box-shadow:0 4px 14px rgba(236,35,38,.4);position:relative;overflow:hidden;}
-.lb-how-row-danger::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 6px,transparent 6px,transparent 14px);pointer-events:none;}
-.lb-how-row-danger-icon{width:clamp(38px,10vw,50px);flex-shrink:0;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 8px rgba(255,255,255,.5));}
-.lb-how-row-danger-icon img{width:clamp(28px,7vw,36px);height:auto;display:block;object-fit:contain;}
-.lb-how-row-danger-text{flex:1;}
-.lb-how-row-danger-title{font-size:clamp(15px,4.2vw,19px);font-weight:900;color:var(--c30);font-family:var(--H1);text-transform:uppercase;line-height:1;margin-bottom:3px;}
-.lb-how-row-danger-sub{font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.8);font-family:var(--H2);}
-.lb-how-row-danger-tag{flex-shrink:0;background:rgba(0,0,0,.25);color:var(--c30);font-size:clamp(9px,2.4vw,11px);font-weight:900;font-family:var(--H1);padding:5px 12px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;border:1.5px solid rgba(255,255,255,.3);}
+
 
 /* PLAY TRANSITION */
 #play-transition{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--c10);z-index:9999;pointer-events:none;transform:scaleY(0);transform-origin:bottom center;}
 #play-transition.go{animation:wipeIn .55s cubic-bezier(.76,0,.24,1) forwards;}
 
-/* HOW TO PLAY */
-.lb-how{flex:0 0 auto;margin:clamp(10px,2.5vw,14px) clamp(20px,5vw,28px) 0;}
-.lb-how-title{font-size:clamp(9px,2.4vw,11px);font-weight:700;color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:clamp(6px,1.5vw,8px);}
-.lb-how-rows{display:flex;flex-direction:column;gap:6px;}
-.lb-how-row{display:flex;align-items:center;gap:12px;background:var(--c30);border-radius:8px;padding:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);box-shadow:0 2px 8px rgba(0,0,0,.08);}
-.lb-how-row.catch{border-left:4px solid #20ac76;}
-.lb-how-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);}
-.lb-how-icon img{width:100%;height:100%;object-fit:contain;display:block;}
-.lb-how-text{flex:1;}
-.lb-how-action{font-size:clamp(12px,3.2vw,15px);font-weight:900;color:var(--ink);font-family:var(--H1);text-transform:uppercase;line-height:1;}
-.lb-how-tag{flex-shrink:0;font-size:clamp(9px,2.4vw,11px);font-weight:900;font-family:var(--H1);padding:4px 10px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em;}
-.lb-how-tag.green{background:#20ac76;color:#fff;}
-.lb-spacer{flex:1;min-height:4px;max-height:24px;}
 
-/* CTA */
-.lb-cta{flex:0 0 auto;padding:clamp(12px,3vw,20px) clamp(20px,5vw,28px) clamp(20px,5vw,32px);}
-.btn-kickoff{width:100%;background:var(--c10);color:var(--c30);border:none;border-radius:6px;padding:clamp(16px,4.5vw,20px);font-size:clamp(15px,4.2vw,18px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 4px 0 var(--c10d);transition:transform .1s,box-shadow .1s;}
-.btn-kickoff:active{transform:translateY(4px);box-shadow:0 0 0 var(--c10d);}
-.btn-kickoff:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
 
 /* GAME */
 #screen-game{flex:1;display:flex;flex-direction:column;background:var(--c60);overflow:hidden;animation:fadeIn .15s ease;}
@@ -547,51 +573,95 @@ function renderLobby(){
   const prizes=['Maillot Maroc','Polo Maroc','Ballon de foot'];
   $('app').innerHTML=`
   <div id="screen-lobby">
-    <div class="lb-top">
-      <div class="lb-top-left">
+
+    <!-- ── HERO HEADER ── -->
+    <div class="lb-hero">
+      <div class="lb-hero-left">
         <div class="lb-eyebrow">JUMIA ÉDITION FANS</div>
         <div class="lb-title">GARDIEN<br>DE BUT</div>
       </div>
+      <img class="lb-hero-ball" src="${IMG_SOCCER}" alt="" draggable="false">
       <div class="lb-attempts-badge">
-        <div class="lb-attempts-num ${attemptsLeft<=1?'urgent':'ok'}">${attemptsLeft}/4</div>
+        <span class="lb-attempts-icon">⏱</span>
+        <div class="lb-attempts-num ${attemptsLeft<=1?'urgent':''}">${attemptsLeft}/4</div>
         <div class="lb-attempts-lbl">ESSAIS</div>
       </div>
     </div>
-    <div class="lb-pitch"></div>
-    <div class="lb-board">
-      <div class="lb-board-header">
-        <span class="lb-board-title">CLASSEMENT</span>
-        <span class="lb-board-live">LIVE</span>
-      </div>
-      <div class="lb-board-rows" id="lb-rows"><div class="lb-board-msg">Chargement...</div></div>
-      <div class="lb-scroll-hint">Fais défiler pour voir le top 50</div>
-    </div>
-    <div class="lb-how">
-      <div class="lb-how-title">COMMENT JOUER</div>
-      <div class="lb-how-rows">
-        <div class="lb-how-row catch" style="padding:clamp(8px,2vw,11px) clamp(14px,3.5vw,18px);">
-          <div class="lb-how-icon" style="width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);">
-            <img src="${IMG_SOCCER}" alt="ball" draggable="false">
+
+    <!-- ── SCROLLABLE BODY ── -->
+    <div class="lb-scroll">
+
+      <!-- Leaderboard -->
+      <div class="lb-board">
+        <div class="lb-board-header">
+          <div class="lb-board-header-left">
+            <img class="lb-board-trophy" src="${IMG_TROPHY}" alt="" draggable="false">
+            <span class="lb-board-title">CLASSEMENT</span>
           </div>
-          <div class="lb-how-text"><div class="lb-how-action" style="font-size:clamp(11px,3vw,14px);">Attrape les ballons</div></div>
-          <div class="lb-how-tag green">+POINTS</div>
+          <span class="lb-board-live">LIVE</span>
         </div>
-        <div class="lb-how-row-danger">
-          <div class="lb-how-row-danger-icon"><img src="${IMG_REDCARD}" alt="red card" draggable="false"></div>
-          <div class="lb-how-row-danger-text">
-            <div class="lb-how-row-danger-title">NE PAS ATTRAPER</div>
-            <div class="lb-how-row-danger-sub">Esquive les cartons rouges</div>
+        <div class="lb-board-rows" id="lb-rows"><div class="lb-board-msg">Chargement...</div></div>
+        <div class="lb-scroll-hint">Fais défiler pour voir le top 50</div>
+      </div>
+
+      <!-- How to play -->
+      <div class="lb-how">
+        <div class="lb-how-header">
+          <div class="lb-how-header-icon">📖</div>
+          <div class="lb-how-title">COMMENT JOUER</div>
+        </div>
+        <div class="lb-how-rows">
+          <div class="lb-how-row">
+            <div class="lb-how-icon"><img src="${IMG_SOCCER}" alt="ball" draggable="false"></div>
+            <div class="lb-how-text">
+              <div class="lb-how-action">ATTRAPE LES BALLONS</div>
+              <div class="lb-how-sub">Attrape un maximum de ballons et gagne des points !</div>
+            </div>
+            <div class="lb-how-tag green">+POINTS</div>
           </div>
-          <div class="lb-how-row-danger-tag">DANGER</div>
+          <div class="lb-how-row-danger">
+            <div class="lb-how-row-danger-icon"><img src="${IMG_REDCARD}" alt="red card" draggable="false"></div>
+            <div class="lb-how-row-danger-text">
+              <div class="lb-how-row-danger-title">NE PAS ATTRAPER</div>
+              <div class="lb-how-row-danger-sub">Évite les cartons rouges sinon tu perds des points !</div>
+            </div>
+            <div class="lb-how-row-danger-tag"><span class="lb-how-tag red">DANGER</span></div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="lb-spacer"></div>
+
+    </div><!-- end .lb-scroll -->
+
+    <!-- ── CTA ── -->
     <div class="lb-cta">
       ${attemptsLeft===0
-        ?`<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:16px;text-align:center;color:rgba(255,255,255,.65);font-size:13px;font-family:${H2}">Plus de tentatives aujourd'hui. Reviens demain !</div>`
-        :`<button class="btn-kickoff" id="btn-start">COUP D'ENVOI !</button>`}
+        ?`<div style="background:rgba(0,0,0,.25);border-radius:10px;padding:18px;text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-family:${H2}">Plus de tentatives aujourd'hui.<br>Reviens demain !</div>`
+        :`<button class="btn-kickoff" id="btn-start">
+            <img class="btn-kickoff-icon" src="${IMG_SOCCER}" alt="" draggable="false">
+            COUP D'ENVOI !
+          </button>`}
     </div>
+
+    <!-- ── BOTTOM NAV ── -->
+    <div class="lb-nav">
+      <button class="lb-nav-item active">
+        <span class="lb-nav-icon">🏠</span>
+        <span class="lb-nav-label">ACCUEIL</span>
+      </button>
+      <button class="lb-nav-item" onclick="document.querySelector('.lb-board-rows').scrollIntoView({behavior:'smooth'})">
+        <span class="lb-nav-icon">🏆</span>
+        <span class="lb-nav-label">CLASSEMENT</span>
+      </button>
+      <button class="lb-nav-item">
+        <span class="lb-nav-icon">🎁</span>
+        <span class="lb-nav-label">RÉCOMPENSES</span>
+      </button>
+      <button class="lb-nav-item">
+        <span class="lb-nav-icon">❓</span>
+        <span class="lb-nav-label">AIDE</span>
+      </button>
+    </div>
+
   </div>`;
 
   const bs=$('btn-start');
