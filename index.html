@@ -783,78 +783,79 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .lbd-loading{text-align:center;padding:clamp(28px,7vw,40px) 20px;color:var(--inkCard2);font-family:var(--H2);font-size:clamp(12px,3vw,14px);}
 .lbd-nav{flex:0 0 auto;background:var(--navy);display:flex;align-items:stretch;border-top:1px solid var(--navyL);}
 
-/* ── PODIUM — lobby top 3 ── */
+/* ── PODIUM — product-first design ── */
 .lb-podium{margin-bottom:clamp(10px,2.5vw,14px);}
 .lb-podium-header{display:flex;align-items:center;gap:8px;margin-bottom:clamp(10px,2.5vw,13px);}
-.lb-podium-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:rgba(26,36,56,.12);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,2.8vw,13px);flex-shrink:0;}
+.lb-podium-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:rgba(26,36,56,.12);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .lb-podium-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
 .lb-podium-see-all{margin-left:auto;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:var(--navy);font-family:var(--H2);text-decoration:underline;cursor:pointer;opacity:.6;}
-/* Three columns side by side: 2nd | 1st | 3rd */
-.lb-podium-stage{display:flex;align-items:flex-end;gap:clamp(6px,1.5vw,8px);justify-content:center;}
-.lb-podium-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;}
-/* Avatar circle */
-.lb-podium-avatar{
-  width:clamp(44px,12vw,56px);height:clamp(44px,12vw,56px);
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:clamp(16px,4.5vw,20px);font-weight:900;
-  font-family:var(--H1);
-  color:var(--white);
-  border:3px solid var(--white);
-  box-shadow:0 3px 12px rgba(0,0,0,.2);
-  margin-bottom:6px;
+
+/* Stage — columns aligned to bottom */
+.lb-podium-stage{display:flex;align-items:flex-end;gap:clamp(6px,1.5vw,9px);}
+
+/* Each column is a flex column, product card on top, bar below */
+.lb-podium-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;}
+
+/* Product card — the hero element */
+.lb-podium-product{
+  width:100%;
+  background:var(--white);
+  border-radius:10px 10px 0 0;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:clamp(8px,2vw,11px) clamp(4px,1vw,6px) clamp(6px,1.5vw,8px);
   position:relative;
+  box-shadow:0 -3px 12px rgba(0,0,0,.1);
+  min-height:clamp(90px,24vw,115px);
 }
-.lb-podium-col.first .lb-podium-avatar{background:var(--navy);width:clamp(54px,14vw,66px);height:clamp(54px,14vw,66px);font-size:clamp(20px,5.5vw,24px);border-width:4px;}
-.lb-podium-col.second .lb-podium-avatar{background:#4a5568;}
-.lb-podium-col.third .lb-podium-avatar{background:#7a4020;}
-/* Crown on 1st */
-.lb-podium-col.first .lb-podium-avatar::before{
-  content:'';
-  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
-  width:0;height:0;
-  border-left:8px solid transparent;
-  border-right:8px solid transparent;
-  border-bottom:12px solid var(--orange);
-  filter:drop-shadow(0 -1px 3px rgba(0,0,0,.2));
+.lb-podium-col.first .lb-podium-product{
+  min-height:clamp(115px,30vw,140px);
+  border-radius:12px 12px 0 0;
 }
-.lb-podium-name{font-size:clamp(11px,2.8vw,13px);font-weight:700;color:var(--navy);font-family:var(--H2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:2px;}
-.lb-podium-score{font-size:clamp(9px,2.4vw,11px);font-weight:900;color:var(--navy);font-family:var(--H1);opacity:.65;text-align:center;margin-bottom:4px;}
-/* Podium bar */
-.lb-podium-bar{
-  width:100%;border-radius:6px 6px 0 0;
+
+/* Rank badge — top-left corner of product card */
+.lb-podium-rank-badge{
+  position:absolute;top:6px;left:6px;
+  width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);
+  background:var(--navy);color:var(--white);
+  border-radius:50%;
+  font-size:clamp(10px,2.6vw,12px);font-weight:900;
+  font-family:var(--H1);
   display:flex;align-items:center;justify-content:center;
-  padding:clamp(5px,1.3vw,7px) 4px;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
 }
-.lb-podium-col.first .lb-podium-bar{background:var(--navy);height:clamp(52px,14vw,64px);}
-.lb-podium-col.second .lb-podium-bar{background:rgba(26,36,56,.65);height:clamp(38px,10vw,48px);}
-.lb-podium-col.third .lb-podium-bar{background:rgba(26,36,56,.45);height:clamp(28px,7.5vw,36px);}
-.lb-podium-rank{font-size:clamp(18px,5vw,22px);font-weight:900;color:var(--white);font-family:var(--H1);opacity:.9;}
-.lb-podium-col.first .lb-podium-rank{font-size:clamp(22px,6vw,28px);}
-/* Prize strip under each bar */
-/* Prize image floating above podium column */
+.lb-podium-col.first .lb-podium-rank-badge{
+  width:clamp(24px,6vw,29px);height:clamp(24px,6vw,29px);
+  font-size:clamp(12px,3vw,14px);
+  background:var(--orange);color:var(--navy);
+}
+
+/* Product image */
 .lb-podium-prize-img{
-  width:clamp(44px,12vw,58px);height:clamp(44px,12vw,58px);
+  width:clamp(56px,15vw,72px);height:clamp(56px,15vw,72px);
   object-fit:contain;display:block;
-  margin:0 auto clamp(5px,1.3vw,7px);
-  filter:drop-shadow(0 3px 8px rgba(0,0,0,.25));
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.2));
 }
 .lb-podium-col.first .lb-podium-prize-img{
-  width:clamp(56px,15vw,72px);height:clamp(56px,15vw,72px);
+  width:clamp(72px,19vw,90px);height:clamp(72px,19vw,90px);
 }
-/* Prize name strip below the bar */
-.lb-podium-prize{
-  width:100%;background:var(--white);
-  border-radius:0 0 6px 6px;
-  padding:clamp(4px,1vw,6px) 3px;
-  text-align:center;
-  font-size:clamp(7px,1.7vw,8px);
-  font-weight:700;color:var(--navy);
-  font-family:var(--H2);
-  text-transform:uppercase;
-  letter-spacing:.02em;
-  line-height:1.2;
+
+/* Prize name — below the image, inside the white card */
+.lb-podium-prize-name{
+  font-size:clamp(7px,1.8vw,9px);font-weight:700;
+  color:var(--navy);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.03em;
+  text-align:center;margin-top:5px;line-height:1.2;
 }
+
+/* Podium bar */
+.lb-podium-bar{
+  width:100%;
+  display:flex;align-items:center;justify-content:center;
+}
+.lb-podium-col.first .lb-podium-bar{background:var(--navy);height:clamp(24px,6.5vw,30px);border-radius:0 0 8px 8px;}
+.lb-podium-col.second .lb-podium-bar{background:rgba(26,36,56,.7);height:clamp(18px,4.5vw,22px);border-radius:0 0 6px 6px;}
+.lb-podium-col.third .lb-podium-bar{background:rgba(26,36,56,.45);height:clamp(14px,3.5vw,17px);border-radius:0 0 6px 6px;}
+
 .lb-podium-loading{text-align:center;padding:clamp(16px,4vw,22px);color:rgba(26,36,56,.45);font-family:var(--H2);font-size:clamp(11px,2.8vw,13px);}
 
 </style>
@@ -1242,21 +1243,20 @@ function renderLobby(){
       'https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp',
       'https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp'
     ];
+    // order: [1,0,2] = 2nd col | 1st col | 3rd col
     stage.innerHTML=order.map((idx,pos)=>{
       const p=top[idx];
       if(!p)return'';
-      const name=(p.name||'Joueur').split(' ')[0].slice(0,9);
-      const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const prizeName=prizes[idx]||'';
       const prizeImg=prizeImgs[idx]||'';
-      const initial=name.charAt(0).toUpperCase();
+      const rankNum=rankLabels[pos]; // '2','1','3'
       return '<div class="lb-podium-col '+colClass[pos]+'">'+
-        '<img class="lb-podium-prize-img" src="'+prizeImg+'" alt="'+prizeName+'" draggable="false">'+
-        '<div class="lb-podium-avatar">'+initial+'</div>'+
-        '<div class="lb-podium-name">'+name+'</div>'+
-        '<div class="lb-podium-score">'+pts+'</div>'+
-        '<div class="lb-podium-bar"><div class="lb-podium-rank">'+rankLabels[pos]+'</div></div>'+
-        '<div class="lb-podium-prize">'+prizeName+'</div>'+
+        '<div class="lb-podium-product">'+
+          '<div class="lb-podium-rank-badge">'+rankNum+'</div>'+
+          '<img class="lb-podium-prize-img" src="'+prizeImg+'" alt="'+prizeName+'" draggable="false">'+
+          '<div class="lb-podium-prize-name">'+prizeName+'</div>'+
+        '</div>'+
+        '<div class="lb-podium-bar"></div>'+
       '</div>';
     }).join('');
   }).catch(()=>{
