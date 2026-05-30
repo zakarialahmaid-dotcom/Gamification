@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,interactive-widget=resizes-content">
+<meta name="HandheldFriendly" content="true">
+<meta name="MobileOptimized" content="width">
 <title>Jumia — Gardien de But</title>
 
 <!-- ============================================================
@@ -534,6 +536,37 @@ function toggleMusic(btn){
   else{musicFade(0,400);setTimeout(()=>music.pause(),450);btn.textContent='♪̶';btn.title='Activer la musique';}
 }
 
+// VISIBILITY — pause music whenever the page/tab is hidden or the app is backgrounded,
+// resume only if music was actively playing when it was interrupted.
+(function(){
+  let wasPlayingOnHide=false;
+
+  function onHide(){
+    wasPlayingOnHide=musicOn&&musicStarted&&!music.paused;
+    if(wasPlayingOnHide){musicFade(0,200);setTimeout(()=>music.pause(),220);}
+  }
+  function onShow(){
+    if(wasPlayingOnHide&&musicOn){music.play().catch(()=>{});musicFade(0.18,400);}
+    wasPlayingOnHide=false;
+  }
+
+  // Standard Page Visibility API — fires when tab is switched, app backgrounded, screen locked
+  document.addEventListener('visibilitychange',()=>{
+    document.hidden ? onHide() : onShow();
+  });
+
+  // pagehide covers page unload / back-forward cache on mobile browsers
+  window.addEventListener('pagehide', onHide);
+  window.addEventListener('pageshow', e=>{
+    // pageshow fires on bfcache restore (persisted=true) — resume if needed
+    if(e.persisted) onShow();
+  });
+
+  // window blur/focus catches the WebView losing focus inside a third-party app
+  window.addEventListener('blur', onHide);
+  window.addEventListener('focus', onShow);
+})();
+
 // TRANSITION
 function goTo(fn){
   const t=$('play-transition');
@@ -948,10 +981,32 @@ function submitForm(){
   const city=$('inp-city')?.value.trim();
   let valid=true;
   const emailRe=new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
-  [['inp-name','err-name',!name],['inp-email','err-email',!emailRe.test(email)],['inp-city','err-city',!city]].forEach(([inp,err,fail])=>{
+
+  // ── TEST-ENTRY DETECTION ──────────────────────────────────────────────────
+  // Block submissions that look like placeholder / test data.
+  const testNameRe=/^(test|tset|ttest|demo|user|admin|fake|dummy|sample|essai|exemple|example|azerty|qwerty|asdf|aaa+|bbb+|ccc+|xxx+|yyy+|zzz+|abc|123|nom|name|prénom|prenom|foo|bar|baz)$/i;
+  const testEmailRe=/(test|fake|demo|dummy|sample|example|noreply|no-reply|tset|ttest|admin|temp|trash|throwaway|mailinator|guerrillamail|sharklasers|yopmail|trashmail|dispostable|tempmail|maildrop|spamgourmet|10minutemail|minutemail|disposablemail|spambox)/i;
+  const testCityRe=/^(test|tset|demo|fake|city|ville|here|there|abc|aaa+|bbb+|xxx+|yyy+|zzz+|123|azerty|qwerty|asdf|foo|bar|baz|n\/a|na|none|aucune|aucun|partout|anywhere|somewhere|nowhere)$/i;
+  // Also block entries where any field is pure repeated characters (e.g. "aaaa", "1111")
+  const repeatedRe=/^(.)\1{2,}$/;
+
+  const nameIsTest  = testNameRe.test(name)  || repeatedRe.test(name)  || name.length<2;
+  const emailIsTest = testEmailRe.test(email);
+  const cityIsTest  = testCityRe.test(city)  || repeatedRe.test(city)  || city.length<2;
+
+  const fields=[
+    ['inp-name',  'err-name',  !name  || nameIsTest,  nameIsTest  ? 'Prénom invalide' : 'Prénom requis'],
+    ['inp-email', 'err-email', !emailRe.test(email)||emailIsTest, emailIsTest ? 'E-mail invalide'  : 'E-mail valide requis'],
+    ['inp-city',  'err-city',  !city  || cityIsTest,  cityIsTest  ? 'Ville invalide'  : 'Ville requise'],
+  ];
+  fields.forEach(([inp,err,fail,msg])=>{
     $(inp)?.classList.toggle('error',fail);
-    const em=$(err);if(em)em.classList.toggle('visible',fail);if(fail)valid=false;
+    const em=$(err);
+    if(em){em.textContent=msg;em.classList.toggle('visible',fail);}
+    if(fail)valid=false;
   });
+  // ─────────────────────────────────────────────────────────────────────────
+
   if(!valid)return;
   playerName=name;playerEmail=email;playerCity=city;
   const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
