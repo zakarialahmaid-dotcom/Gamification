@@ -514,28 +514,23 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .rs-score-card{flex:1;background:var(--white);border-radius:10px;padding:clamp(10px,2.5vw,14px) 6px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.12);}
 .rs-score-val{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:var(--navy);font-family:var(--H1);}
 .rs-score-lbl{font-size:clamp(8px,2vw,10px);color:var(--inkCard2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
-/* Voucher card — white, brand-tier label, yellow tint code box */
-.voucher-card{flex:0 0 auto;background:var(--white);margin:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);border-radius:10px;padding:clamp(16px,4vw,22px);text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.15);}
-/* Eyebrow = body copy size */
-.v-eyebrow{font-size:clamp(9px,2.4vw,11px);color:var(--inkCard2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;font-family:var(--H2);font-weight:700;}
-.v-label{display:inline-block;border-radius:5px;padding:5px 18px;font-size:clamp(10px,2.6vw,12px);font-weight:900;letter-spacing:.1em;margin-bottom:12px;color:var(--c30);font-family:var(--H1);text-transform:uppercase;}
-.v-disc-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px;}
-/* Discount % — headline size, Jumia Red for urgency/flash */
-.v-disc{font-size:clamp(30px,9vw,44px);font-weight:900;color:var(--navy);line-height:1;font-family:var(--H1);}
-.v-cat-line{font-size:clamp(11px,3vw,13px);color:var(--inkCard2);font-family:var(--H2);margin:5px 0 14px;font-weight:500;}
-.v-code-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+
+
+
+
+
+
+
 /* Code box — Selective Yellow tint (#fff2d6) per brand palette */
 .v-code{background:#fff8e6;border:2px dashed var(--orange);border-radius:6px;padding:clamp(9px,2.2vw,13px) 20px;font-size:clamp(14px,4vw,18px);font-weight:900;color:var(--ink);letter-spacing:.18em;display:inline-block;font-family:var(--H1);}
-.v-note{font-size:clamp(9px,2.2vw,10px);color:var(--inkCard2);font-family:var(--H2);font-weight:500;}
-/* Copy button — 10% Red accent */
-.btn-copy{background:var(--navy);color:var(--white);border:none;border-radius:6px;padding:9px 16px;font-size:clamp(10px,2.8vw,13px);font-weight:900;cursor:pointer;font-family:var(--H1);letter-spacing:.07em;flex-shrink:0;text-transform:uppercase;box-shadow:0 4px 0 var(--c10d);transition:box-shadow .1s,transform .1s;}
-.btn-copy:active{transform:translateY(4px);box-shadow:0 0 0 var(--navyL);}
-.rs-cta-block{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);}
+
+
+
 /* Result CTA — 10% Red, consistent with all other primary CTAs */
 .btn-jumia-main{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px) clamp(14px,3.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 5px 0 var(--orangeD);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;}
 .btn-jumia-main:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
 .btn-jumia-main span{line-height:1.2;}
-.rs-url-hint{text-align:center;font-size:clamp(8px,2vw,10px);color:rgba(255,255,255,.3);font-family:var(--H2);margin-top:8px;word-break:break-all;}
+
 .rs-spacer{flex:0 0 clamp(10px,2.5vw,14px);}
 /* Replay bar — white footer, consistent with form card style */
 .rs-replay-bar{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(24px,6vw,30px);background:var(--navy);border-top:1px solid rgba(255,255,255,.08);}
@@ -544,6 +539,142 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .btn-replay-full:hover{border-color:var(--orangeD);color:var(--orangeD);}
 .btn-replay-full.confirm{border-color:var(--red);color:var(--red);background:rgba(236,35,38,.05);font-weight:900;}
 .rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);padding:10px 0;font-weight:500;}
+/* ── VOUCHER POPUP MODAL ─────────────────────────────────────────────────── */
+#voucher-popup{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.65);
+  z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:fadeIn .3s ease;
+}
+.vp-sheet{
+  width:100%;max-width:480px;
+  background:var(--navy);
+  border-radius:20px 20px 0 0;
+  padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(28px,7vw,40px);
+  animation:slideUp .35s cubic-bezier(.22,.68,0,1.2) forwards;
+  position:relative;
+}
+@keyframes slideUp{
+  from{transform:translateY(100%);}
+  to{transform:translateY(0);}
+}
+.vp-handle{
+  width:36px;height:4px;
+  background:rgba(255,255,255,.2);
+  border-radius:2px;
+  margin:0 auto clamp(16px,4vw,22px);
+}
+.vp-eyebrow{
+  font-size:clamp(9px,2.4vw,11px);
+  font-weight:700;letter-spacing:.14em;
+  color:rgba(255,255,255,.5);
+  font-family:var(--H2);
+  text-transform:uppercase;
+  text-align:center;
+  margin-bottom:6px;
+}
+.vp-label{
+  display:inline-block;
+  background:var(--orange);color:var(--navy);
+  font-size:clamp(9px,2.4vw,11px);font-weight:900;
+  font-family:var(--H1);letter-spacing:.1em;
+  text-transform:uppercase;
+  border-radius:4px;padding:3px 12px;
+  margin:0 auto clamp(14px,3.5vw,20px);
+  display:block;text-align:center;width:fit-content;
+}
+/* Big percentage — the hero element */
+.vp-disc{
+  font-size:clamp(64px,18vw,88px);
+  font-weight:900;color:var(--orange);
+  font-family:var(--H1);line-height:1;
+  text-align:center;
+  margin-bottom:2px;
+  text-shadow:0 4px 24px rgba(255,153,0,.35);
+}
+.vp-disc-sub{
+  font-size:clamp(13px,3.5vw,16px);
+  color:rgba(255,255,255,.7);
+  font-family:var(--H2);
+  text-align:center;
+  margin-bottom:clamp(18px,4.5vw,24px);
+}
+/* Instruction strip */
+.vp-instruction{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:clamp(12px,3vw,16px);
+  margin-bottom:clamp(14px,3.5vw,18px);
+  text-align:center;
+}
+.vp-instruction-title{
+  font-size:clamp(12px,3.2vw,14px);
+  font-weight:700;color:var(--white);
+  font-family:var(--H2);margin-bottom:6px;
+}
+.vp-instruction-steps{
+  font-size:clamp(11px,2.8vw,13px);
+  color:rgba(255,255,255,.6);
+  font-family:var(--H2);
+  line-height:1.6;
+}
+.vp-instruction-steps b{color:var(--orange);}
+/* Code row */
+.vp-code-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:clamp(14px,3.5vw,18px);
+}
+.vp-code{
+  flex:1;
+  background:#fff8e6;
+  border:2px dashed var(--orange);
+  border-radius:8px;
+  padding:clamp(12px,3vw,15px) 14px;
+  font-size:clamp(15px,4.2vw,19px);
+  font-weight:900;color:var(--navy);
+  letter-spacing:.2em;
+  font-family:var(--H1);
+  text-align:center;
+}
+.vp-copy{
+  flex-shrink:0;
+  background:var(--orange);color:var(--navy);
+  border:none;border-radius:8px;
+  padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);
+  font-size:clamp(11px,3vw,13px);font-weight:900;
+  font-family:var(--H1);letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 4px 0 var(--orangeD);
+  transition:transform .1s,box-shadow .1s;
+  white-space:nowrap;
+}
+.vp-copy:active{transform:translateY(4px);box-shadow:0 0 0 var(--orangeD);}
+/* CTA */
+.vp-cta{
+  width:100%;background:var(--orange);color:var(--navy);
+  border:none;border-radius:10px;
+  padding:clamp(16px,4.5vw,20px);
+  font-size:clamp(15px,4.2vw,18px);font-weight:900;
+  font-family:var(--H1);letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 5px 0 var(--orangeD);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .1s,box-shadow .1s;
+  margin-bottom:clamp(10px,2.5vw,14px);
+}
+.vp-cta:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.vp-dismiss{
+  display:block;width:100%;background:transparent;
+  color:rgba(255,255,255,.4);border:none;
+  padding:10px;font-size:clamp(11px,2.8vw,13px);
+  font-family:var(--H2);text-transform:uppercase;
+  letter-spacing:.04em;cursor:pointer;text-align:center;
+}
+
 </style>
 </head>
 <body>
@@ -1148,6 +1279,79 @@ function submitForm(){
   goTo(startGame);
 }
 
+
+// VOUCHER POPUP
+function showVoucherPopup(v){
+  // Remove any existing popup
+  const old=$('voucher-popup');if(old)old.remove();
+
+  const popup=document.createElement('div');
+  popup.id='voucher-popup';
+
+  const sheet=document.createElement('div');
+  sheet.className='vp-sheet';
+
+  sheet.innerHTML=
+    '<div class="vp-handle"></div>'+
+    '<div class="vp-eyebrow">TON BON DE RÉDUCTION</div>'+
+    '<div class="vp-label">'+v.label+'</div>'+
+    '<div class="vp-disc">'+v.disc+'</div>'+
+    '<div class="vp-disc-sub">sur toute la sélection football Jumia</div>'+
+    '<div class="vp-instruction">'+
+      '<div class="vp-instruction-title">Comment utiliser ton bon ?</div>'+
+      '<div class="vp-instruction-steps">'+
+        '1. <b>Copie</b> le code ci-dessous<br>'+
+        '2. Ajoute tes articles au panier sur <b>Jumia</b><br>'+
+        '3. <b>Colle</b> le code au moment du paiement'+
+      '</div>'+
+    '</div>'+
+    '<div class="vp-code-row">'+
+      '<div class="vp-code" id="vp-code-text">'+v.code+'</div>'+
+      '<button class="vp-copy" id="vp-copy-btn">COPIER</button>'+
+    '</div>'+
+    '<button class="vp-cta" id="vp-cta-btn">UTILISER MON BON SUR JUMIA</button>'+
+    '<button class="vp-dismiss" id="vp-dismiss-btn">Continuer sans utiliser</button>';
+
+  popup.appendChild(sheet);
+  document.body.appendChild(popup);
+
+  // Copy button
+  const copyBtn=$('vp-copy-btn');
+  if(copyBtn){
+    copyBtn.addEventListener('click',function(e){
+      e.stopPropagation();
+      copyCode(v.code,copyBtn);
+    });
+  }
+
+  // Main CTA
+  const ctaBtn=$('vp-cta-btn');
+  if(ctaBtn){
+    ctaBtn.addEventListener('click',function(){
+      // Copy code first, then open Jumia
+      if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(v.code).catch(()=>{});
+      }
+      window.open('https://www.jumia.ma/mlp-foot-20253/','_blank');
+      popup.remove();
+      renderLobby();
+    });
+  }
+
+  // Dismiss
+  const dismissBtn=$('vp-dismiss-btn');
+  if(dismissBtn){
+    dismissBtn.addEventListener('click',function(){
+      popup.remove();
+    });
+  }
+
+  // Tap backdrop to dismiss
+  popup.addEventListener('pointerdown',function(e){
+    if(e.target===popup)popup.remove();
+  });
+}
+
 // RESULT
 function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
@@ -1155,41 +1359,12 @@ function renderResult(){
   <div id="screen-result">
     <div class="rs-header">
       <div class="rs-brand">JUMIA — ÉDITION FANS</div>
-      <div class="rs-title">${s>=400?'BIEN ARRÊTÉ !':'PRESQUE !'}</div>
-      <div class="rs-sub">${s>=400?'Voici ton bon de réduction ↓':'Rejoue pour gagner un meilleur bon !'}</div>
+      <div class="rs-title">${s>=150?'BIEN JOUÉ !':'PRESQUE !'}</div>
+      <div class="rs-sub">Voici ton score — ton bon arrive !</div>
     </div>
     <div class="rs-scores">
       ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card"><div class="rs-score-val">${sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
-    </div>
-    <div class="voucher-card">
-      <div class="v-eyebrow">TON BON DE RÉDUCTION</div>
-      <div class="v-label" style="background:${v.bg}">${v.label}</div>
-      <div class="v-disc-row">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="12" width="44" height="24" rx="4" fill="#1a2438"/>
-          <circle cx="2" cy="24" r="6" fill="#ff9900"/>
-          <circle cx="46" cy="24" r="6" fill="#ff9900"/>
-          <line x1="17" y1="13" x2="17" y2="35" stroke="#ff9900" stroke-width="1.5" stroke-dasharray="3 2"/>
-          <line x1="28" y1="20" x2="38" y2="28" stroke="#ff9900" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="28" y1="28" x2="38" y2="20" stroke="#ff9900" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="24" cy="24" r="4" fill="none" stroke="#ff9900" stroke-width="2"/>
-        </svg>
-        <div class="v-disc">${v.disc}</div>
-      </div>
-      <div class="v-cat-line">sur toute la sélection football Jumia</div>
-      <div class="v-code-row">
-        <div class="v-code" id="coupon-code">${v.code}</div>
-        <button class="btn-copy" id="btn-copy" onclick="copyCode('${v.code}',this)">COPIER</button>
-      </div>
-      <div class="v-note">Valable 7 jours · Sans montant minimum</div>
-    </div>
-    <div class="rs-cta-block">
-      <button onclick="goTo(()=>{window.open('https://www.jumia.ma/mlp-foot-20253/','_blank');renderLobby();})" class="btn-jumia-main">
-        <img src="${IMG_SOCCER}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;flex-shrink:0" alt="" draggable="false">
-        <span>PROFITER DE L'OFFRE SUR JUMIA</span>
-      </button>
-      <div class="rs-url-hint">https://www.jumia.ma/mlp-foot-20253/</div>
     </div>
     <div class="rs-spacer"></div>
     <div class="rs-replay-bar">
@@ -1198,6 +1373,11 @@ function renderResult(){
         :`<div class="rs-no-attempts">Plus de tentatives aujourd'hui — reviens demain !</div>`}
     </div>
   </div>`;
+
+  // Show voucher popup automatically after a short delay
+  // so the player sees their score first
+  setTimeout(()=>showVoucherPopup(v), 800);
+
   const br=$('btn-replay');
   if(br){
     let armed=false,timer=null;
@@ -1212,9 +1392,10 @@ function renderResult(){
 
 
 function navRewards(){
-  // If the player has played at least once, show their result screen
+  // If the player has played at least once, show their voucher popup
   if(hasPlayedOnce){
-    goTo(renderResult);
+    const v=getVoucher(scoreVal);
+    showVoucherPopup(v);
   } else {
     // Not played yet — show a friendly nudge overlay
     showNavOverlay(
@@ -1252,11 +1433,11 @@ function showNavOverlay(icon,title,body,btnLabel,btnAction){
 
   var iconEl=document.createElement('div');
   iconEl.style.cssText='font-size:36px;text-align:center;margin-bottom:10px;';
-  if(icon && (icon.startsWith('http')||icon.startsWith('/')||icon.startsWith('.'))) {
+  if(icon && (icon.startsWith('http')||icon.startsWith('data:')||icon.startsWith('/')||icon.startsWith('.'))) {
     var img=document.createElement('img');
     img.src=icon;img.style.cssText='width:40px;height:40px;object-fit:contain;display:block;margin:0 auto;';
     iconEl.appendChild(img);
-  } else {
+  } else if(icon) {
     iconEl.textContent=icon;
   }
 
