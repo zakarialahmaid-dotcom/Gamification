@@ -535,20 +535,163 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .fm-legal{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(20px,5vw,28px) clamp(20px,5vw,28px);text-align:center;font-size:clamp(9px,2.3vw,11px);color:rgba(26,36,56,.5);font-family:var(--H2);line-height:1.55;}
 .spinner{width:18px;height:18px;border:2.5px solid rgba(26,36,56,.25);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:none;}
 
-/* RESULT ─ Jumia brand: orange top, white score cards, yellow voucher accent */
-#screen-result{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow-y:auto;animation:fadeIn .25s ease;}
-/* Angled orange header — mirrors form screen for consistency */
-.rs-header{flex:0 0 auto;background:var(--navy);padding:clamp(18px,4.5vw,26px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);position:relative;}
-.rs-brand{font-size:clamp(9px,2.4vw,11px);color:rgba(255,255,255,.6);font-family:var(--H2);letter-spacing:.14em;margin-bottom:4px;text-transform:uppercase;font-weight:700;}
-/* Headline — Helvetica Display Black, 95% leading */
-.rs-title{font-size:clamp(34px,10.5vw,50px);font-weight:900;color:var(--c30);line-height:.93;font-family:var(--H1);text-transform:uppercase;letter-spacing:-.01em;}
-/* Sub-headline = 50% headline size */
-.rs-sub{font-size:clamp(13px,3.5vw,16px);color:rgba(255,255,255,.78);font-family:var(--H2);font-weight:500;margin-top:7px;line-height:1.3;}
-/* Score cards — white, Jumia ink, orange value */
-.rs-scores{flex:0 0 auto;display:flex;gap:8px;padding:clamp(12px,3vw,16px) clamp(16px,4vw,22px) clamp(8px,2vw,10px);}
-.rs-score-card{flex:1;background:var(--white);border-radius:10px;padding:clamp(10px,2.5vw,14px) 6px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.12);}
-.rs-score-val{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:var(--navy);font-family:var(--H1);}
-.rs-score-lbl{font-size:clamp(8px,2vw,10px);color:var(--inkCard2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
+/* RESULT — full navy background, voucher as hero */
+#screen-result{
+  flex:1;display:flex;flex-direction:column;
+  background:var(--navy);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  animation:fadeIn .25s ease;
+}
+/* Compact header — just brand + score */
+.rs-header{
+  flex:0 0 auto;
+  padding:clamp(16px,4vw,22px) clamp(20px,5vw,28px) clamp(10px,2.5vw,14px);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+}
+.rs-header-left{flex:1;}
+.rs-brand{font-size:clamp(9px,2.4vw,11px);color:rgba(255,255,255,.45);font-family:var(--H2);letter-spacing:.14em;margin-bottom:4px;text-transform:uppercase;font-weight:700;}
+.rs-title{font-size:clamp(28px,8.5vw,42px);font-weight:900;color:var(--white);line-height:.93;font-family:var(--H1);text-transform:uppercase;letter-spacing:-.01em;}
+.rs-sub{font-size:clamp(12px,3.2vw,14px);color:rgba(255,255,255,.55);font-family:var(--H2);font-weight:500;margin-top:6px;line-height:1.3;}
+/* Score pills — compact row top right */
+.rs-scores{
+  flex:0 0 auto;display:flex;gap:6px;
+  padding:0 clamp(20px,5vw,28px) clamp(14px,3.5vw,18px);
+}
+.rs-score-card{
+  flex:1;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:clamp(8px,2vw,11px) 4px;text-align:center;
+}
+.rs-score-val{font-size:clamp(16px,4.5vw,20px);font-weight:900;color:var(--white);font-family:var(--H1);line-height:1;}
+.rs-score-lbl{font-size:clamp(7px,1.8vw,9px);color:rgba(255,255,255,.4);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
+
+/* ── VOUCHER HERO ── The big reward moment */
+.rs-voucher-hero{
+  flex:0 0 auto;
+  margin:0 clamp(16px,4vw,22px) clamp(14px,3.5vw,18px);
+  background:var(--orange);
+  border-radius:16px;
+  padding:clamp(20px,5vw,26px) clamp(20px,5vw,26px) clamp(16px,4vw,20px);
+  text-align:center;
+  box-shadow:0 8px 32px rgba(255,153,0,.35),0 2px 8px rgba(0,0,0,.3);
+  position:relative;overflow:hidden;
+}
+.rs-voucher-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:140px;height:140px;
+  background:rgba(255,255,255,.08);border-radius:50%;
+}
+.rs-voucher-eyebrow{
+  font-size:clamp(9px,2.4vw,11px);font-weight:700;
+  color:rgba(26,36,56,.65);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;
+}
+.rs-voucher-pct{
+  font-size:clamp(56px,16vw,80px);font-weight:900;
+  color:var(--navy);font-family:var(--H1);line-height:.9;
+  letter-spacing:-.02em;
+}
+.rs-voucher-label{
+  font-size:clamp(13px,3.5vw,16px);font-weight:700;
+  color:rgba(26,36,56,.75);font-family:var(--H2);
+  margin-top:4px;
+}
+.rs-voucher-saving{
+  display:inline-block;
+  background:rgba(26,36,56,.12);
+  border-radius:20px;
+  padding:4px 14px;
+  font-size:clamp(11px,2.8vw,13px);font-weight:700;
+  color:var(--navy);font-family:var(--H2);
+  margin-top:8px;
+}
+
+/* ── PHYSICAL PRIZE + LEADERBOARD RANK — side strip ── */
+.rs-meta{
+  flex:0 0 auto;
+  display:flex;gap:8px;
+  padding:0 clamp(16px,4vw,22px) clamp(12px,3vw,16px);
+}
+.rs-meta-card{
+  flex:1;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:clamp(10px,2.5vw,14px);
+  text-align:center;
+}
+.rs-meta-eyebrow{
+  font-size:clamp(7px,1.8vw,9px);font-weight:700;
+  color:rgba(255,255,255,.4);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;
+}
+.rs-meta-val{
+  font-size:clamp(13px,3.5vw,16px);font-weight:900;
+  color:var(--white);font-family:var(--H1);line-height:1.1;
+}
+.rs-meta-sub{
+  font-size:clamp(9px,2.3vw,10px);color:rgba(255,255,255,.45);
+  font-family:var(--H2);margin-top:3px;line-height:1.3;
+}
+.rs-meta-img{
+  width:clamp(28px,7.5vw,36px);height:clamp(28px,7.5vw,36px);
+  object-fit:contain;display:block;margin:4px auto;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));
+}
+
+/* ── ACTION ZONE ── Primary CTA fills the bottom */
+.rs-actions{
+  flex:0 0 auto;
+  padding:clamp(8px,2vw,12px) clamp(16px,4vw,22px) clamp(20px,5vw,28px);
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:auto;
+}
+.rs-cta-primary{
+  display:block;width:100%;
+  background:var(--orange);color:var(--navy);
+  border:none;border-radius:12px;
+  padding:clamp(18px,5vw,22px);
+  font-size:clamp(17px,4.8vw,21px);font-weight:900;
+  cursor:pointer;font-family:var(--H1);
+  text-transform:uppercase;letter-spacing:.06em;
+  box-shadow:0 6px 0 var(--orangeD),0 0 28px rgba(255,153,0,.3);
+  transition:transform .1s,box-shadow .1s;
+  animation:ctaBounce 2s ease-in-out infinite,ctaGlow 2s ease-in-out infinite;
+}
+.rs-cta-primary:active{transform:translateY(6px);box-shadow:0 0 0 var(--orangeD);animation:none;}
+.rs-cta-secondary{
+  display:block;width:100%;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);
+  border:1.5px solid rgba(255,255,255,.15);border-radius:8px;
+  padding:clamp(11px,2.8vw,14px);
+  font-size:clamp(11px,2.8vw,13px);font-weight:700;
+  cursor:pointer;font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.05em;
+  transition:background .2s,border-color .2s;
+}
+.rs-cta-secondary:active{background:rgba(255,255,255,.14);}
+.rs-cta-replay{
+  display:block;width:100%;
+  background:transparent;color:rgba(255,255,255,.85);
+  border:2px solid rgba(255,255,255,.25);border-radius:8px;
+  padding:clamp(12px,3vw,15px);
+  font-size:clamp(12px,3.2vw,14px);font-weight:900;
+  cursor:pointer;font-family:var(--H1);
+  text-transform:uppercase;letter-spacing:.05em;
+  transition:border-color .2s,background .2s;
+}
+.rs-cta-replay:active{background:rgba(255,255,255,.08);}
+
+/* Low score variant */
+.rs-low-score{
+  margin:0 clamp(16px,4vw,22px) clamp(12px,3vw,16px);
+  background:rgba(236,35,38,.12);
+  border:1.5px solid rgba(236,35,38,.3);
+  border-radius:12px;padding:clamp(16px,4vw,20px);text-align:center;
+}
+.rs-low-score-title{font-size:clamp(16px,4.5vw,20px);font-weight:900;color:var(--red);font-family:var(--H1);margin-bottom:6px;}
+.rs-low-score-sub{font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.6);font-family:var(--H2);line-height:1.5;}
+
+.rs-spacer{flex:1;min-height:clamp(8px,2vw,12px);}
 
 
 
@@ -850,21 +993,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 
 
-/* ── RESULT: dual reward card ── */
-.rs-reward-split{display:flex;gap:8px;padding:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);}
-.rs-reward-half{flex:1;border-radius:10px;padding:clamp(12px,3vw,16px) clamp(10px,2.5vw,14px);text-align:center;}
-.rs-reward-half.voucher{background:var(--white);box-shadow:0 2px 10px rgba(0,0,0,.1);}
-.rs-reward-half.physical{background:var(--navy);box-shadow:0 2px 10px rgba(0,0,0,.2);}
-.rs-reward-eyebrow{font-size:clamp(8px,2vw,9px);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--H2);margin-bottom:4px;}
-.rs-reward-half.voucher .rs-reward-eyebrow{color:var(--inkCard2);}
-.rs-reward-half.physical .rs-reward-eyebrow{color:rgba(255,255,255,.5);}
-.rs-reward-val{font-size:clamp(18px,5vw,24px);font-weight:900;font-family:var(--H1);line-height:1;margin-bottom:4px;}
-.rs-reward-half.voucher .rs-reward-val{color:var(--navy);}
-.rs-reward-half.physical .rs-reward-val{color:var(--orange);}
-.rs-reward-sub{font-size:clamp(9px,2.3vw,10px);font-family:var(--H2);line-height:1.3;}
-.rs-reward-half.voucher .rs-reward-sub{color:var(--inkCard2);}
-.rs-reward-half.physical .rs-reward-sub{color:rgba(255,255,255,.6);}
-.rs-reward-img{width:clamp(36px,10vw,48px);height:clamp(36px,10vw,48px);object-fit:contain;display:block;margin:6px auto 4px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.3));}
+/* rs-reward-split removed — replaced by rs-voucher-hero */
 /* Low score warning */
 .rs-low-score{background:rgba(236,35,38,.08);border:1.5px solid rgba(236,35,38,.2);border-radius:10px;padding:clamp(12px,3vw,16px);margin:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);text-align:center;}
 .rs-low-score-title{font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--red);font-family:var(--H1);margin-bottom:4px;}
@@ -2177,69 +2306,81 @@ function showVoucherPopup(v){
 function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
   const isLowScore=s<30;
+  const saving=v.label==='L\u00c9GENDE'?'\u2248 100 MAD':v.label==='CHAMPION'?'\u2248 75 MAD':v.label==='MATCH READY'?'\u2248 50 MAD':'\u2248 25 MAD';
   const replayLabel=isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE - TON MEILLEUR BON EST EN JEU';
   const attemptsLabel='Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' - ne les perds pas';
   $('app').innerHTML=`
   <div id="screen-result">
     <div class="rs-header">
-      <div class="rs-brand">JUMIA — ÉDITION FANS</div>
-      <div class="rs-title">${isLowScore?'PRESQUE !':s>=150?'BIEN JOUÉ !':'CONTINUE !'}</div>
-      <div class="rs-sub">${isLowScore?'Tu peux faire beaucoup mieux !':'Voici tes récompenses'}</div>
+      <div class="rs-header-left">
+        <div class="rs-brand">JUMIA \u00c9DITION FANS</div>
+        <div class="rs-title">${isLowScore?'PRESQUE\u00a0!':s>=250?'BIEN JOU\u00c9\u00a0!':'CONTINUE\u00a0!'}</div>
+        <div class="rs-sub">${isLowScore?'Tu peux faire beaucoup mieux\u00a0!':'Tu as gagn\u00e9 une r\u00e9duction\u00a0!'}</div>
+      </div>
     </div>
     <div class="rs-scores">
-      ${[{val:s,lbl:"POINTS",id:'rs-score-val-pts'},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map((sc,i)=>`
-        <div class="rs-score-card"><div class="rs-score-val" ${i===0?'id="rs-score-val-pts"':''}>${i===0?'0':sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
+      ${[{val:s,lbl:'POINTS'},{val:'\u00d7'+Math.min(maxComboVal,5),lbl:'COMBO'},{val:Math.floor(elapsedSec)+'s',lbl:'SURVIE'}].map((sc,i)=>`
+        <div class="rs-score-card">
+          <div class="rs-score-val" ${i===0?'id="rs-score-val-pts"':''}>${i===0?'0':sc.val}</div>
+          <div class="rs-score-lbl">${sc.lbl}</div>
+        </div>`).join('')}
     </div>
     ${isLowScore?`
     <div class="rs-low-score">
       <div class="rs-low-score-title">SCORE TROP BAS</div>
-      <div class="rs-low-score-sub">Atteins <b>80 pts</b> minimum pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons !</div>
+      <div class="rs-low-score-sub">Atteins <b>80 pts</b> pour gagner un bon.<br>Attrape plus de ballons et esquive les cartons\u00a0!</div>
     </div>`:`
-    <div class="rs-reward-split">
-      <div class="rs-reward-half voucher">
-        <div class="rs-reward-eyebrow">TON BON GARANTI</div>
-        <div class="rs-reward-val">${v.disc}</div>
-        <div class="rs-reward-sub">${v.label}<br>sur Jumia</div>
+    <div class="rs-voucher-hero">
+      <div class="rs-voucher-eyebrow">TON BON DE R\u00c9DUCTION JUMIA</div>
+      <div class="rs-voucher-pct">${v.disc}</div>
+      <div class="rs-voucher-label">${v.label} \u00b7 sur toute la s\u00e9lection football</div>
+      <div class="rs-voucher-saving">${saving} \u00e9conomis\u00e9s</div>
+    </div>
+    <div class="rs-meta">
+      <div class="rs-meta-card">
+        <div class="rs-meta-eyebrow">PRIX PHYSIQUE</div>
+        <img class="rs-meta-img" src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp" alt="Prix" id="rs-prize-img" draggable="false">
+        <div class="rs-meta-val" id="rs-prize-rank">TOP 3</div>
+        <div class="rs-meta-sub" id="rs-prize-sub">Maillot \u00b7 Polo \u00b7 Ballon</div>
       </div>
-      <div class="rs-reward-half physical">
-        <div class="rs-reward-eyebrow">PRIX PHYSIQUE</div>
-        <img class="rs-reward-img" src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp" alt="Prix" id="rs-prize-img" draggable="false">
-        <div class="rs-reward-val" id="rs-prize-rank" style="font-size:clamp(13px,3.5vw,16px);">TOP 3</div>
-        <div class="rs-reward-sub" id="rs-prize-sub">Maillot · Polo · Ballon<br>Sois dans le top 3 !</div>
+      <div class="rs-meta-card">
+        <div class="rs-meta-eyebrow">TON CODE</div>
+        <div style="font-size:clamp(15px,4vw,19px);font-weight:900;color:var(--orange);font-family:var(--H1);letter-spacing:.12em;margin:8px 0 4px;">${v.code}</div>
+        <div class="rs-meta-sub">Utilise-le sur Jumia<br>au moment du paiement</div>
       </div>
     </div>`}
     <div class="rs-spacer"></div>
-    <div class="rs-replay-bar">
-      <button onclick="showVoucherPopup(getVoucher(scoreVal))" style="display:block;width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(14px,4vw,18px);font-size:clamp(15px,4.2vw,18px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;box-shadow:0 5px 0 var(--navyL);animation:ctaGlow 2s ease-in-out infinite;">
-        VOIR MON BON DE RÉDUCTION
-      </button>
-      <button onclick="renderLeaderboard()" style="display:block;width:100%;background:transparent;color:var(--navy);border:2px solid rgba(26,36,56,.3);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(11px,2.8vw,13px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
+    <div class="rs-actions">
+      ${isLowScore?'':`
+      <button class="rs-cta-primary" onclick="showVoucherPopup(getVoucher(scoreVal))">
+        UTILISER MON BON SUR JUMIA
+      </button>`}
+      <button class="rs-cta-secondary" onclick="renderLeaderboard()">
         VOIR MON RANG AU CLASSEMENT
       </button>
       ${attempts>0
-        ?`<button class="btn-replay-full" id="btn-replay">
-              ${replayLabel}
-              <div style="font-size:clamp(9px,2.3vw,10px);font-weight:600;opacity:.7;margin-top:3px;letter-spacing:.04em;text-transform:none;">
-                ${attemptsLabel}
-              </div>
-           </button>`
-        :`<div class="rs-no-attempts">
-            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:var(--navy);margin-bottom:3px;">REVIENS DEMAIN À MINUIT !</div>
-            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t’attendent — ton bon aussi.</div>
+        ?`<button class="rs-cta-replay" id="btn-replay">
+            ${replayLabel}
+            <div style="font-size:clamp(9px,2.3vw,10px);font-weight:500;opacity:.6;margin-top:3px;letter-spacing:.04em;text-transform:none;">${attemptsLabel}</div>
+          </button>`
+        :`<div style="text-align:center;padding:10px 0;">
+            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.7);font-family:var(--H1);margin-bottom:3px;">REVIENS DEMAIN \u00c0 MINUIT\u00a0!</div>
+            <div style="font-size:clamp(10px,2.5vw,11px);color:rgba(255,255,255,.4);font-family:var(--H2);">De nouveaux essais t\u2019attendent.</div>
           </div>`}
     </div>
   </div>`;
 
-  // Animate score count-up
+  // Score count-up animation
   const scoreEl=$('rs-score-val-pts');
   if(scoreEl&&s>0){
-    let cur=0;const step=Math.max(1,Math.ceil(s/40));const t=setInterval(()=>{
+    let cur=0;const step=Math.max(1,Math.ceil(s/40));const iv=setInterval(()=>{
       cur=Math.min(s,cur+step);scoreEl.textContent=Number(cur).toLocaleString('fr-FR');
-      if(cur>=s)clearInterval(t);
+      if(cur>=s)clearInterval(iv);
     },30);
   }
+
+  // Live leaderboard rank update
   if(!isLowScore){
-    // Voucher shown on player's tap (see button below), not auto-popup // 2.5s — let player absorb their score first
     fetchLeaderboard().then(players=>{
       const pImgs=['https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp'];
       const pNames=['Maillot Maroc','Polo Maroc','Ballon de foot'];
@@ -2248,18 +2389,14 @@ function renderResult(){
       const myRank=myIdx>=0?myIdx+1:null;
       const rankEl=$('rs-prize-rank'),subEl=$('rs-prize-sub'),imgEl=$('rs-prize-img');
       if(rankEl&&subEl&&imgEl){
-        if(myRank&&myRank<=3){imgEl.src=pImgs[myRank-1];rankEl.textContent='#'+myRank+' — '+pNames[myRank-1];subEl.innerHTML='<b style="color:var(--orange)">Tu gagnes ce prix !</b>';}
-        else if(myRank&&myRank<=10){rankEl.textContent='TU ES #'+myRank;subEl.textContent='Rejoue pour entrer dans le top 3 !';}
+        if(myRank&&myRank<=3){imgEl.src=pImgs[myRank-1];rankEl.textContent='#'+myRank+' \u2014 '+pNames[myRank-1];subEl.innerHTML='<b style="color:var(--orange)">Tu gagnes ce prix\u00a0!</b>';}
+        else if(myRank&&myRank<=10){rankEl.textContent='TU ES #'+myRank;subEl.textContent='Rejoue pour entrer dans le top 3\u00a0!';}
       }
     }).catch(()=>{});
   }
 
   const br=$('btn-replay');
-  if(br){
-    br.addEventListener('click',()=>{
-      goTo(startGame);
-    });
-  }
+  if(br){br.addEventListener('click',()=>{goTo(startGame);});}
 }
 
 // LOBBY HELPERS
