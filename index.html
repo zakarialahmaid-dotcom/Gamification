@@ -858,6 +858,40 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 .lb-podium-loading{text-align:center;padding:clamp(16px,4vw,22px);color:rgba(26,36,56,.45);font-family:var(--H2);font-size:clamp(11px,2.8vw,13px);}
 
+/* ── RESULT RANK CARD ── */
+.rs-rank-card{
+  flex:1;background:var(--navy);border-radius:10px;
+  padding:clamp(10px,2.5vw,14px) 6px;
+  text-align:center;
+  box-shadow:0 4px 14px rgba(0,0,0,.2);
+  display:none; /* shown once rank is known */
+}
+.rs-rank-val{
+  font-size:clamp(20px,5.5vw,26px);font-weight:900;
+  color:var(--orange);font-family:var(--H1);
+  line-height:1;
+}
+.rs-rank-lbl{
+  font-size:clamp(8px,2vw,10px);color:rgba(255,255,255,.6);
+  font-family:var(--H2);text-transform:uppercase;
+  letter-spacing:.06em;margin-top:3px;font-weight:700;
+}
+.rs-rank-card-loading{
+  flex:1;background:rgba(26,36,56,.15);border-radius:10px;
+  padding:clamp(10px,2.5vw,14px) 6px;text-align:center;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+.rs-rank-loading-val{
+  font-size:clamp(14px,4vw,18px);font-weight:900;
+  color:rgba(26,36,56,.3);font-family:var(--H1);
+  line-height:1;letter-spacing:.04em;
+}
+.rs-rank-lbl-sub{
+  font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.35);
+  font-family:var(--H2);text-transform:uppercase;
+  letter-spacing:.06em;margin-top:3px;font-weight:700;
+}
+
 </style>
 </head>
 <body>
@@ -912,6 +946,7 @@ let lastPressTime=0; // invincibility window
 let wid=0, playerName='', playerEmail='', playerCity='';
 let hasPlayedOnce=false;
 let tutorialActive=false;
+let playerRank=null; // rank after last game, fetched post-submit
 
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
 const SHEET_ID  = '1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
@@ -1489,9 +1524,23 @@ function endGame(finalScore){
   attempts=Math.max(0,attempts-1);
   if(finalScore>bestScore)bestScore=finalScore;
   hasPlayedOnce=true;
+  playerRank=null; // reset until we know
   if(SHEET_URL.startsWith("https://")&&playerName){
     const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName,email:playerEmail,city:playerCity,score:finalScore,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(finalScore).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+    // Wait 2s for sheet to update, then fetch leaderboard to find player rank
+    setTimeout(()=>{
+      fetchLeaderboard().then(players=>{
+        const firstName=playerName.split(' ')[0].toLowerCase();
+        const idx=players.findIndex(p=>(p.name||'').split(' ')[0].toLowerCase()===firstName&&Number(p.score)===finalScore);
+        playerRank=idx>=0?idx+1:null;
+        // Update rank display if result screen is already showing
+        const rankEl=$('rs-rank-val');
+        if(rankEl&&playerRank)rankEl.textContent='#'+playerRank;
+        const rankCard=$('rs-rank-card');
+        if(rankCard&&playerRank)rankCard.style.display='';
+      }).catch(()=>{});
+    },2000);
   }
   goTo(renderResult);
 }
@@ -1668,6 +1717,17 @@ function renderResult(){
     <div class="rs-scores">
       ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card"><div class="rs-score-val">${sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
+      ${playerName?`
+        ${playerRank!==null
+          ?`<div class="rs-rank-card" id="rs-rank-card" style="display:block;">
+              <div class="rs-rank-val" id="rs-rank-val">#${playerRank}</div>
+              <div class="rs-rank-lbl">TON RANG</div>
+            </div>`
+          :`<div class="rs-rank-card-loading" id="rs-rank-card">
+              <div class="rs-rank-loading-val" id="rs-rank-val">...</div>
+              <div class="rs-rank-lbl-sub">TON RANG</div>
+            </div>`
+        }`:''}
     </div>
     <div class="rs-spacer"></div>
     <div class="rs-replay-bar">
