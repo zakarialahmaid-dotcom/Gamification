@@ -858,38 +858,20 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 .lb-podium-loading{text-align:center;padding:clamp(16px,4vw,22px);color:rgba(26,36,56,.45);font-family:var(--H2);font-size:clamp(11px,2.8vw,13px);}
 
-/* ── RESULT RANK CARD ── */
-.rs-rank-card{
-  flex:1;background:var(--navy);border-radius:10px;
-  padding:clamp(10px,2.5vw,14px) 6px;
-  text-align:center;
-  box-shadow:0 4px 14px rgba(0,0,0,.2);
-  display:none; /* shown once rank is known */
+
+/* Player's own row in the leaderboard — highlighted */
+.lbd-row.mine{
+  background:rgba(255,153,0,.12);
+  border-left:3px solid var(--orange);
 }
-.rs-rank-val{
-  font-size:clamp(20px,5.5vw,26px);font-weight:900;
-  color:var(--orange);font-family:var(--H1);
-  line-height:1;
-}
-.rs-rank-lbl{
-  font-size:clamp(8px,2vw,10px);color:rgba(255,255,255,.6);
+.lbd-row.mine .lbd-name{color:var(--navy);font-weight:900;}
+.lbd-row.mine .lbd-score{color:var(--orange);}
+.lbd-you-badge{
+  font-size:clamp(8px,2vw,9px);font-weight:900;
+  background:var(--orange);color:var(--navy);
+  border-radius:3px;padding:1px 5px;
   font-family:var(--H2);text-transform:uppercase;
-  letter-spacing:.06em;margin-top:3px;font-weight:700;
-}
-.rs-rank-card-loading{
-  flex:1;background:rgba(26,36,56,.15);border-radius:10px;
-  padding:clamp(10px,2.5vw,14px) 6px;text-align:center;
-  box-shadow:0 4px 14px rgba(0,0,0,.06);
-}
-.rs-rank-loading-val{
-  font-size:clamp(14px,4vw,18px);font-weight:900;
-  color:rgba(26,36,56,.3);font-family:var(--H1);
-  line-height:1;letter-spacing:.04em;
-}
-.rs-rank-lbl-sub{
-  font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.35);
-  font-family:var(--H2);text-transform:uppercase;
-  letter-spacing:.06em;margin-top:3px;font-weight:700;
+  letter-spacing:.04em;margin-top:2px;display:inline-block;
 }
 
 </style>
@@ -946,7 +928,6 @@ let lastPressTime=0; // invincibility window
 let wid=0, playerName='', playerEmail='', playerCity='';
 let hasPlayedOnce=false;
 let tutorialActive=false;
-let playerRank=null; // rank after last game, fetched post-submit
 
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
 const SHEET_ID  = '1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
@@ -1122,18 +1103,25 @@ function renderLeaderboard(){
       card.innerHTML='<div class="lbd-empty">Sois le premier à jouer !<br>Ton nom apparaîtra ici.</div>';
       return;
     }
+    const myFirstName=playerName?(playerName.split(' ')[0].toLowerCase()):'';
+    const myScore=scoreVal;
+    let myRowIdx=-1;
     card.innerHTML=players.map((p,i)=>{
       const rank=i+1;
       const medalClass=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
-      const name=(p.name||'Joueur').split(' ')[0];
+      const firstName=(p.name||'Joueur').split(' ')[0];
+      const isMe=hasPlayedOnce&&myFirstName&&firstName.toLowerCase()===myFirstName&&Number(p.score)===myScore;
+      if(isMe)myRowIdx=i;
       const city=p.city?'<div class="lbd-city">'+p.city+'</div>':'';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const prize=i<3?'<div class="lbd-prize">'+prizes[i]+'</div>':'';
-      const rowClass=rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
-      return '<div class="lbd-row '+rowClass+'">'+
+      const rankClass=rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+      const meClass=isMe?' mine':'';
+      const youBadge=isMe?'<div class="lbd-you-badge">TOI</div>':'';
+      return '<div class="lbd-row '+rankClass+meClass+'" id="lbd-row-'+i+'">'+
         '<div class="lbd-medal '+medalClass+'">'+rank+'</div>'+
         '<div class="lbd-info">'+
-          '<div class="lbd-name">'+name+'</div>'+
+          '<div class="lbd-name">'+firstName+youBadge+'</div>'+
           city+
         '</div>'+
         '<div class="lbd-right">'+
@@ -1142,6 +1130,13 @@ function renderLeaderboard(){
         '</div>'+
       '</div>';
     }).join('');
+    // Scroll to player's row after render
+    if(myRowIdx>=0){
+      setTimeout(()=>{
+        const myRow=document.getElementById('lbd-row-'+myRowIdx);
+        if(myRow)myRow.scrollIntoView({behavior:'smooth',block:'center'});
+      },300);
+    }
   }).catch(()=>{
     const card=$('lbd-card');
     if(card)card.innerHTML='<div class="lbd-empty">Classement temporairement indisponible.</div>';
@@ -1524,23 +1519,9 @@ function endGame(finalScore){
   attempts=Math.max(0,attempts-1);
   if(finalScore>bestScore)bestScore=finalScore;
   hasPlayedOnce=true;
-  playerRank=null; // reset until we know
   if(SHEET_URL.startsWith("https://")&&playerName){
     const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName,email:playerEmail,city:playerCity,score:finalScore,combo:Math.min(maxComboVal,5),survie:Math.floor(elapsedSec),voucher:getVoucher(finalScore).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
-    // Wait 2s for sheet to update, then fetch leaderboard to find player rank
-    setTimeout(()=>{
-      fetchLeaderboard().then(players=>{
-        const firstName=playerName.split(' ')[0].toLowerCase();
-        const idx=players.findIndex(p=>(p.name||'').split(' ')[0].toLowerCase()===firstName&&Number(p.score)===finalScore);
-        playerRank=idx>=0?idx+1:null;
-        // Update rank display if result screen is already showing
-        const rankEl=$('rs-rank-val');
-        if(rankEl&&playerRank)rankEl.textContent='#'+playerRank;
-        const rankCard=$('rs-rank-card');
-        if(rankCard&&playerRank)rankCard.style.display='';
-      }).catch(()=>{});
-    },2000);
   }
   goTo(renderResult);
 }
@@ -1717,20 +1698,12 @@ function renderResult(){
     <div class="rs-scores">
       ${[{val:s,lbl:"POINTS"},{val:'×'+Math.min(maxComboVal,5),lbl:"COMBO"},{val:Math.floor(elapsedSec)+'s',lbl:"SURVIE"}].map(sc=>`
         <div class="rs-score-card"><div class="rs-score-val">${sc.val}</div><div class="rs-score-lbl">${sc.lbl}</div></div>`).join('')}
-      ${playerName?`
-        ${playerRank!==null
-          ?`<div class="rs-rank-card" id="rs-rank-card" style="display:block;">
-              <div class="rs-rank-val" id="rs-rank-val">#${playerRank}</div>
-              <div class="rs-rank-lbl">TON RANG</div>
-            </div>`
-          :`<div class="rs-rank-card-loading" id="rs-rank-card">
-              <div class="rs-rank-loading-val" id="rs-rank-val">...</div>
-              <div class="rs-rank-lbl-sub">TON RANG</div>
-            </div>`
-        }`:''}
     </div>
     <div class="rs-spacer"></div>
     <div class="rs-replay-bar">
+      <button onclick="goTo(renderLeaderboard)" style="display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(10px,2.5vw,13px);font-size:clamp(12px,3.2vw,14px);font-weight:900;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
+        VOIR MON RANG AU CLASSEMENT
+      </button>
       ${attempts>0
         ?`<button class="btn-replay-full" id="btn-replay">
               REJOUE — TON MEILLEUR BON EST EN JEU
@@ -1740,7 +1713,7 @@ function renderResult(){
            </button>`
         :`<div class="rs-no-attempts">
             <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:var(--navy);margin-bottom:3px;">REVIENS DEMAIN !</div>
-            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t'attendent — ton bon aussi.</div>
+            <div style="font-size:clamp(10px,2.5vw,11px);">De nouveaux essais t’attendent — ton bon aussi.</div>
           </div>`}
     </div>
   </div>`;
