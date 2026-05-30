@@ -422,9 +422,9 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 
 /* GAME */
-#screen-game{flex:1;display:flex;flex-direction:column;background:var(--navy);overflow:hidden;animation:fadeIn .15s ease;}
+#screen-game{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;animation:fadeIn .15s ease;}
 /* Game HUD — Orange Peel header, white logo text */
-.gm-hud{flex:0 0 auto;background:var(--navyL);padding:clamp(8px,2vw,11px) clamp(14px,4vw,22px);display:flex;align-items:center;}
+.gm-hud{flex:0 0 auto;background:var(--navy);padding:clamp(8px,2vw,11px) clamp(14px,4vw,22px);display:flex;align-items:center;}
 .gm-brand{display:flex;flex-direction:column;gap:3px;}
 /* Headline — Helvetica Display Black, white on orange */
 .gm-title{font-size:clamp(18px,5.5vw,26px);font-weight:900;color:var(--white);line-height:1;font-family:var(--H1);text-transform:uppercase;}
@@ -466,7 +466,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 #screen-game.hit-flash{animation:screenFlash .4s ease;}
 .gm-net{flex:0 0 auto;height:0;}
 /* Game controls — Orange Peel bg, Jumia Red arrow buttons */
-.gm-btns{flex:0 0 auto;background:var(--navyL);padding:clamp(10px,2.5vw,16px) clamp(20px,5vw,28px);display:flex;justify-content:space-between;align-items:center;box-shadow:0 -3px 14px rgba(0,0,0,.15);position:relative;min-height:clamp(84px,22vw,110px);}
+.gm-btns{flex:0 0 auto;background:var(--navy);padding:clamp(10px,2.5vw,16px) clamp(20px,5vw,28px);display:flex;justify-content:space-between;align-items:center;box-shadow:0 -3px 14px rgba(0,0,0,.15);position:relative;min-height:clamp(84px,22vw,110px);}
 /* Arrow buttons — Jumia Red (Flash Sale / urgency colour) */
 .btn-arrow{width:clamp(72px,18vw,88px);height:clamp(72px,18vw,88px);flex-shrink:0;border-radius:50%;background:var(--orange);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,7vw,32px);color:var(--navy);box-shadow:0 5px 0 var(--orangeD);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;outline:none;transition:box-shadow .08s;}
 .btn-arrow:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
@@ -475,9 +475,9 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .combo-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--navy);color:var(--white);border-radius:6px;padding:5px 16px;font-size:clamp(11px,3vw,14px);font-weight:900;display:none;font-family:var(--H1);box-shadow:0 3px 0 var(--navyL);white-space:nowrap;pointer-events:none;}
 
 /* FORM ─ Jumia brand: orange header, white card, dark ink text */
-#screen-form{flex:1;display:flex;flex-direction:column;background:var(--navy);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;min-height:0;}
+#screen-form{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;min-height:0;}
 /* Angled orange header strip */
-.fm-top{flex:0 0 auto;background:var(--navyL);padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(20px,5vw,26px);text-align:center;}
+.fm-top{flex:0 0 auto;background:var(--navy);padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(20px,5vw,26px);text-align:center;}
 .fm-title{font-size:clamp(26px,7.5vw,34px);font-weight:900;color:var(--white);line-height:.92;font-family:var(--H1);margin-bottom:8px;text-transform:uppercase;letter-spacing:-.01em;}
 .fm-sub{font-size:clamp(12px,3.2vw,15px);color:rgba(255,255,255,.75);font-family:var(--H2);font-weight:500;line-height:1.4;}
 .fm-sub b{color:var(--white);font-weight:700;}
@@ -492,18 +492,18 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .fm-error-msg{font-size:clamp(10px,2.5vw,12px);color:var(--c10);font-family:var(--H2);font-weight:700;margin-top:5px;display:none;}
 .fm-error-msg.visible{display:block;}
 /* Submit — 10% Red CTA, same across all screens */
-.btn-submit{width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;box-shadow:0 5px 0 var(--orangeD);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
-.btn-submit:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-submit{width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;box-shadow:0 5px 0 var(--navyL);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
+.btn-submit:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
 .fm-spacer{flex:0 0 clamp(12px,3vw,16px);}
 /* Legal — body copy = 25% of headline, subdued white */
-.fm-legal{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(20px,5vw,28px) clamp(20px,5vw,28px);text-align:center;font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.4);font-family:var(--H2);line-height:1.55;}
-.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.fm-legal{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(20px,5vw,28px) clamp(20px,5vw,28px);text-align:center;font-size:clamp(9px,2.3vw,11px);color:rgba(26,36,56,.5);font-family:var(--H2);line-height:1.55;}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(26,36,56,.25);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:none;}
 
 /* RESULT ─ Jumia brand: orange top, white score cards, yellow voucher accent */
-#screen-result{flex:1;display:flex;flex-direction:column;background:var(--navy);overflow-y:auto;animation:fadeIn .25s ease;}
+#screen-result{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow-y:auto;animation:fadeIn .25s ease;}
 /* Angled orange header — mirrors form screen for consistency */
-.rs-header{flex:0 0 auto;background:var(--navyL);padding:clamp(18px,4.5vw,26px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);position:relative;}
+.rs-header{flex:0 0 auto;background:var(--navy);padding:clamp(18px,4.5vw,26px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);position:relative;}
 .rs-brand{font-size:clamp(9px,2.4vw,11px);color:rgba(255,255,255,.6);font-family:var(--H2);letter-spacing:.14em;margin-bottom:4px;text-transform:uppercase;font-weight:700;}
 /* Headline — Helvetica Display Black, 95% leading */
 .rs-title{font-size:clamp(34px,10.5vw,50px);font-weight:900;color:var(--c30);line-height:.93;font-family:var(--H1);text-transform:uppercase;letter-spacing:-.01em;}
@@ -527,18 +527,18 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 
 /* Result CTA — 10% Red, consistent with all other primary CTAs */
-.btn-jumia-main{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px) clamp(14px,3.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 5px 0 var(--orangeD);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;}
-.btn-jumia-main:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-jumia-main{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px) clamp(14px,3.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 5px 0 var(--orangeD);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;}
+.btn-jumia-main:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-jumia-main span{line-height:1.2;}
 
 .rs-spacer{flex:0 0 clamp(10px,2.5vw,14px);}
 /* Replay bar — white footer, consistent with form card style */
-.rs-replay-bar{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(24px,6vw,30px);background:var(--navy);border-top:1px solid rgba(255,255,255,.08);}
+.rs-replay-bar{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(24px,6vw,30px);background:var(--orange);border-top:1px solid rgba(26,36,56,.12);}
 /* Replay button — ink border, brand orange on hover */
-.btn-replay-full{display:block;width:100%;background:transparent;color:var(--orange);border:2px solid var(--orange);border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;transition:border-color .2s,color .2s,background .2s;}
-.btn-replay-full:hover{border-color:var(--orangeD);color:var(--orangeD);}
-.btn-replay-full.confirm{border-color:var(--red);color:var(--red);background:rgba(236,35,38,.05);font-weight:900;}
-.rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);padding:10px 0;font-weight:500;}
+.btn-replay-full{display:block;width:100%;background:transparent;color:var(--navy);border:2px solid var(--navy);border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;transition:border-color .2s,color .2s,background .2s;}
+.btn-replay-full:hover{border-color:var(--navyL);color:var(--navyL);}
+.btn-replay-full.confirm{border-color:var(--red);color:var(--red);background:rgba(236,35,38,.08);font-weight:900;}
+.rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:rgba(26,36,56,.6);font-family:var(--H2);padding:10px 0;font-weight:500;}
 /* ── VOUCHER POPUP MODAL ─────────────────────────────────────────────────── */
 #voucher-popup{
   position:fixed;top:0;left:0;right:0;bottom:0;
@@ -1429,7 +1429,7 @@ function showNavOverlay(icon,title,body,btnLabel,btnAction){
   el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,15,25,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
 
   var sheet=document.createElement('div');
-  sheet.style.cssText='background:#1a2438;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:clamp(22px,6vw,32px) clamp(20px,5vw,28px) clamp(24px,6vw,36px);box-shadow:0 -6px 32px rgba(0,0,0,.4);';
+  sheet.style.cssText='background:#1a2438;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:clamp(22px,6vw,32px) clamp(20px,5vw,28px) clamp(24px,6vw,36px);box-shadow:0 -6px 32px rgba(0,0,0,.5);';
 
   var iconEl=document.createElement('div');
   iconEl.style.cssText='font-size:36px;text-align:center;margin-bottom:10px;';
