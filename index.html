@@ -324,8 +324,8 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 /* ── 10% Red CTA button ── */
 .lb-cta{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(14px,3.5vw,18px) clamp(8px,2vw,12px);}
-.btn-kickoff{width:100%;background:var(--orange);color:var(--navy);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 var(--orangeD);transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
-.btn-kickoff:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-kickoff{width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 var(--navyL);transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
+.btn-kickoff:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
 .btn-kickoff:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
 .btn-kickoff-icon{width:clamp(36px,9vw,44px);height:clamp(36px,9vw,44px);object-fit:contain;flex-shrink:0;}
 /* ── SHARED PRIMARY CTA ── same green on every screen ── */
@@ -336,13 +336,13 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 
 
 /* ── Bottom nav — 30% white bar, 10% red active ── */
-.lb-nav{flex:0 0 auto;background:var(--orange);display:flex;align-items:stretch;border-top:1px solid rgba(26,36,56,.15);}
+.lb-nav{flex:0 0 auto;background:var(--navy);display:flex;align-items:stretch;border-top:1px solid var(--navyL);}
 .lb-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,2vw,11px) 4px clamp(10px,2.5vw,13px);gap:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border:none;background:transparent;}
-.lb-nav-icon{font-size:clamp(16px,4.3vw,20px);line-height:1;color:rgba(26,36,56,.5);}
-.lb-nav-label{font-size:clamp(8px,2vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;color:rgba(26,36,56,.5);}
-.lb-nav-item.active .lb-nav-icon{color:var(--navy);}
-.lb-nav-item.active .lb-nav-label{color:var(--navy);}
-.lb-nav-item:not(.active) .lb-nav-icon{color:rgba(26,36,56,.45);}
+.lb-nav-icon{font-size:clamp(16px,4.3vw,20px);line-height:1;color:rgba(255,255,255,.45);}
+.lb-nav-label{font-size:clamp(8px,2vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.45);}
+.lb-nav-item.active .lb-nav-icon{color:var(--orange);}
+.lb-nav-item.active .lb-nav-label{color:var(--orange);}
+.lb-nav-item:not(.active) .lb-nav-icon{color:rgba(255,255,255,.4);}
 
 /* TUTORIAL */
 #tutorial-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:clamp(90px,24vw,120px);animation:fadeIn .3s ease;}
@@ -386,7 +386,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 .score-num{font-size:clamp(16px,5vw,22px);font-weight:900;color:var(--navy);line-height:1;font-family:var(--H1);}
 .score-lbl{font-size:7px;font-weight:700;color:var(--inkCard2);font-family:var(--H2);letter-spacing:.06em;text-transform:uppercase;}
 #lives-counter{position:relative;width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);display:flex;align-items:center;justify-content:center;}
-#lives-counter img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 0px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff) drop-shadow(0 3px 8px rgba(0,0,0,.35));transition:transform .2s,filter .2s;}
+#lives-counter img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 3px 8px rgba(0,0,0,.35));transition:transform .2s,filter .2s;}
 #lives-count{position:absolute;top:-4px;right:-6px;background:var(--navy);color:var(--white);border-radius:50%;width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,14px);font-weight:900;font-family:var(--H1);border:2px solid var(--c30);box-shadow:0 2px 6px rgba(0,0,0,.25);}
 #btn-mute{position:absolute;bottom:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.25);cursor:pointer;color:#fff;font-size:clamp(14px,3.5vw,18px);display:flex;align-items:center;justify-content:center;z-index:9;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;}
 #btn-mute:active{background:rgba(0,0,0,.5);}
@@ -506,7 +506,7 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
   <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
 </div>
 <div id="rotate-screen">
-  <div class="rotate-icon">📱</div>
+  <div class="rotate-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="4" width="24" height="40" rx="4" stroke="white" stroke-width="3" fill="none"/><circle cx="24" cy="38" r="2" fill="white"/></svg></div>
   <div class="rotate-msg">TOURNE TON TÉLÉPHONE</div>
   <div class="rotate-sub">Le jeu est optimisé en mode portrait</div>
 </div>
@@ -523,14 +523,14 @@ function CATCH_Y(fh){ return fh - GH - 6; }
 const BALL_SIZE = 46;
 const CARD_W = 68, CARD_H = 92;
 
-const IMG_STAR    = "https://raw.githubusercontent.com/Madzack69/Icons/main/Star.png";
-const IMG_TROPHY  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Trophy.png";
-const IMG_VOUCHER = "https://raw.githubusercontent.com/Madzack69/Icons/main/Voucher.png";
-const IMG_ATTEMPTS= "https://raw.githubusercontent.com/Madzack69/Icons/main/Attempts.png";
+const IMG_STAR    = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpolygon points='24,6 29,18 42,18 32,27 36,40 24,32 12,40 16,27 6,18 19,18' fill='%23ff9900' stroke='%23e68800' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E";
+const IMG_TROPHY  = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='18' y='36' width='12' height='5' rx='1' fill='%231a2438'/%3E%3Crect x='14' y='41' width='20' height='4' rx='2' fill='%231a2438'/%3E%3Cpath d='M12 8 L36 8 L36 24 C36 32 30 36 24 36 C18 36 12 32 12 24 Z' fill='%23ff9900' stroke='%23e68800' stroke-width='1.5'/%3E%3Cpath d='M12 10 C12 10 6 10 6 16 C6 22 12 24 12 24' fill='none' stroke='%23ff9900' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M36 10 C36 10 42 10 42 16 C42 22 36 24 36 24' fill='none' stroke='%23ff9900' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M20 22 L22 28 L24 24 L26 28 L28 22' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+const IMG_VOUCHER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='4' y='14' width='40' height='20' rx='4' fill='%231a2438'/%3E%3Ccircle cx='4' cy='24' r='5' fill='%23ff9900'/%3E%3Ccircle cx='44' cy='24' r='5' fill='%23ff9900'/%3E%3Cline x1='18' y1='14' x2='18' y2='34' stroke='%23ff9900' stroke-width='1.5' stroke-dasharray='3 3'/%3E%3Ctext x='27' y='28' font-family='Arial Black,sans-serif' font-size='10' font-weight='900' fill='%23ff9900' text-anchor='middle'%3E%25%3C/text%3E%3C/svg%3E";
+const IMG_ATTEMPTS= "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='26' r='18' fill='%231a2438' stroke='%2324304f' stroke-width='2'/%3E%3Ccircle cx='24' cy='26' r='15' fill='none' stroke='%23ff9900' stroke-width='2'/%3E%3Cline x1='24' y1='26' x2='24' y2='15' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='24' y1='26' x2='31' y2='30' stroke='%23ff9900' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='26' r='2' fill='white'/%3E%3Crect x='20' y='5' width='8' height='4' rx='2' fill='%231a2438'/%3E%3Cline x1='18' y1='7' x2='15' y2='10' stroke='%231a2438' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='30' y1='7' x2='33' y2='10' stroke='%231a2438' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E";
 const IMG_GLOVES  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Gloves.png";
 const IMG_SOCCER  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Soccer.png";
 const IMG_GOLDEN  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon%20d'or.png";
-const IMG_HEART   = "https://raw.githubusercontent.com/Madzack69/Icons/main/Life.png";
+const IMG_HEART   = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 42 C24 42 6 28 6 17 C6 11 10.5 6 16.5 6 C20 6 23 8 24 10 C25 8 28 6 31.5 6 C37.5 6 42 11 42 17 C42 28 24 42 24 42Z' fill='%23ec2326' stroke='%23a31a1d' stroke-width='1.5'/%3E%3C/svg%3E";
 const IMG_REDCARD = "https://raw.githubusercontent.com/Madzack69/Icons/main/Red.png";
 
 function getVoucher(s){
@@ -600,8 +600,13 @@ function startMusic(){if(!musicOn)return;if(!musicStarted){music.play().catch(()
 function stopMusic(){musicFade(0,600);setTimeout(()=>{music.pause();music.currentTime=0;},650);}
 function toggleMusic(btn){
   musicOn=!musicOn;
-  if(musicOn){music.play().catch(()=>{});musicFade(0.18);btn.textContent='♪';btn.title='Couper la musique';}
-  else{musicFade(0,400);setTimeout(()=>music.pause(),450);btn.textContent='♪̶';btn.title='Activer la musique';}
+  if(musicOn){
+    music.play().catch(()=>{});musicFade(0.18);btn.title='Couper la musique';
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+  } else {
+    musicFade(0,400);setTimeout(()=>music.pause(),450);btn.title='Activer la musique';
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+  }
 }
 
 // VISIBILITY — pause music whenever the page/tab is hidden or the app is backgrounded,
@@ -683,7 +688,7 @@ function renderLobby(){
       </div>
       <img class="lb-hero-ball" src="${IMG_SOCCER}" alt="" draggable="false">
       <div class="lb-attempts-badge">
-        <span class="lb-attempts-icon">⏱</span>
+        <img src="${IMG_ATTEMPTS}" style="width:clamp(18px,4.5vw,22px);height:clamp(18px,4.5vw,22px);object-fit:contain;display:block;margin:0 auto 2px;" alt="" draggable="false">
         <div class="lb-attempts-num ${attemptsLeft<=1?'urgent':''}">${attemptsLeft}/4</div>
         <div class="lb-attempts-lbl">ESSAIS</div>
       </div>
@@ -708,7 +713,7 @@ function renderLobby(){
       <!-- How to play -->
       <div class="lb-how">
         <div class="lb-how-header">
-          <div class="lb-how-header-icon">📖</div>
+          <div class="lb-how-header-icon"><img src="${IMG_STAR}" style="width:14px;height:14px;object-fit:contain;display:block;" alt="" draggable="false"></div>
           <div class="lb-how-title">COMMENT JOUER</div>
         </div>
         <div class="lb-how-rows">
@@ -746,16 +751,16 @@ function renderLobby(){
     <!-- ── BOTTOM NAV ── -->
     <div class="lb-nav">
       <button class="lb-nav-item active" onclick="renderLobby()">
-        <span class="lb-nav-icon">🏠</span>
+        <span class="lb-nav-icon"><img src="${IMG_GLOVES}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
         <span class="lb-nav-label">ACCUEIL</span>
       </button>
 
       <button class="lb-nav-item" onclick="navRewards()">
-        <span class="lb-nav-icon">🎁</span>
+        <span class="lb-nav-icon"><img src="${IMG_VOUCHER}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
         <span class="lb-nav-label">RÉCOMPENSES</span>
       </button>
       <button class="lb-nav-item" onclick="navHelp()">
-        <span class="lb-nav-icon">❓</span>
+        <span class="lb-nav-icon"><img src="${IMG_TROPHY}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
         <span class="lb-nav-label">AIDE</span>
       </button>
     </div>
@@ -803,7 +808,7 @@ function renderGame(){
           <div id="lives-count">3</div>
         </div>
       </div>
-      <button id="btn-mute" onclick="toggleMusic(this)" title="Couper la musique">♪</button>
+      <button id="btn-mute" onclick="toggleMusic(this)" title="Couper la musique"><svg id="mute-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
       ${!hasPlayedOnce?`
       <div id="tutorial-overlay" onclick="dismissTutorial()">
         <div class="tuto-title">Comment jouer</div>
@@ -917,14 +922,14 @@ function tick(ts){
           newCombo++;
           const pts=Math.round((200+Math.floor(elapsedSec)*4)*Math.min(newCombo,5));
           ptsGained+=pts;
-          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'★ +'+pts+' BONUS!',true);
+          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'BONUS +'+pts,true);
           triggerCatchRing(gloveX,cy);
           if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
         } else {
           // Red card — skip if within 180ms of button press (swipe protection)
           if(Date.now()-lastPressTime<180){if(el)el.remove();return false;}
           newCombo=0;livesLost++;
-          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'🟥 CARTON!',false);
+          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'CARTON !',false);
           const sg=$('screen-game');
           if(sg){sg.classList.add('hit-flash');setTimeout(()=>sg&&sg.classList.remove('hit-flash'),400);}
           if(ge){ge.classList.remove('big-shake');void ge.offsetWidth;ge.classList.add('big-shake');setTimeout(()=>ge&&ge.classList.remove('big-shake'),500);}
@@ -1144,7 +1149,7 @@ function navRewards(){
   } else {
     // Not played yet — show a friendly nudge overlay
     showNavOverlay(
-      '🎁',
+      IMG_VOUCHER,
       'Tes récompenses',
       'Joue une partie pour débloquer ton bon de réduction Jumia !',
       'JOUER MAINTENANT',
@@ -1155,11 +1160,11 @@ function navRewards(){
 
 function navHelp(){
   showNavOverlay(
-    '❓',
+    IMG_TROPHY,
     'Comment jouer',
-    '<b>⚽ Attrape les ballons</b> pour gagner des points.<br><br>' +
-    '<b>🟥 Évite les cartons rouges</b> — chaque carton attrapé te coûte une vie.<br><br>' +
-    '<b>⭐ Ballon d\'or</b> = bonus x5 points !<br><br>' +
+    '<b>Attrape les ballons</b> pour gagner des points.<br><br>' +
+    '<b>Évite les cartons rouges</b> — chaque carton attrapé te coûte une vie.<br><br>' +
+    '<b>Ballon d\'or</b> = bonus x5 points !<br><br>' +
     'Tu as <b>' + attempts + ' tentative' + (attempts!==1?'s':'') + '</b> restante' + (attempts!==1?'s':'') + ' aujourd\'hui.<br><br>' +
     'Le meilleur score gagne un <b>Maillot Maroc</b> !',
     'OK, J\'AI COMPRIS',
@@ -1178,7 +1183,13 @@ function showNavOverlay(icon,title,body,btnLabel,btnAction){
 
   var iconEl=document.createElement('div');
   iconEl.style.cssText='font-size:36px;text-align:center;margin-bottom:10px;';
-  iconEl.textContent=icon;
+  if(icon && (icon.startsWith('http')||icon.startsWith('/')||icon.startsWith('.'))) {
+    var img=document.createElement('img');
+    img.src=icon;img.style.cssText='width:40px;height:40px;object-fit:contain;display:block;margin:0 auto;';
+    iconEl.appendChild(img);
+  } else {
+    iconEl.textContent=icon;
+  }
 
   var titleEl=document.createElement('div');
   titleEl.style.cssText='font-size:clamp(20px,6vw,26px);font-weight:900;color:#fff;font-family:var(--H1);text-align:center;text-transform:uppercase;margin-bottom:12px;line-height:1;';
@@ -1212,7 +1223,7 @@ function showNavOverlay(icon,title,body,btnLabel,btnAction){
 
 // PRELOADER
 function preloadAssets(){
-  const images=[IMG_STAR,IMG_TROPHY,IMG_VOUCHER,IMG_ATTEMPTS,IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_HEART,IMG_REDCARD,"https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
+  const images=[IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_REDCARD,"https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
   const bar=$('loading-bar'),sub=$('loading-sub'),gWrap=$('loading-gloves-wrap');
   const total=images.length+1;let loaded=0,finished=false;
   function tick(){
