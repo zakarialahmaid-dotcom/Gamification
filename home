@@ -1,0 +1,2325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,interactive-widget=resizes-content">
+<meta name="HandheldFriendly" content="true">
+<meta name="MobileOptimized" content="width">
+<title>Jumia — Gardien de But</title>
+
+<!-- ============================================================
+     WEBVIEW SAFETY LAYER — Storage Polyfill + Global Error Boundary
+     Must execute before any other script to protect against:
+       · Blocked localStorage/sessionStorage in restricted Android WebViews
+       · Silent uncaught JS exceptions that cause white-screen crashes
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ── 1. STORAGE POLYFILL ──────────────────────────────────
+     Restricted Android WebViews (e.g. inside third-party apps)
+     throw a SecurityError when any code touches window.localStorage
+     or window.sessionStorage — even just reading the property.
+     We probe each storage type with a real setItem() call inside
+     try/catch, and swap in a plain in-memory object if it fails.
+     The polyfill matches the Web Storage API surface exactly so
+     all downstream code works without modification.
+  ──────────────────────────────────────────────────────────── */
+  function MemStorage() {
+    var _s = {};
+    return {
+      get length() { return Object.keys(_s).length; },
+      key: function(n) { return Object.keys(_s)[n] || null; },
+      getItem: function(k) {
+        return Object.prototype.hasOwnProperty.call(_s, k) ? _s[k] : null;
+      },
+      setItem:    function(k, v) { _s[String(k)] = String(v); },
+      removeItem: function(k)    { delete _s[k]; },
+      clear:      function()     { _s = {}; }
+    };
+  }
+
+  ['localStorage', 'sessionStorage'].forEach(function(name) {
+    try {
+      /* A real write+delete test — property access alone isn't enough;
+         some hosts expose the object but throw on mutation.           */
+      window[name].setItem('__jg__', '1');
+      window[name].removeItem('__jg__');
+    } catch (e) {
+      var poly = MemStorage();
+      try {
+        Object.defineProperty(window, name, {
+          value: poly, writable: true, configurable: true
+        });
+      } catch (e2) {
+        try { window[name] = poly; } catch (e3) { /* fully locked — ignore */ }
+      }
+      console.warn('[JumiaGame] ' + name + ' unavailable — using in-memory polyfill.');
+    }
+  });
+
+
+  /* ── 2. GLOBAL ERROR BOUNDARY ────────────────────────────
+     Catches any unhandled JS exception that would otherwise
+     produce a completely silent white screen. Renders a
+     branded fallback so users know what happened and how to
+     proceed, while also logging diagnostic info to console.
+  ──────────────────────────────────────────────────────────── */
+  var _fallbackShown = false;
+
+  function showFallback(msg, src, line) {
+    if (_fallbackShown) return;
+    _fallbackShown = true;
+
+    /* Cancel any running rAF game loop */
+    try { if (window.animId) cancelAnimationFrame(window.animId); } catch (e) {}
+
+    var fallbackHTML = [
+      '<div style="',
+        'font-family:Arial,sans-serif;',
+        'background:#ff9900;',
+        'color:#fff;',
+        'min-height:100vh;',
+        'display:flex;',
+        'flex-direction:column;',
+        'align-items:center;',
+        'justify-content:center;',
+        'padding:32px 24px;',
+        'text-align:center;',
+        'box-sizing:border-box;',
+      '">',
+        '<div style="font-size:52px;margin-bottom:16px;">&#x26BD;</div>',
+        '<div style="font-size:26px;font-weight:900;line-height:1.1;margin-bottom:12px;letter-spacing:-0.5px;">',
+          'JUMIA<br>GARDIEN DE BUT',
+        '</div>',
+        '<div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:16px 20px;',
+          'font-size:14px;line-height:1.6;max-width:320px;margin-bottom:20px;">',
+          '<strong>Ouvre ce jeu dans ton navigateur</strong><br>',
+          'pour profiter de l\'exp&eacute;rience compl&egrave;te.<br><br>',
+          '<span style="opacity:0.7;font-size:12px;">Chrome &middot; Firefox &middot; Safari</span>',
+        '</div>',
+        '<a href="https://www.jumia.ma" style="',
+          'background:#ec2326;',
+          'color:#fff;',
+          'padding:14px 28px;',
+          'border-radius:6px;',
+          'font-weight:900;',
+          'text-decoration:none;',
+          'font-size:14px;',
+          'letter-spacing:0.06em;',
+          'box-shadow:0 4px 0 #a31a1d;',
+        '">JUMIA.MA</a>',
+        (msg
+          ? '<div style="margin-top:20px;opacity:0.4;font-size:10px;word-break:break-all;max-width:320px;">'
+            + 'ERR: ' + String(msg).substring(0, 140)
+            + (src ? ' &nbsp;|&nbsp; ' + String(src).replace(/.*\//, '') + ':' + line : '')
+            + '</div>'
+          : ''),
+      '</div>'
+    ].join('');
+
+    try {
+      var appEl  = document.getElementById('app');
+      var loadEl = document.getElementById('loading-screen');
+      if (loadEl) loadEl.style.display = 'none';
+      if (appEl) {
+        appEl.innerHTML = fallbackHTML;
+        appEl.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;z-index:999999;';
+      } else {
+        document.body.innerHTML = fallbackHTML;
+        document.body.style.cssText = 'margin:0;padding:0;overflow-y:auto;';
+      }
+    } catch (domErr) {
+      /* If even DOM writes fail we are in a totally broken environment */
+      try { document.write(fallbackHTML); } catch (e) { /* nothing more we can do */ }
+    }
+  }
+
+  /* Synchronous uncaught exceptions */
+  window.onerror = function(msg, src, line, col, errObj) {
+    var detail = (errObj && errObj.stack) ? errObj.stack : msg;
+    console.error('[JumiaGame] Uncaught error:', detail, '\n  at', src, line + ':' + col);
+    showFallback(msg, src, line);
+    return true; /* suppress default browser error dialog */
+  };
+
+  /* Async / Promise rejections */
+  window.addEventListener('unhandledrejection', function(evt) {
+    var reason = evt.reason
+      ? (evt.reason.message || String(evt.reason))
+      : 'Unhandled Promise rejection';
+    console.error('[JumiaGame] Unhandled rejection:', reason);
+    /* Only escalate to full fallback if we are still on the loading screen
+       (i.e. the game never successfully initialised).                       */
+    var loadEl  = document.getElementById('loading-screen');
+    var loading = loadEl
+      && loadEl.style.display !== 'none'
+      && !loadEl.classList.contains('fade-out');
+    if (loading) showFallback(reason, '', '');
+  });
+
+})();
+</script>
+<!-- END WEBVIEW SAFETY LAYER -->
+<style>
+@font-face{font-family:'HelveticaDisplay';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-compressed-5871d14b6903a.otf') format('opentype');font-weight:900;}
+@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica-Bold.ttf') format('truetype');font-weight:700;}
+@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Helvetica.ttf') format('truetype');font-weight:500;}
+@font-face{font-family:'HelveticaText';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/helvetica-light-587ebe5a59211.ttf') format('truetype');font-weight:300;}
+@font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Gotham-Black.otf') format('opentype');font-weight:900;}
+@font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/GothamBold.ttf') format('truetype');font-weight:700;}
+:root{
+  /* ══════════════════════════════════════════════
+     60 / 30 / 10  COLOUR SYSTEM
+     60% → --orange #ff9900  Jumia Orange (dominant brand surface)
+     30% → --white  #ffffff  White        (cards, panels, text)
+     10% → --navy   #1a2438  Deep Navy    (accents, badges, headers)
+     ══════════════════════════════════════════════ */
+  --orange: #ff9900;        /* 60% — dominant Jumia brand surface */
+  --orangeD:#e68800;        /* orange shadow */
+  --orangeL:#ffb333;        /* orange light — hover tints */
+  --white:  #ffffff;        /* 30% — cards, panels, text on orange */
+  --whiteT: rgba(255,255,255,0.15); /* subtle white tint */
+  --navy:   #1a2438;        /* 10% — CTAs, badges, card headers */
+  --navyL:  #24304f;        /* navy light — secondary accents */
+  --navyM:  #2e3d5c;        /* navy mid — borders, dividers */
+  --red:    #ec2326;        /* danger only — in-game red card */
+  --redD:   #a31a1d;        /* red shadow */
+  /* ── Text ─────────────────────────── */
+  --ink:    #1a2438;        /* primary text on orange surfaces */
+  --inkSub: rgba(26,36,56,0.60); /* secondary text on orange */
+  --inkCard:#1a2438;        /* primary text on white cards */
+  --inkCard2:#5a6a80;       /* secondary text on white cards */
+  /* ── Legacy aliases (keep code working) ── */
+  --c60:  #ff9900;  --c60d: #e68800;
+  --c10:  #ec2326;  --c10d: #a31a1d;
+  --c30:  #ffffff;  --c30t: rgba(255,255,255,0.10);
+  --yellow:#ff9900; /* yellow usages → orange */
+  --green: #ff9900; /* green usages → orange */
+  --ink2:  #5a6a80; --ink3: #8a9ab0;
+  --tint-yellow:#fff5e0; --tint-peach:#f0dcc2; --tint-white:#f8fbff;
+  --H1:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;
+  --H2:'HelveticaText','Gotham',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{width:100%;height:100%;overflow:hidden;margin:0;padding:0;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
+body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:flex;align-items:stretch;justify-content:center;margin:0;padding:0;overscroll-behavior:none;touch-action:none;}
+#app{width:100%;max-width:100%;height:100%;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
+
+/* LOADING */
+/* Loading — Orange Peel bg, white headline, progress bar */
+#loading-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--orange);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s ease;}
+#loading-screen.fade-out{opacity:0;pointer-events:none;}
+/* Headline at 95% leading per brand type rules */
+.loading-logo{font-size:clamp(36px,12vw,52px);font-weight:900;color:var(--navy);font-family:var(--H1);line-height:.95;text-align:center;text-transform:uppercase;letter-spacing:-.01em;}
+.loading-gloves-wrap{height:clamp(56px,15vw,72px);display:flex;align-items:center;justify-content:center;}
+.loading-gloves{height:100%;width:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));}
+/* Sub = 50% headline size, subdued white */
+.loading-sub{font-size:clamp(10px,2.8vw,13px);color:rgba(26,36,56,.7);font-family:var(--H2);font-weight:700;text-transform:uppercase;letter-spacing:.12em;}
+/* Progress bar — Selective Yellow on white tint track */
+.loading-bar-wrap{width:clamp(160px,45vw,220px);height:5px;background:rgba(26,36,56,.18);border-radius:3px;overflow:hidden;}
+.loading-bar{height:100%;width:0%;background:var(--navy);border-radius:3px;transition:width .25s ease;}
+
+/* ROTATE */
+#rotate-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--orange);z-index:99998;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#rotate-screen.show{display:flex;}
+.rotate-icon{font-size:56px;animation:rotatePulse 1.5s ease infinite;}
+@keyframes rotatePulse{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-90deg);}}
+.rotate-msg{font-size:clamp(16px,5vw,20px);font-weight:900;color:var(--navy);font-family:var(--H1);text-align:center;line-height:1.2;}
+.rotate-sub{font-size:clamp(11px,3vw,13px);color:rgba(255,255,255,.7);font-family:var(--H2);text-align:center;}
+@media (orientation:landscape) and (max-height:500px){body{display:none;}}
+
+/* ANIMATIONS */
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-70px) scale(0.7)}}
+@keyframes shake{0%,100%{margin-left:0}20%{margin-left:-8px}40%{margin-left:8px}60%{margin-left:-5px}80%{margin-left:5px}}
+@keyframes fadeIn{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes screenFlash{0%,100%{background:#ff9900}40%{background:#c01010}70%{background:#d41515}}
+@keyframes bigShake{0%,100%{margin-left:0}15%{margin-left:-14px}30%{margin-left:14px}45%{margin-left:-10px}60%{margin-left:10px}75%{margin-left:-6px}90%{margin-left:6px}}
+@keyframes itemIn{0%{opacity:0;transform:scale(0.4)}100%{opacity:1;transform:scale(1)}}
+@keyframes goldenSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes dangerPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+@keyframes arrowBounce{0%{transform:translateY(0);}100%{transform:translateY(10px);}}
+@keyframes wipeIn{0%{transform:scaleY(0);border-radius:60% 60% 0 0/40px 40px 0 0;}65%{transform:scaleY(1.04);border-radius:4px 4px 0 0;}100%{transform:scaleY(1);border-radius:0;}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes tierUpIn{0%{opacity:0;transform:scale(.7);}60%{transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+@keyframes ctaBounce{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-5px);}
+}
+@keyframes ctaGlow{
+  0%,100%{box-shadow:0 5px 0 var(--navyL), 0 0 0 0 rgba(26,36,56,0);}
+  50%{box-shadow:0 5px 0 var(--navyL), 0 0 0 10px rgba(26,36,56,0.18), 0 0 28px 4px rgba(26,36,56,0.13);}
+}
+@keyframes ctaArrowPulse{
+  0%,100%{transform:translateX(0);}
+  50%{transform:translateX(5px);}
+}
+
+/* ══════════════════════════════════════════════════════
+   60/30/10 COLOUR RULE — enforced across all screens
+   60% → #ff9900 Orange Peel  (all backgrounds & surfaces)
+   30% → #ffffff White        (all cards, panels, readable areas)
+   10% → #ec2326 Jumia Red    (all CTAs, buttons, accents)
+   ══════════════════════════════════════════════════════ */
+
+/* LOBBY */
+#screen-lobby{flex:1;display:flex;flex-direction:column;background:var(--orange);padding:0;overflow:hidden;animation:fadeIn .25s ease;}
+
+/* ── 60% Orange hero header ── */
+.lb-hero{flex:0 0 auto;background:var(--orange);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
+.lb-hero-left{flex:1;min-width:0;}
+.lb-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.13em;color:rgba(26,36,56,.75);font-family:var(--H2);text-transform:uppercase;margin-bottom:4px;}
+.lb-title{font-size:clamp(38px,11vw,54px);font-weight:900;color:var(--navy);line-height:.88;font-family:var(--H1);letter-spacing:-.01em;text-transform:uppercase;}
+.lb-hero-ball{position:absolute;right:clamp(84px,23vw,112px);bottom:0;width:clamp(52px,14vw,68px);height:auto;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3));}
+/* ── 30% White badge with red accent ── */
+.lb-attempts-badge{flex-shrink:0;background:var(--white);border-radius:10px;padding:clamp(8px,2vw,12px) clamp(12px,3vw,16px);text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);min-width:clamp(72px,18vw,88px);}
+.lb-attempts-icon{font-size:clamp(14px,3.5vw,18px);margin-bottom:2px;display:block;}
+.lb-attempts-num{font-size:clamp(26px,7.5vw,34px);font-weight:900;font-family:var(--H1);line-height:1;color:var(--inkCard);}
+.lb-attempts-num.urgent{color:var(--red);}
+.lb-attempts-lbl{font-size:clamp(7px,1.8vw,9px);font-weight:700;color:var(--navy);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+/* ── Scrollable body ── */
+.lb-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(10px,2.5vw,14px) clamp(14px,3.5vw,18px) clamp(14px,3.5vw,18px);}
+.lb-scroll::-webkit-scrollbar{display:none;}
+
+/* ── 30% White leaderboard card ── */
+.lb-board{border-radius:12px;overflow:hidden;background:var(--white);box-shadow:0 4px 20px rgba(0,0,0,.12);margin-bottom:clamp(10px,2.5vw,14px);}
+/* 10% Red header strip */
+.lb-board-header{display:flex;align-items:center;justify-content:space-between;padding:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);background:var(--navyL);}
+.lb-board-header-left{display:flex;align-items:center;gap:8px;}
+.lb-board-trophy{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;filter:brightness(0) saturate(100%) invert(60%) sepia(90%) saturate(500%) hue-rotate(1deg) brightness(105%);}
+.lb-board-title{font-size:clamp(11px,3vw,14px);font-weight:900;color:var(--c30);font-family:var(--H1);letter-spacing:.08em;text-transform:uppercase;}
+.lb-board-live{font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(255,255,255,.8);font-family:var(--H2);display:flex;align-items:center;gap:5px;}
+.lb-board-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--c30);display:inline-block;animation:dotPulse 1.4s ease infinite;}
+.lb-board-rows{max-height:clamp(190px,52vw,240px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.lb-board-rows::-webkit-scrollbar{width:3px;}
+.lb-board-rows::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:2px;}
+.lb-board-row{display:flex;align-items:center;padding:clamp(9px,2.3vw,12px) clamp(14px,3.5vw,18px);gap:10px;border-bottom:1px solid rgba(0,0,0,.06);}
+.lb-board-row:last-child{border-bottom:none;}
+.lb-rank{font-size:clamp(12px,3.2vw,15px);font-weight:900;width:24px;text-align:center;flex-shrink:0;color:var(--inkCard2);font-family:var(--H2);}
+.lb-board-row.top1 .lb-rank{color:var(--navy);}
+.lb-board-row.top3 .lb-rank{color:var(--navy);}
+.lb-name{flex:1;font-size:clamp(13px,3.5vw,16px);font-weight:700;color:var(--inkCard);font-family:var(--H2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-score{font-size:clamp(12px,3.2vw,14px);font-weight:900;color:var(--navy);font-family:var(--H1);flex-shrink:0;}
+.lb-prize{flex-shrink:0;font-size:clamp(9px,2.3vw,11px);font-weight:700;font-family:var(--H2);padding:3px 9px;border-radius:5px;white-space:nowrap;margin-left:4px;background:var(--orange);color:var(--navy);}
+.lb-scroll-hint{text-align:center;padding:clamp(6px,1.5vw,8px);font-size:clamp(9px,2.3vw,11px);color:var(--inkCard2);font-family:var(--H2);border-top:1px solid rgba(0,0,0,.06);}
+.lb-board-msg{text-align:center;padding:clamp(14px,3.5vw,18px);font-size:clamp(11px,2.8vw,13px);color:var(--inkCard2);font-family:var(--H2);}
+
+/* ── How-to-play — 30% white cards ── */
+.lb-how{margin-bottom:clamp(10px,2.5vw,14px);}
+.lb-how-header{display:flex;align-items:center;gap:8px;margin-bottom:clamp(8px,2vw,11px);}
+.lb-how-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:rgba(26,36,56,.15);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,2.8vw,13px);flex-shrink:0;}
+.lb-how-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
+.lb-how-rows{display:flex;flex-direction:column;gap:clamp(8px,2vw,10px);}
+
+/* White how-to card */
+.lb-how-row{display:flex;align-items:center;gap:clamp(10px,2.5vw,14px);background:var(--white);border-radius:10px;padding:clamp(12px,3vw,16px);box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.lb-how-icon{flex-shrink:0;width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);border-radius:50%;background:rgba(255,153,0,.12);border:2px solid rgba(255,153,0,.35);display:flex;align-items:center;justify-content:center;}
+.lb-how-icon img{width:clamp(28px,7vw,34px);height:clamp(28px,7vw,34px);object-fit:contain;display:block;}
+.lb-how-text{flex:1;min-width:0;}
+.lb-how-action{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--inkCard);font-family:var(--H1);text-transform:uppercase;line-height:1.1;margin-bottom:3px;}
+.lb-how-sub{font-size:clamp(10px,2.6vw,12px);color:var(--inkCard2);font-family:var(--H2);line-height:1.3;}
+/* 10% Red tags */
+.lb-how-tag{flex-shrink:0;font-size:clamp(10px,2.8vw,12px);font-weight:900;font-family:var(--H1);padding:clamp(7px,1.8vw,9px) clamp(11px,2.8vw,14px);border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:var(--navy);color:var(--white);box-shadow:0 3px 0 var(--navyL);min-width:60px;text-align:center;}
+.lb-how-tag.green{background:var(--navy);color:var(--white);box-shadow:0 3px 0 var(--navyL);}
+.lb-how-tag.red{background:var(--navy);color:var(--white);box-shadow:0 3px 0 var(--navyL);}
+
+/* Danger card — still white, red icon circle */
+.lb-how-row-danger{display:flex;align-items:center;gap:clamp(10px,2.5vw,14px);background:var(--white);border-radius:10px;padding:clamp(12px,3vw,16px);box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.lb-how-row-danger-icon{flex-shrink:0;width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);border-radius:50%;background:rgba(236,35,38,.1);border:2px solid rgba(236,35,38,.35);display:flex;align-items:center;justify-content:center;}
+.lb-how-row-danger-icon img{width:clamp(24px,6vw,30px);height:auto;object-fit:contain;display:block;}
+.lb-how-row-danger-text{flex:1;min-width:0;}
+.lb-how-row-danger-title{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--inkCard);font-family:var(--H1);text-transform:uppercase;line-height:1.1;margin-bottom:3px;}
+.lb-how-row-danger-sub{font-size:clamp(10px,2.6vw,12px);color:var(--inkCard2);font-family:var(--H2);line-height:1.3;}
+.lb-how-row-danger-tag{flex-shrink:0;}
+
+/* ── CTA zone — visually separated, animated to draw attention ── */
+.lb-cta{
+  flex:0 0 auto;
+  padding:clamp(12px,3vw,16px) clamp(14px,3.5vw,18px) clamp(10px,2.5vw,14px);
+  position:relative;
+}
+/* Subtle top divider — separates action from content */
+.lb-cta::before{
+  content:'';
+  display:block;
+  width:48px;height:3px;
+  background:rgba(26,36,56,.2);
+  border-radius:2px;
+  margin:0 auto clamp(10px,2.5vw,14px);
+}
+/* Tap hint label above the button */
+.lb-cta-hint{
+  text-align:center;
+  font-size:clamp(11px,2.8vw,13px);
+  font-weight:500;
+  font-family:var(--H2);
+  color:rgba(26,36,56,.7);
+  letter-spacing:.01em;
+  line-height:1.45;
+  margin-bottom:10px;
+}
+.lb-cta-hint b{font-weight:900;color:var(--navy);}
+.btn-kickoff{
+  width:100%;
+  background:var(--navy);
+  color:var(--white);
+  border:none;
+  border-radius:12px;
+  padding:clamp(18px,5vw,22px) clamp(20px,5vw,28px);
+  font-size:clamp(17px,4.8vw,21px);
+  font-weight:900;
+  cursor:pointer;
+  letter-spacing:.07em;
+  font-family:var(--H1);
+  text-transform:uppercase;
+  box-shadow:0 5px 0 var(--navyL);
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  position:relative;
+  /* Bounce + glow loop — draws the eye, communicates interactivity */
+  animation:ctaBounce 2s ease-in-out infinite, ctaGlow 2s ease-in-out infinite;
+  transition:transform .1s, box-shadow .1s, opacity .1s;
+}
+.btn-kickoff:active{
+  transform:translateY(5px);
+  box-shadow:0 0 0 var(--navyL);
+  animation:none;
+}
+.btn-kickoff:disabled{opacity:.45;cursor:not-allowed;animation:none;box-shadow:none;}
+.btn-kickoff-icon{
+  width:clamp(28px,7vw,34px);
+  height:clamp(28px,7vw,34px);
+  object-fit:contain;
+  flex-shrink:0;
+  /* Counter-rotate the icon slightly for visual rhythm */
+  animation:ctaArrowPulse 2s ease-in-out infinite;
+}
+/* Arrow chevron — visual affordance for "tap to go" */
+.btn-kickoff-arrow{
+  font-size:clamp(18px,5vw,22px);
+  margin-left:auto;
+  opacity:.7;
+  animation:ctaArrowPulse 2s ease-in-out infinite;
+  animation-delay:.1s;
+}
+/* ── SHARED PRIMARY CTA ── same green on every screen ── */
+/* Shared primary CTA — 10% Red across all screens */
+.btn-primary{width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 var(--c10d);transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;text-decoration:none;}
+.btn-primary:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
+.btn-primary:disabled,.btn-primary[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+
+
+/* ── Bottom nav — 30% white bar, 10% red active ── */
+.lb-nav{flex:0 0 auto;background:var(--navy);display:flex;align-items:stretch;border-top:1px solid var(--navyL);}
+.lb-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,2vw,11px) 4px clamp(10px,2.5vw,13px);gap:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;border:none;background:transparent;}
+.lb-nav-icon{font-size:clamp(16px,4.3vw,20px);line-height:1;color:rgba(255,255,255,.45);}
+.lb-nav-label{font-size:clamp(8px,2vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.45);}
+.lb-nav-item.active .lb-nav-icon{color:var(--orange);}
+.lb-nav-item.active .lb-nav-label{color:var(--orange);}
+.lb-nav-item:not(.active) .lb-nav-icon{color:rgba(255,255,255,.4);}
+.lb-nav-icon img{filter:brightness(0) invert(0.5);}
+.lb-nav-item.active .lb-nav-icon img{filter:brightness(0) saturate(100%) invert(60%) sepia(90%) saturate(500%) hue-rotate(1deg) brightness(105%);}
+
+/* TUTORIAL
+   Strategy: overlay covers only the game field (not the buttons).
+   The real left/right buttons stay fully visible below.
+   A spotlight halo on each button + label above it shows exactly what to press.
+   One centered instruction line on the field. Tap anywhere to dismiss.
+*/
+
+
+/* DANGER ROW */
+
+
+/* PLAY TRANSITION */
+#play-transition{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--c10);z-index:9999;pointer-events:none;transform:scaleY(0);transform-origin:bottom center;}
+#play-transition.go{animation:wipeIn .55s cubic-bezier(.76,0,.24,1) forwards;}
+
+
+
+/* GAME */
+#screen-game{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;animation:fadeIn .15s ease;}
+/* Game HUD — Orange Peel header, white logo text */
+.gm-hud{flex:0 0 auto;background:var(--navy);padding:clamp(8px,2vw,11px) clamp(14px,4vw,22px);display:flex;align-items:center;}
+.gm-brand{display:flex;flex-direction:column;gap:3px;}
+/* Headline — Helvetica Display Black, white on orange */
+.gm-title{font-size:clamp(18px,5.5vw,26px);font-weight:900;color:var(--white);line-height:1;font-family:var(--H1);text-transform:uppercase;}
+/* Sub-tag — Selective Yellow, Jumia warm accent */
+/* Sub-tag — 30% white, 10% red text */
+.gm-tag{display:inline-flex;background:rgba(26,36,56,.2);border-radius:4px;padding:2px 8px;width:fit-content;}
+.gm-tag span{font-size:clamp(8px,2vw,10px);font-weight:900;color:var(--white);letter-spacing:.1em;font-family:var(--H2);}
+#game-overlay{position:absolute;top:clamp(12px,3vw,18px);right:clamp(10px,3vw,16px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.5vw,12px);z-index:8;}
+/* Score circle — 30% white card, 10% red number */
+.score-circle{width:clamp(58px,15vw,72px);height:clamp(58px,15vw,72px);background:var(--white);border-radius:50%;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,153,0,.7);flex-shrink:0;}
+.score-num{font-size:clamp(16px,5vw,22px);font-weight:900;color:var(--navy);line-height:1;font-family:var(--H1);}
+.score-lbl{font-size:7px;font-weight:700;color:var(--inkCard2);font-family:var(--H2);letter-spacing:.06em;text-transform:uppercase;}
+#lives-counter{position:relative;width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);display:flex;align-items:center;justify-content:center;}
+#lives-counter img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 3px 8px rgba(0,0,0,.5));transition:transform .2s,filter .2s;}
+#lives-count{position:absolute;top:-4px;right:-6px;background:var(--navy);color:var(--white);border-radius:50%;width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,14px);font-weight:900;font-family:var(--H1);border:2px solid var(--c30);box-shadow:0 2px 6px rgba(0,0,0,.25);}
+#btn-mute{position:absolute;bottom:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.25);cursor:pointer;color:#fff;font-size:clamp(14px,3.5vw,18px);display:flex;align-items:center;justify-content:center;z-index:9;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;}
+#btn-mute:active{background:rgba(0,0,0,.5);}
+#game-field{flex:1;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:url('https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp') center center / cover no-repeat;}
+.falling-item{position:absolute;display:flex;align-items:center;justify-content:center;animation:itemIn .15s ease;z-index:5;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;pointer-events:none;}
+.falling-item img{user-select:none;-webkit-user-select:none;pointer-events:none;-webkit-user-drag:none;}
+.item-ball{width:clamp(44px,12vw,58px);height:clamp(44px,12vw,58px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));}
+.item-ball img{width:100%;height:100%;object-fit:contain;display:block;border-radius:50%;}
+.item-ball.danger-close{filter:drop-shadow(0 0 12px rgba(255,255,255,.9)) drop-shadow(0 4px 8px rgba(0,0,0,.3));animation:dangerPulse .35s ease infinite;}
+.item-golden{width:clamp(44px,12vw,58px);height:clamp(44px,12vw,58px);filter:drop-shadow(0 0 14px rgba(255,186,0,.9)) drop-shadow(0 4px 8px rgba(0,0,0,.3));animation:goldenSpin 1.2s linear infinite,itemIn .15s ease;}
+.item-golden img{width:100%;height:100%;object-fit:contain;display:block;border-radius:50%;}
+.item-redcard{width:clamp(60px,16vw,78px);height:clamp(80px,21vw,104px);filter:drop-shadow(0 0 6px rgba(255,0,0,.7)) drop-shadow(0 0 14px rgba(255,0,0,.4)) drop-shadow(0 4px 10px rgba(0,0,0,.5));}
+.item-redcard img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;-webkit-user-drag:none;}
+.item-redcard.danger-close{filter:drop-shadow(0 0 10px rgba(255,0,0,1)) drop-shadow(0 0 22px rgba(255,0,0,.7)) drop-shadow(0 4px 10px rgba(0,0,0,.5));animation:dangerPulse .35s ease infinite;}
+#glove-el{position:absolute;z-index:6;left:0;width:90px;display:flex;align-items:center;justify-content:center;will-change:transform;transition:filter .1s;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+#glove-el img{display:block;height:clamp(64px,17vw,84px);width:90px;object-fit:contain;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;-webkit-backface-visibility:hidden;backface-visibility:hidden;filter:drop-shadow(0 0 8px rgba(255,153,0,.6)) drop-shadow(0 0 18px rgba(255,100,0,.35)) drop-shadow(0 6px 14px rgba(0,0,0,.5));}
+#glove-el.catching img{filter:drop-shadow(0 0 14px rgba(255,255,255,.9)) drop-shadow(0 0 28px rgba(255,200,0,.7)) drop-shadow(0 6px 14px rgba(0,0,0,.5));}
+#glove-el.shaking{animation:shake .4s ease;}
+#glove-el.big-shake{animation:bigShake .5s ease;}
+#catch-ring{position:absolute;border-radius:50%;border:3px solid rgba(255,255,255,.8);opacity:0;pointer-events:none;z-index:7;transform:scale(0);transition:transform .3s ease,opacity .3s ease;}
+#catch-ring.pop{opacity:1;transform:scale(1.6);}
+.flash-msg{position:absolute;border-radius:20px;padding:4px 14px;font-size:clamp(12px,3.2vw,15px);font-weight:900;pointer-events:none;animation:floatUp 1.1s ease forwards;z-index:10;white-space:nowrap;font-family:var(--H1);}
+#danger-bar{position:absolute;bottom:0;left:0;right:0;height:0;background:#ec2326;transition:height .15s,opacity .15s;opacity:0;z-index:3;}
+#dodge-hint{position:absolute;left:50%;transform:translateX(-50%);background:rgba(236,35,38,.92);color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:900;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8;font-family:var(--H2);}
+#screen-game.hit-flash{animation:screenFlash .4s ease;}
+.gm-net{flex:0 0 auto;height:0;}
+/* Goalkeeper zone — visual anchor at bottom of field */
+#goal-zone{
+  position:absolute;bottom:0;left:0;right:0;
+  height:clamp(70px,19vw,90px);
+  pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,153,0,.08) 100%);
+  border-top:2px solid rgba(255,255,255,.25);
+}
+#goal-zone::before{
+  content:'';position:absolute;top:-1px;left:10%;right:10%;height:2px;
+  background:rgba(255,255,255,.4);border-radius:1px;
+}
+#goal-posts{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:flex-end;gap:clamp(60px,18vw,90px);
+}
+.goal-post{width:4px;height:clamp(20px,5.5vw,26px);background:rgba(255,255,255,.5);border-radius:2px 2px 0 0;}
+/* Game controls — Orange Peel bg, Jumia Red arrow buttons */
+.gm-btns{flex:0 0 auto;background:var(--navy);padding:clamp(10px,2.5vw,16px) clamp(20px,5vw,28px);display:flex;justify-content:space-between;align-items:center;box-shadow:0 -3px 14px rgba(0,0,0,.15);position:relative;min-height:clamp(84px,22vw,110px);}
+/* Arrow buttons — Jumia Red (Flash Sale / urgency colour) */
+.btn-arrow{width:clamp(72px,18vw,88px);height:clamp(72px,18vw,88px);flex-shrink:0;border-radius:50%;background:var(--orange);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,7vw,32px);color:var(--navy);box-shadow:0 5px 0 var(--orangeD);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;outline:none;transition:box-shadow .08s;}
+.btn-arrow:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.btn-arrow::selection{background:none;}
+/* Combo badge — 30% white, 10% red text */
+.combo-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--navy);color:var(--white);border-radius:6px;padding:5px 16px;font-size:clamp(11px,3vw,14px);font-weight:900;display:none;font-family:var(--H1);box-shadow:0 3px 0 var(--navyL);white-space:nowrap;pointer-events:none;}
+
+/* FORM ─ Jumia brand: orange header, white card, dark ink text */
+#screen-form{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;min-height:0;}
+/* Angled orange header strip */
+.fm-top{flex:0 0 auto;background:var(--navy);padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(20px,5vw,26px);text-align:center;}
+.fm-title{font-size:clamp(26px,7.5vw,34px);font-weight:900;color:var(--white);line-height:.92;font-family:var(--H1);margin-bottom:8px;text-transform:uppercase;letter-spacing:-.01em;}
+.fm-sub{font-size:clamp(12px,3.2vw,15px);color:rgba(255,255,255,.75);font-family:var(--H2);font-weight:500;line-height:1.4;}
+.fm-sub b{color:var(--white);font-weight:700;}
+/* White card — clean stack, no negative margin overlap */
+.fm-card{flex:0 0 auto;background:var(--white);margin:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px) 0;border-radius:10px;padding:clamp(16px,4vw,22px);box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.fm-field{margin-bottom:clamp(12px,3vw,16px);}
+.fm-label{display:block;font-size:clamp(10px,2.6vw,12px);font-weight:700;color:var(--inkCard2);font-family:var(--H2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;}
+.fm-input{width:100%;border:2px solid rgba(26,36,56,.15);border-radius:6px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);font-size:16px;font-family:var(--H2);color:var(--inkCard);background:var(--tint-white);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;}
+.fm-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,153,0,.18);background:#fff;}
+.fm-input::placeholder{color:#b8b0a8;}
+.fm-input.error{border-color:var(--c10);background:#fff8f8;}
+.fm-error-msg{font-size:clamp(10px,2.5vw,12px);color:var(--c10);font-family:var(--H2);font-weight:700;margin-top:5px;display:none;}
+.fm-error-msg.visible{display:block;}
+/* Submit — 10% Red CTA, same across all screens */
+.btn-submit{width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;box-shadow:0 5px 0 var(--navyL);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:12px;}
+.btn-submit:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+.fm-spacer{flex:0 0 clamp(12px,3vw,16px);}
+/* Legal — body copy = 25% of headline, subdued white */
+.fm-legal{flex:0 0 auto;padding:clamp(8px,2vw,10px) clamp(20px,5vw,28px) clamp(20px,5vw,28px);text-align:center;font-size:clamp(9px,2.3vw,11px);color:rgba(26,36,56,.5);font-family:var(--H2);line-height:1.55;}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(26,36,56,.25);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:none;}
+
+/* RESULT — full navy background, voucher as hero */
+#screen-result{
+  flex:1;display:flex;flex-direction:column;
+  background:var(--navy);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  animation:fadeIn .25s ease;
+}
+/* Compact header — just brand + score */
+.rs-header{
+  flex:0 0 auto;
+  padding:clamp(16px,4vw,22px) clamp(20px,5vw,28px) clamp(10px,2.5vw,14px);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+}
+.rs-header-left{flex:1;}
+.rs-brand{font-size:clamp(9px,2.4vw,11px);color:rgba(255,255,255,.45);font-family:var(--H2);letter-spacing:.14em;margin-bottom:4px;text-transform:uppercase;font-weight:700;}
+.rs-title{font-size:clamp(28px,8.5vw,42px);font-weight:900;color:var(--white);line-height:.93;font-family:var(--H1);text-transform:uppercase;letter-spacing:-.01em;}
+.rs-sub{font-size:clamp(12px,3.2vw,14px);color:rgba(255,255,255,.55);font-family:var(--H2);font-weight:500;margin-top:6px;line-height:1.3;}
+/* Score pills — compact row top right */
+.rs-scores{
+  flex:0 0 auto;display:flex;gap:6px;
+  padding:0 clamp(20px,5vw,28px) clamp(14px,3.5vw,18px);
+}
+.rs-score-card{
+  flex:1;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:clamp(8px,2vw,11px) 4px;text-align:center;
+}
+.rs-score-val{font-size:clamp(16px,4.5vw,20px);font-weight:900;color:var(--white);font-family:var(--H1);line-height:1;}
+.rs-score-lbl{font-size:clamp(7px,1.8vw,9px);color:rgba(255,255,255,.4);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
+
+/* ── VOUCHER HERO ── The big reward moment */
+.rs-voucher-hero{
+  flex:0 0 auto;
+  margin:0 clamp(16px,4vw,22px) clamp(14px,3.5vw,18px);
+  background:var(--orange);
+  border-radius:16px;
+  padding:clamp(20px,5vw,26px) clamp(20px,5vw,26px) clamp(16px,4vw,20px);
+  text-align:center;
+  box-shadow:0 8px 32px rgba(255,153,0,.35),0 2px 8px rgba(0,0,0,.3);
+  position:relative;overflow:hidden;
+}
+.rs-voucher-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:140px;height:140px;
+  background:rgba(255,255,255,.08);border-radius:50%;
+}
+.rs-voucher-eyebrow{
+  font-size:clamp(9px,2.4vw,11px);font-weight:700;
+  color:rgba(26,36,56,.65);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;
+}
+.rs-voucher-pct{
+  font-size:clamp(56px,16vw,80px);font-weight:900;
+  color:var(--navy);font-family:var(--H1);line-height:.9;
+  letter-spacing:-.02em;
+}
+.rs-voucher-label{
+  font-size:clamp(13px,3.5vw,16px);font-weight:700;
+  color:rgba(26,36,56,.75);font-family:var(--H2);
+  margin-top:4px;
+}
+.rs-voucher-saving{
+  display:inline-block;
+  background:rgba(26,36,56,.12);
+  border-radius:20px;
+  padding:4px 14px;
+  font-size:clamp(11px,2.8vw,13px);font-weight:700;
+  color:var(--navy);font-family:var(--H2);
+  margin-top:8px;
+}
+
+/* ── PHYSICAL PRIZE + LEADERBOARD RANK — side strip ── */
+.rs-meta{
+  flex:0 0 auto;
+  display:flex;gap:8px;
+  padding:0 clamp(16px,4vw,22px) clamp(12px,3vw,16px);
+}
+.rs-meta-card{
+  flex:1;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:clamp(10px,2.5vw,14px);
+  text-align:center;
+}
+.rs-meta-eyebrow{
+  font-size:clamp(7px,1.8vw,9px);font-weight:700;
+  color:rgba(255,255,255,.4);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;
+}
+.rs-meta-val{
+  font-size:clamp(13px,3.5vw,16px);font-weight:900;
+  color:var(--white);font-family:var(--H1);line-height:1.1;
+}
+.rs-meta-sub{
+  font-size:clamp(9px,2.3vw,10px);color:rgba(255,255,255,.45);
+  font-family:var(--H2);margin-top:3px;line-height:1.3;
+}
+.rs-meta-img{
+  width:clamp(28px,7.5vw,36px);height:clamp(28px,7.5vw,36px);
+  object-fit:contain;display:block;margin:4px auto;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));
+}
+
+/* ── ACTION ZONE ── Primary CTA fills the bottom */
+.rs-actions{
+  flex:0 0 auto;
+  padding:clamp(8px,2vw,12px) clamp(16px,4vw,22px) clamp(20px,5vw,28px);
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:auto;
+}
+.rs-cta-primary{
+  display:block;width:100%;
+  background:var(--orange);color:var(--navy);
+  border:none;border-radius:12px;
+  padding:clamp(18px,5vw,22px);
+  font-size:clamp(17px,4.8vw,21px);font-weight:900;
+  cursor:pointer;font-family:var(--H1);
+  text-transform:uppercase;letter-spacing:.06em;
+  box-shadow:0 6px 0 var(--orangeD),0 0 28px rgba(255,153,0,.3);
+  transition:transform .1s,box-shadow .1s;
+  animation:ctaBounce 2s ease-in-out infinite,ctaGlow 2s ease-in-out infinite;
+}
+.rs-cta-primary:active{transform:translateY(6px);box-shadow:0 0 0 var(--orangeD);animation:none;}
+.rs-cta-secondary{
+  display:block;width:100%;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);
+  border:1.5px solid rgba(255,255,255,.15);border-radius:8px;
+  padding:clamp(11px,2.8vw,14px);
+  font-size:clamp(11px,2.8vw,13px);font-weight:700;
+  cursor:pointer;font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.05em;
+  transition:background .2s,border-color .2s;
+}
+.rs-cta-secondary:active{background:rgba(255,255,255,.14);}
+.rs-cta-replay{
+  display:block;width:100%;
+  background:transparent;color:rgba(255,255,255,.85);
+  border:2px solid rgba(255,255,255,.25);border-radius:8px;
+  padding:clamp(12px,3vw,15px);
+  font-size:clamp(12px,3.2vw,14px);font-weight:900;
+  cursor:pointer;font-family:var(--H1);
+  text-transform:uppercase;letter-spacing:.05em;
+  transition:border-color .2s,background .2s;
+}
+.rs-cta-replay:active{background:rgba(255,255,255,.08);}
+
+/* Low score variant */
+.rs-low-score{
+  margin:0 clamp(16px,4vw,22px) clamp(12px,3vw,16px);
+  background:rgba(236,35,38,.12);
+  border:1.5px solid rgba(236,35,38,.3);
+  border-radius:12px;padding:clamp(16px,4vw,20px);text-align:center;
+}
+.rs-low-score-title{font-size:clamp(16px,4.5vw,20px);font-weight:900;color:var(--red);font-family:var(--H1);margin-bottom:6px;}
+.rs-low-score-sub{font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.6);font-family:var(--H2);line-height:1.5;}
+
+.rs-spacer{flex:1;min-height:clamp(8px,2vw,12px);}
+
+
+
+
+
+
+
+/* Code box — Selective Yellow tint (#fff2d6) per brand palette */
+.v-code{background:#fff8e6;border:2px dashed var(--orange);border-radius:6px;padding:clamp(9px,2.2vw,13px) 20px;font-size:clamp(14px,4vw,18px);font-weight:900;color:var(--ink);letter-spacing:.18em;display:inline-block;font-family:var(--H1);}
+
+
+
+/* Result CTA — 10% Red, consistent with all other primary CTAs */
+.btn-jumia-main{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--navy);color:var(--white);border:none;border-radius:10px;padding:clamp(16px,4.5vw,20px) clamp(14px,3.5vw,20px);font-size:clamp(16px,4.5vw,20px);font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 5px 0 var(--orangeD);font-family:var(--H1);letter-spacing:.06em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;}
+.btn-jumia-main:active{transform:translateY(5px);box-shadow:0 0 0 var(--navyL);}
+.btn-jumia-main span{line-height:1.2;}
+
+.rs-spacer{flex:0 0 clamp(10px,2.5vw,14px);}
+/* Replay bar — white footer, consistent with form card style */
+.rs-replay-bar{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(24px,6vw,30px);background:var(--orange);border-top:1px solid rgba(26,36,56,.12);}
+/* Replay button — ink border, brand orange on hover */
+.btn-replay-full{display:block;width:100%;background:transparent;color:var(--navy);border:2px solid var(--navy);border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3.2vw,14px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;transition:border-color .2s,color .2s,background .2s;}
+.btn-replay-full:hover{border-color:var(--navyL);color:var(--navyL);}
+.btn-replay-full.confirm{border-color:var(--red);color:var(--red);background:rgba(236,35,38,.08);font-weight:900;}
+.rs-no-attempts{text-align:center;font-size:clamp(10px,2.8vw,12px);color:rgba(26,36,56,.6);font-family:var(--H2);padding:10px 0;font-weight:500;}
+/* ── VOUCHER POPUP MODAL ─────────────────────────────────────────────────── */
+#voucher-popup{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.65);
+  z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:fadeIn .3s ease;
+}
+.vp-sheet{
+  width:100%;max-width:480px;
+  background:var(--navy);
+  border-radius:20px 20px 0 0;
+  padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(28px,7vw,40px);
+  animation:slideUp .35s cubic-bezier(.22,.68,0,1.2) forwards;
+  position:relative;
+}
+@keyframes slideUp{
+  from{transform:translateY(100%);}
+  to{transform:translateY(0);}
+}
+.vp-handle{
+  width:36px;height:4px;
+  background:rgba(255,255,255,.2);
+  border-radius:2px;
+  margin:0 auto clamp(16px,4vw,22px);
+}
+.vp-eyebrow{
+  font-size:clamp(9px,2.4vw,11px);
+  font-weight:700;letter-spacing:.14em;
+  color:rgba(255,255,255,.5);
+  font-family:var(--H2);
+  text-transform:uppercase;
+  text-align:center;
+  margin-bottom:6px;
+}
+.vp-label{
+  display:inline-block;
+  background:var(--orange);color:var(--navy);
+  font-size:clamp(9px,2.4vw,11px);font-weight:900;
+  font-family:var(--H1);letter-spacing:.1em;
+  text-transform:uppercase;
+  border-radius:4px;padding:3px 12px;
+  margin:0 auto clamp(14px,3.5vw,20px);
+  display:block;text-align:center;width:fit-content;
+}
+/* Big percentage — the hero element */
+.vp-disc{
+  font-size:clamp(64px,18vw,88px);
+  font-weight:900;color:var(--orange);
+  font-family:var(--H1);line-height:1;
+  text-align:center;
+  margin-bottom:2px;
+  text-shadow:0 4px 24px rgba(255,153,0,.35);
+}
+.vp-disc-sub{
+  font-size:clamp(13px,3.5vw,16px);
+  color:rgba(255,255,255,.7);
+  font-family:var(--H2);
+  text-align:center;
+  margin-bottom:clamp(18px,4.5vw,24px);
+}
+/* Instruction strip */
+.vp-instruction{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:clamp(12px,3vw,16px);
+  margin-bottom:clamp(14px,3.5vw,18px);
+  text-align:center;
+}
+.vp-instruction-title{
+  font-size:clamp(12px,3.2vw,14px);
+  font-weight:700;color:var(--white);
+  font-family:var(--H2);margin-bottom:6px;
+}
+.vp-instruction-steps{
+  font-size:clamp(11px,2.8vw,13px);
+  color:rgba(255,255,255,.6);
+  font-family:var(--H2);
+  line-height:1.6;
+}
+.vp-instruction-steps b{color:var(--orange);}
+/* Code row */
+.vp-code-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:clamp(14px,3.5vw,18px);
+}
+.vp-code{
+  flex:1;
+  background:#fff8e6;
+  border:2px dashed var(--orange);
+  border-radius:8px;
+  padding:clamp(12px,3vw,15px) 14px;
+  font-size:clamp(15px,4.2vw,19px);
+  font-weight:900;color:var(--navy);
+  letter-spacing:.2em;
+  font-family:var(--H1);
+  text-align:center;
+}
+.vp-copy{
+  flex-shrink:0;
+  background:var(--orange);color:var(--navy);
+  border:none;border-radius:8px;
+  padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);
+  font-size:clamp(11px,3vw,13px);font-weight:900;
+  font-family:var(--H1);letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 4px 0 var(--orangeD);
+  transition:transform .1s,box-shadow .1s;
+  white-space:nowrap;
+}
+.vp-copy:active{transform:translateY(4px);box-shadow:0 0 0 var(--orangeD);}
+/* CTA */
+.vp-cta{
+  width:100%;background:var(--orange);color:var(--navy);
+  border:none;border-radius:10px;
+  padding:clamp(16px,4.5vw,20px);
+  font-size:clamp(15px,4.2vw,18px);font-weight:900;
+  font-family:var(--H1);letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 5px 0 var(--orangeD);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .1s,box-shadow .1s;
+  margin-bottom:clamp(10px,2.5vw,14px);
+}
+.vp-cta:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+.vp-dismiss{
+  display:block;width:100%;background:transparent;
+  color:rgba(255,255,255,.4);border:none;
+  padding:10px;font-size:clamp(11px,2.8vw,13px);
+  font-family:var(--H2);text-transform:uppercase;
+  letter-spacing:.04em;cursor:pointer;text-align:center;
+}
+
+/* LEADERBOARD SCREEN */
+#screen-leaderboard{flex:1;display:flex;flex-direction:column;background:var(--orange);overflow:hidden;animation:fadeIn .2s ease;}
+.lbd-header{flex:0 0 auto;background:var(--navy);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px);display:flex;align-items:center;gap:12px;}
+.lbd-back{width:clamp(36px,9vw,42px);height:clamp(36px,9vw,42px);border-radius:50%;background:rgba(255,255,255,.1);border:none;cursor:pointer;color:var(--white);font-size:clamp(16px,4vw,20px);display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.lbd-back:active{background:rgba(255,255,255,.2);}
+.lbd-header-text{flex:1;}
+.lbd-title{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;line-height:1;}
+.lbd-sub{font-size:clamp(10px,2.5vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);margin-top:2px;}
+.lbd-live{display:flex;align-items:center;gap:5px;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(255,255,255,.7);font-family:var(--H2);}
+.lbd-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--orange);display:inline-block;animation:dotPulse 1.4s ease infinite;}
+.lbd-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(12px,3vw,16px) clamp(14px,3.5vw,18px);}
+.lbd-scroll::-webkit-scrollbar{display:none;}
+.lbd-card{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1);}
+.lbd-row{display:flex;align-items:center;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);gap:12px;border-bottom:1px solid rgba(0,0,0,.06);}
+.lbd-row:last-child{border-bottom:none;}
+.lbd-row.top1{background:#fffbee;}
+.lbd-row.top2{background:#fafafa;}
+.lbd-row.top3{background:#fff8f2;}
+.lbd-medal{width:clamp(28px,7vw,34px);height:clamp(28px,7vw,34px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);flex-shrink:0;}
+.lbd-medal.gold{background:var(--orange);color:var(--navy);}
+.lbd-medal.silver{background:#dde0e8;color:#4a5568;}
+.lbd-medal.bronze{background:#f0d8c8;color:#7a4020;}
+.lbd-medal.other{background:rgba(26,36,56,.08);color:var(--navy);font-size:clamp(10px,2.5vw,12px);}
+.lbd-info{flex:1;min-width:0;}
+.lbd-name{font-size:clamp(14px,3.8vw,17px);font-weight:700;color:var(--inkCard);font-family:var(--H2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lbd-city{font-size:clamp(10px,2.5vw,11px);color:var(--inkCard2);font-family:var(--H2);margin-top:1px;}
+.lbd-right{text-align:right;flex-shrink:0;}
+.lbd-score{font-size:clamp(14px,3.8vw,17px);font-weight:900;color:var(--navy);font-family:var(--H1);}
+.lbd-prize{font-size:clamp(9px,2.3vw,10px);font-weight:700;color:var(--orange);font-family:var(--H2);margin-top:2px;white-space:nowrap;}
+.lbd-empty{text-align:center;padding:clamp(28px,7vw,40px) 20px;color:var(--inkCard2);font-family:var(--H2);font-size:clamp(12px,3vw,14px);}
+.lbd-loading{text-align:center;padding:clamp(28px,7vw,40px) 20px;color:var(--inkCard2);font-family:var(--H2);font-size:clamp(12px,3vw,14px);}
+.lbd-nav{flex:0 0 auto;background:var(--navy);display:flex;align-items:stretch;border-top:1px solid var(--navyL);}
+
+/* ── PODIUM — product-first design ── */
+.lb-podium{margin-bottom:clamp(10px,2.5vw,14px);}
+.lb-podium-header{display:flex;align-items:center;gap:8px;margin-bottom:clamp(10px,2.5vw,13px);}
+.lb-podium-header-icon{width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);background:rgba(26,36,56,.12);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lb-podium-title{font-size:clamp(11px,3vw,13px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;}
+.lb-podium-see-all{margin-left:auto;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:var(--navy);font-family:var(--H2);text-decoration:underline;cursor:pointer;opacity:.6;}
+
+/* Stage — columns aligned to bottom */
+.lb-podium-stage{display:flex;align-items:flex-end;gap:clamp(6px,1.5vw,9px);}
+
+/* Each column is a flex column, product card on top, bar below */
+.lb-podium-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;}
+
+/* Product card — the hero element */
+.lb-podium-product{
+  width:100%;
+  background:var(--white);
+  border-radius:10px 10px 0 0;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:clamp(8px,2vw,11px) clamp(4px,1vw,6px) clamp(6px,1.5vw,8px);
+  position:relative;
+  box-shadow:0 -3px 12px rgba(0,0,0,.1);
+  min-height:clamp(90px,24vw,115px);
+}
+.lb-podium-col.first .lb-podium-product{
+  min-height:clamp(115px,30vw,140px);
+  border-radius:12px 12px 0 0;
+}
+
+/* Rank badge — top-left corner of product card */
+.lb-podium-rank-badge{
+  position:absolute;top:6px;left:6px;
+  width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);
+  background:var(--navy);color:var(--white);
+  border-radius:50%;
+  font-size:clamp(10px,2.6vw,12px);font-weight:900;
+  font-family:var(--H1);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+}
+.lb-podium-col.first .lb-podium-rank-badge{
+  width:clamp(24px,6vw,29px);height:clamp(24px,6vw,29px);
+  font-size:clamp(12px,3vw,14px);
+  background:var(--orange);color:var(--navy);
+}
+
+/* Product image */
+.lb-podium-prize-img{
+  width:clamp(56px,15vw,72px);height:clamp(56px,15vw,72px);
+  object-fit:contain;display:block;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.2));
+}
+.lb-podium-col.first .lb-podium-prize-img{
+  width:clamp(72px,19vw,90px);height:clamp(72px,19vw,90px);
+}
+
+/* Prize name — below the image, inside the white card */
+.lb-podium-prize-name{
+  font-size:clamp(7px,1.8vw,9px);font-weight:700;
+  color:var(--navy);font-family:var(--H2);
+  text-transform:uppercase;letter-spacing:.03em;
+  text-align:center;margin-top:5px;line-height:1.2;
+}
+
+/* Podium bar */
+.lb-podium-bar{
+  width:100%;
+  display:flex;align-items:center;justify-content:center;
+}
+.lb-podium-col.first .lb-podium-bar{background:var(--navy);height:clamp(24px,6.5vw,30px);border-radius:0 0 8px 8px;}
+.lb-podium-col.second .lb-podium-bar{background:rgba(26,36,56,.7);height:clamp(18px,4.5vw,22px);border-radius:0 0 6px 6px;}
+.lb-podium-col.third .lb-podium-bar{background:rgba(26,36,56,.45);height:clamp(14px,3.5vw,17px);border-radius:0 0 6px 6px;}
+
+.lb-podium-loading{text-align:center;padding:clamp(16px,4vw,22px);color:rgba(26,36,56,.45);font-family:var(--H2);font-size:clamp(11px,2.8vw,13px);}
+.lb-podium-winner{font-size:clamp(9px,2.3vw,11px);font-weight:700;color:var(--navy);font-family:var(--H2);text-align:center;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+
+
+/* Player's own row in the leaderboard — highlighted */
+.lbd-row.mine{
+  background:rgba(255,153,0,.12);
+  border-left:3px solid var(--orange);
+}
+.lbd-row.mine .lbd-name{color:var(--navy);font-weight:900;}
+.lbd-row.mine .lbd-score{color:var(--orange);}
+.lbd-you-badge{
+  font-size:clamp(8px,2vw,9px);font-weight:900;
+  background:var(--orange);color:var(--navy);
+  border-radius:3px;padding:1px 5px;
+  font-family:var(--H2);text-transform:uppercase;
+  letter-spacing:.04em;margin-top:2px;display:inline-block;
+}
+
+/* ── LOBBY: voucher tier strip ── */
+.lb-tiers{background:var(--white);border-radius:10px;padding:clamp(12px,3vw,16px);margin-bottom:clamp(10px,2.5vw,14px);box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.lb-tiers-title{font-size:clamp(9px,2.4vw,11px);font-weight:900;color:var(--navy);font-family:var(--H1);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center;}
+.lb-tiers-rows{display:flex;flex-direction:column;gap:6px;}
+.lb-tier-row{display:flex;align-items:center;gap:10px;padding:clamp(7px,1.8vw,9px) clamp(10px,2.5vw,12px);border-radius:7px;background:#f8f9fa;}
+.lb-tier-row.active{background:rgba(255,153,0,.12);border:1.5px solid var(--orange);}
+.lb-tier-row.locked{opacity:.45;}
+.lb-tier-disc{font-size:clamp(13px,3.5vw,16px);font-weight:900;color:var(--navy);font-family:var(--H1);min-width:clamp(54px,14vw,68px);}
+.lb-tier-row.active .lb-tier-disc{color:var(--orange);}
+.lb-tier-label{flex:1;font-size:clamp(10px,2.6vw,12px);font-weight:700;color:var(--inkCard2);font-family:var(--H2);}
+.lb-tier-pts{font-size:clamp(9px,2.3vw,10px);font-weight:700;color:var(--inkCard2);font-family:var(--H2);white-space:nowrap;}
+.lb-tier-you{font-size:clamp(8px,2vw,9px);font-weight:900;background:var(--orange);color:var(--navy);border-radius:3px;padding:1px 5px;font-family:var(--H2);white-space:nowrap;}
+
+
+
+/* rs-reward-split removed — replaced by rs-voucher-hero */
+/* Low score warning */
+.rs-low-score{background:rgba(236,35,38,.08);border:1.5px solid rgba(236,35,38,.2);border-radius:10px;padding:clamp(12px,3vw,16px);margin:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);text-align:center;}
+.rs-low-score-title{font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--red);font-family:var(--H1);margin-bottom:4px;}
+.rs-low-score-sub{font-size:clamp(11px,2.8vw,13px);color:var(--inkCard2);font-family:var(--H2);line-height:1.4;}
+
+/* ── FULL-SCREEN TUTORIAL (before first game) ── */
+#screen-tutorial{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--navy);z-index:100;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(24px,6vw,36px) clamp(20px,5vw,28px);
+  animation:fadeIn .3s ease;
+}
+.tuto-screen-title{
+  font-size:clamp(26px,7.5vw,34px);font-weight:900;
+  color:var(--white);font-family:var(--H1);
+  text-transform:uppercase;text-align:center;
+  line-height:.95;margin-bottom:6px;
+}
+.tuto-screen-sub{
+  font-size:clamp(12px,3.2vw,14px);color:rgba(255,255,255,.6);
+  font-family:var(--H2);text-align:center;margin-bottom:clamp(24px,6vw,32px);
+}
+.tuto-screen-rules{
+  display:flex;flex-direction:column;gap:clamp(10px,2.5vw,14px);
+  width:100%;max-width:340px;margin-bottom:clamp(24px,6vw,32px);
+}
+.tuto-screen-rule{
+  display:flex;align-items:center;gap:clamp(12px,3vw,16px);
+  background:rgba(255,255,255,.07);border-radius:12px;
+  padding:clamp(14px,3.5vw,18px);
+}
+.tuto-screen-rule-icon{
+  width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.tuto-screen-rule-icon.catch{background:rgba(255,153,0,.2);border:2px solid rgba(255,153,0,.4);}
+.tuto-screen-rule-icon.dodge{background:rgba(236,35,38,.15);border:2px solid rgba(236,35,38,.3);}
+.tuto-screen-rule-icon img{width:clamp(26px,7vw,32px);height:clamp(26px,7vw,32px);object-fit:contain;}
+.tuto-screen-rule-text{flex:1;}
+.tuto-screen-rule-title{
+  font-size:clamp(13px,3.5vw,16px);font-weight:900;
+  color:var(--white);font-family:var(--H1);text-transform:uppercase;margin-bottom:3px;
+}
+.tuto-screen-rule-sub{
+  font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.55);font-family:var(--H2);
+}
+.tuto-screen-rule-badge{
+  font-size:clamp(10px,2.6vw,11px);font-weight:900;font-family:var(--H1);
+  padding:5px 12px;border-radius:6px;text-transform:uppercase;white-space:nowrap;
+}
+.tuto-screen-rule-badge.orange{background:var(--orange);color:var(--navy);box-shadow:0 3px 0 var(--orangeD);}
+.tuto-screen-rule-badge.red{background:var(--red);color:var(--white);box-shadow:0 3px 0 var(--redD);}
+.tuto-screen-btn{
+  width:100%;max-width:340px;
+  background:var(--orange);color:var(--navy);
+  border:none;border-radius:12px;
+  padding:clamp(18px,5vw,22px);
+  font-size:clamp(17px,4.8vw,21px);font-weight:900;
+  font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;
+  cursor:pointer;
+  box-shadow:0 5px 0 var(--orangeD);
+  transition:transform .1s,box-shadow .1s;
+}
+.tuto-screen-btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--orangeD);}
+
+/* Leaderboard proximity cue */
+.lbd-proximity{
+  background:var(--orange);
+  color:var(--navy);
+  font-size:clamp(11px,2.8vw,13px);
+  font-weight:900;
+  font-family:var(--H1);
+  text-align:center;
+  padding:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);
+  border-radius:8px;
+  margin:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);
+  line-height:1.4;
+}
+.lbd-proximity span{
+  display:block;
+  font-size:clamp(9px,2.3vw,10px);
+  font-weight:500;
+  font-family:var(--H2);
+  margin-top:3px;
+  opacity:.8;
+}
+.lbd-gap-badge{
+  font-size:clamp(8px,2vw,9px);font-weight:700;
+  background:rgba(255,153,0,.15);color:var(--orange);
+  border-radius:3px;padding:1px 5px;
+  font-family:var(--H2);margin-top:2px;display:inline-block;
+}
+
+/* Cash-out button — voluntary game end */
+#btn-cashout{
+  position:absolute;top:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);
+  background:rgba(255,255,255,.15);
+  border:1.5px solid rgba(255,255,255,.3);
+  color:var(--white);
+  border-radius:6px;
+  padding:5px 10px;
+  font-size:clamp(9px,2.3vw,10px);
+  font-weight:700;
+  font-family:var(--H2);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  cursor:pointer;
+  z-index:9;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  display:flex;align-items:center;gap:5px;
+}
+#btn-cashout:active{background:rgba(255,255,255,.25);}
+#btn-cashout.confirm-mode{
+  background:var(--orange);color:var(--navy);
+  border-color:var(--orangeD);
+  animation:none;
+}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="play-transition"></div>
+<div id="loading-screen">
+  <div style="font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.14em;color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;text-transform:uppercase;margin-bottom:4px;">JUMIA ÉDITION FANS</div>
+  <div class="loading-logo">GARDIEN<br>DE BUT</div>
+  <div class="loading-gloves-wrap" id="loading-gloves-wrap"></div>
+  <div style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:4px;">
+    <div style="text-align:center;">
+      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">20%</div>
+      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">max réduction</div>
+    </div>
+    <div style="width:1px;height:32px;background:rgba(26,36,56,.2);"></div>
+    <div style="text-align:center;">
+      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">3</div>
+      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">prix physiques</div>
+    </div>
+    <div style="width:1px;height:32px;background:rgba(26,36,56,.2);"></div>
+    <div style="text-align:center;">
+      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">4</div>
+      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">essais/jour</div>
+    </div>
+  </div>
+  <div class="loading-sub" id="loading-sub">Chargement en cours...</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
+</div>
+<div id="rotate-screen">
+  <div class="rotate-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="4" width="24" height="40" rx="4" stroke="white" stroke-width="3" fill="none"/><circle cx="24" cy="38" r="2" fill="white"/></svg></div>
+  <div class="rotate-msg">TOURNE TON TÉLÉPHONE</div>
+  <div class="rotate-sub">Le jeu est optimisé en mode portrait</div>
+</div>
+<script>
+const H1="'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif";
+const H2="'HelveticaText','Gotham',Arial,sans-serif";
+
+function getFW(){ return document.getElementById('app').offsetWidth||window.innerWidth||390; }
+function getFH(){ return document.getElementById('game-field')?.offsetHeight||320; }
+
+const GW=90, GH=52;
+function CATCH_Y(fh){ return fh - GH - 6; }
+
+const BALL_SIZE = 46;
+const CARD_W = 68, CARD_H = 92;
+
+const IMG_STAR    = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpolygon points='24,4 30,17 44,19 34,29 37,43 24,36 11,43 14,29 4,19 18,17' fill='%23ff9900' stroke='%23e68800' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E";
+const IMG_TROPHY  = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='19' y='35' width='10' height='6' fill='%23e68800'/%3E%3Crect x='14' y='41' width='20' height='5' rx='2' fill='%231a2438' stroke='%23e68800' stroke-width='1'/%3E%3Cpath d='M11 7 L37 7 L37 25 C37 33 31 36 24 36 C17 36 11 33 11 25 Z' fill='%23ff9900'/%3E%3Cpath d='M11 9 C11 9 5 9 5 17 C5 23 11 26 11 26' fill='none' stroke='%23ff9900' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M37 9 C37 9 43 9 43 17 C43 23 37 26 37 26' fill='none' stroke='%23ff9900' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
+const IMG_VOUCHER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='12' width='44' height='24' rx='4' fill='%231a2438'/%3E%3Ccircle cx='2' cy='24' r='6' fill='%23ff9900'/%3E%3Ccircle cx='46' cy='24' r='6' fill='%23ff9900'/%3E%3Cline x1='17' y1='13' x2='17' y2='35' stroke='%23ff9900' stroke-width='1.5' stroke-dasharray='3 2'/%3E%3Ccircle cx='33' cy='24' r='5' fill='none' stroke='%23ff9900' stroke-width='2'/%3E%3Cline x1='33' y1='19' x2='33' y2='29' stroke='%23ff9900' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='28' y1='24' x2='38' y2='24' stroke='%23ff9900' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E";
+const IMG_ATTEMPTS= "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='26' r='18' fill='%231a2438' stroke='%2324304f' stroke-width='2'/%3E%3Ccircle cx='24' cy='26' r='15' fill='none' stroke='%23ff9900' stroke-width='2'/%3E%3Cline x1='24' y1='26' x2='24' y2='15' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='24' y1='26' x2='31' y2='30' stroke='%23ff9900' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='26' r='2' fill='white'/%3E%3Crect x='20' y='5' width='8' height='4' rx='2' fill='%231a2438'/%3E%3Cline x1='18' y1='7' x2='15' y2='10' stroke='%231a2438' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='30' y1='7' x2='33' y2='10' stroke='%231a2438' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E";
+const IMG_GLOVES  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Gloves.png";
+const IMG_SOCCER  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Soccer.png";
+const IMG_GOLDEN  = "https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon%20d'or.png";
+const IMG_HEART   = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 42 C24 42 6 28 6 17 C6 11 10.5 6 16.5 6 C20 6 23 8 24 10 C25 8 28 6 31.5 6 C37.5 6 42 11 42 17 C42 28 24 42 24 42Z' fill='%23ec2326' stroke='%23a31a1d' stroke-width='1.5'/%3E%3C/svg%3E";
+const IMG_REDCARD = "https://raw.githubusercontent.com/Madzack69/Icons/main/Red.png";
+
+function getVoucher(s){
+  if(s>=2000) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"LÉGENDE",bg:"#1a2438"};
+  if(s>=800)  return{disc:"15% DE RÉD.",code:"JMCHAMP15",label:"CHAMPION",bg:"#1a2438"};
+  if(s>=300)  return{disc:"10% DE RÉD.",code:"JMMATCH10",label:"MATCH READY",bg:"#1a2438"};
+  return           {disc:"5% DE RÉD.", code:"JMSTART5",label:"DÉBUTANT",bg:"#1a2438"};
+}
+
+// STATE
+let attempts=4, vWon=0, totalPts=0, bestScore=0;
+let itemsArr=[], gloveX=200, livesVal=3, scoreVal=0, comboVal=0, maxComboVal=0, speedVal=1.1, elapsedSec=0;
+let pressDir=null, done=false, animId=null, lastT=null, lastSpawn=0, spawnInt=2000;
+let lastPressTime=0; // invincibility window
+let wid=0, playerName='', playerLastName='', playerEmail='', playerCity='';
+let hasPlayedOnce=false;
+let tutorialActive=false;
+let lastTierReached=0; // tracks tier crossings for celebration
+
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
+const SHEET_ID  = '1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
+const SHEET_GID = '0';
+
+function $(id){ return document.getElementById(id); }
+
+function spawnItem(speed){
+  const rand=Math.random(); let type,w,h;
+  if(rand<0.08){type='golden';w=BALL_SIZE;h=BALL_SIZE;}
+  else if(rand<0.50){type='ball';w=BALL_SIZE;h=BALL_SIZE;}
+  else{type='redcard';w=CARD_W;h=CARD_H;}
+  const fw=getFW();
+  return{id:wid++,type,x:Math.random()*Math.max(8,fw-w-14)+4,y:-h-4,speed,width:w,height:h};
+}
+
+function copyCode(text,btn){
+  const success=()=>{btn.textContent='✓ COPIÉ';btn.style.background='#1a2438';btn.style.color='#ffffff';btn.style.boxShadow='0 3px 0 #24304f';btn.disabled=true;btn.style.cursor='default';btn.style.opacity='1';};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(success).catch(()=>fallback());}
+  else{fallback();}
+  function fallback(){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');success();}catch(e){btn.textContent='Code: '+text;}document.body.removeChild(ta);}
+}
+
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+document.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
+
+function checkOrientation(){
+  const isLandscape=window.innerWidth>window.innerHeight;
+  const rotate=$('rotate-screen');
+  if(rotate) rotate.classList.toggle('show',isLandscape);
+  if(document.fullscreenElement&&screen.orientation?.lock) screen.orientation.lock('portrait').catch(()=>{});
+}
+window.addEventListener('resize',checkOrientation);
+window.addEventListener('orientationchange',checkOrientation);
+document.addEventListener('fullscreenchange',checkOrientation);
+checkOrientation();
+
+// MUSIC
+const MUSIC_URL="https://raw.githubusercontent.com/zakarialahmaid-dotcom/Gamification/main/Football_game.mp3";
+const music=new Audio(MUSIC_URL);
+music.loop=true; music.volume=0;
+let musicOn=true, musicStarted=false;
+
+function musicFade(targetVol,duration=600){
+  const start=music.volume,diff=targetVol-start,steps=30,interval=duration/steps;
+  let step=0;
+  const t=setInterval(()=>{step++;music.volume=Math.min(1,Math.max(0,start+diff*(step/steps)));if(step>=steps)clearInterval(t);},interval);
+}
+function startMusic(){if(!musicOn)return;if(!musicStarted){music.play().catch(()=>{});musicStarted=true;}musicFade(0.18);}
+function stopMusic(){musicFade(0,600);setTimeout(()=>{music.pause();music.currentTime=0;},650);}
+function toggleMusic(btn){
+  musicOn=!musicOn;
+  if(musicOn){
+    music.play().catch(()=>{});musicFade(0.18);btn.title='Couper la musique';
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+  } else {
+    musicFade(0,400);setTimeout(()=>music.pause(),450);btn.title='Activer la musique';
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+  }
+}
+
+// VISIBILITY — pause music whenever the page/tab is hidden or the app is backgrounded,
+// resume only if music was actively playing when it was interrupted.
+(function(){
+  let wasPlayingOnHide=false;
+
+  function onHide(){
+    wasPlayingOnHide=musicOn&&musicStarted&&!music.paused;
+    if(wasPlayingOnHide){musicFade(0,200);setTimeout(()=>music.pause(),220);}
+  }
+  function onShow(){
+    if(wasPlayingOnHide&&musicOn){music.play().catch(()=>{});musicFade(0.18,400);}
+    wasPlayingOnHide=false;
+  }
+
+  // Standard Page Visibility API — fires when tab is switched, app backgrounded, screen locked
+  document.addEventListener('visibilitychange',()=>{
+    document.hidden ? onHide() : onShow();
+  });
+
+  // pagehide covers page unload / back-forward cache on mobile browsers
+  window.addEventListener('pagehide', onHide);
+  window.addEventListener('pageshow', e=>{
+    // pageshow fires on bfcache restore (persisted=true) — resume if needed
+    if(e.persisted) onShow();
+  });
+
+  // window blur/focus catches the WebView losing focus inside a third-party app
+  window.addEventListener('blur', onHide);
+  window.addEventListener('focus', onShow);
+})();
+
+// TIER-UP CELEBRATION
+function showTierUp(label,disc){
+  // Remove any existing tier-up overlay
+  const old=document.getElementById('tier-up-overlay');if(old)old.remove();
+  const el=document.createElement('div');
+  el.id='tier-up-overlay';
+  el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:tierUpIn .3s ease;';
+  el.innerHTML=
+    '<div style="background:rgba(26,36,56,.88);border-radius:16px;padding:clamp(20px,5vw,28px) clamp(28px,7vw,40px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);">'+
+      '<div style="font-size:clamp(10px,2.6vw,12px);font-weight:700;color:rgba(255,255,255,.55);font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">NOUVEAU NIVEAU</div>'+
+      '<div style="font-size:clamp(28px,8vw,40px);font-weight:900;color:var(--orange);font-family:var(--H1);line-height:1;margin-bottom:4px;">'+disc+'</div>'+
+      '<div style="font-size:clamp(14px,3.8vw,18px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;">'+label+'</div>'+
+    '</div>';
+  document.body.appendChild(el);
+  sfxTierUp();
+  setTimeout(()=>{el.style.transition='opacity .4s ease';el.style.opacity='0';setTimeout(()=>el.remove(),420);},1800);
+}
+
+// TRANSITION
+function goTo(fn){
+  const t=$('play-transition');
+  if(!t){fn();return;}
+  t.style.animation='none';t.style.transform='scaleY(0)';void t.offsetWidth;t.style.animation='';
+  t.classList.add('go');
+  setTimeout(()=>{
+    fn();
+    setTimeout(()=>{
+      t.style.transition='opacity .25s ease';t.style.opacity='0';
+      setTimeout(()=>{t.classList.remove('go');t.style.animation='none';t.style.transform='scaleY(0)';t.style.opacity='1';t.style.transition='';},260);
+    },60);
+  },520);
+}
+
+// SOUND EFFECTS — Web Audio API (no file downloads, instant)
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx){try{_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return _audioCtx;
+}
+function playTone(freq,type,duration,gain,freqEnd){
+  const ctx=getAudioCtx();if(!ctx)return;
+  try{
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(freq,ctx.currentTime);
+    if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,ctx.currentTime+duration);
+    g.gain.setValueAtTime(gain||0.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+duration);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime+duration);
+  }catch(e){}
+}
+function sfxCatch(){playTone(440,'sine',0.12,0.25,660);try{navigator.vibrate&&navigator.vibrate(18);}catch(e){}}   // swoosh up
+function sfxGolden(){
+  playTone(660,'sine',0.08,0.3,880);
+  setTimeout(()=>playTone(880,'sine',0.12,0.25,1100),80);
+  try{navigator.vibrate&&navigator.vibrate([12,8,12]);}catch(e){}
+}
+function sfxRedCard(){playTone(180,'sawtooth',0.18,0.3,80);try{navigator.vibrate&&navigator.vibrate([60,20,60]);}catch(e){}} // descending buzz
+function sfxNoAttempts(){playTone(220,'sine',0.3,0.2,160);}  // sad tone
+function sfxTierUp(){
+  // Ascending fanfare — 3 quick notes
+  playTone(523,'sine',0.12,0.4,659);
+  setTimeout(()=>playTone(659,'sine',0.12,0.35,784),120);
+  setTimeout(()=>playTone(784,'sine',0.2,0.4,1047),240);
+  try{navigator.vibrate&&navigator.vibrate([30,20,30,20,80]);}catch(e){}
+}
+
+// LEADERBOARD
+async function fetchLeaderboard(){
+  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 50'); // C=email for player matching
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
+  try{
+    const res=await fetch(url);
+    const text=await res.text();
+    const json=JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
+    if(!json.table?.rows)return[];
+    return json.table.rows
+      .filter(r=>r.c?.[2]?.v!=null)
+      .map(r=>({name:String(r.c[0]?.v||'Joueur'),email:String(r.c[1]?.v||'').toLowerCase().trim(),score:Number(String(r.c[2]?.v||0).replace(/[\s,]/g,''))||0}))
+      .sort((a,b)=>b.score-a.score)
+      .filter((p,i,arr)=>arr.findIndex(x=>x.name===p.name)===i)
+      .slice(0,50);
+  }catch(e){return[];}
+}
+
+
+// LEADERBOARD SCREEN
+function renderLeaderboard(){
+  const prizes=['Maillot Maroc','Polo Maroc','Ballon de foot'];
+  $('app').innerHTML=`
+  <div id="screen-leaderboard">
+    <div class="lbd-header">
+      <button class="lbd-back" onclick="goTo(renderLobby)" aria-label="Retour">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="lbd-header-text">
+        <div class="lbd-title">CLASSEMENT</div>
+        <div class="lbd-sub">Top 50 des meilleurs gardiens</div>
+      </div>
+      <div class="lbd-live">LIVE</div>
+    </div>
+    <div class="lbd-scroll">
+      <div class="lbd-card" id="lbd-card">
+        <div class="lbd-loading">Chargement du classement...</div>
+      </div>
+    </div>
+    <div class="lbd-nav">
+      <button class="lb-nav-item" onclick="goTo(renderLobby)">
+        <span class="lb-nav-icon"><img src="${IMG_GLOVES}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">ACCUEIL</span>
+      </button>
+      <button class="lb-nav-item active">
+        <span class="lb-nav-icon"><img src="${IMG_TROPHY}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">CLASSEMENT</span>
+      </button>
+      <button class="lb-nav-item" onclick="navRewards()">
+        <span class="lb-nav-icon"><img src="${IMG_VOUCHER}" style="width:clamp(20px,5vw,24px);height:clamp(20px,5vw,24px);object-fit:contain;display:block;" alt="" draggable="false"></span>
+        <span class="lb-nav-label">RÉCOMPENSES</span>
+      </button>
+      <button class="lb-nav-item" onclick="navHelp()">
+        <span class="lb-nav-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span class="lb-nav-label">AIDE</span>
+      </button>
+    </div>
+  </div>`;
+
+  fetchLeaderboard().then(players=>{
+    const card=$('lbd-card');
+    if(!card)return;
+    if(!players.length){
+      card.innerHTML='<div class="lbd-empty">Sois le premier à jouer !<br>Ton nom apparaîtra ici.</div>';
+      return;
+    }
+    const myEmail=playerEmail?playerEmail.toLowerCase().trim():'';
+    let myRowIdx=-1;
+    card.innerHTML=players.map((p,i)=>{
+      const rank=i+1;
+      const medalClass=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
+      const fullName=(p.name||'Joueur').trim();
+      const firstName=fullName.split(' ')[0]; // kept for matching only
+      // Match on email — unique and exact, unlike name
+      const isMe=hasPlayedOnce&&myEmail&&(p.email||'')=== myEmail;
+      if(isMe)myRowIdx=i;
+      const city=p.city?'<div class="lbd-city">'+p.city+'</div>':'';
+      const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
+      const prize=i<3?'<div class="lbd-prize">'+prizes[i]+'</div>':'';
+      const rankClass=rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+      const meClass=isMe?' mine':'';
+      const youBadge=isMe?'<div class="lbd-you-badge">TOI</div>':'';
+      // Gap badge — show pts needed to reach this row (for the row just above player)
+      const isJustAbove=hasPlayedOnce&&myRowIdx>0&&i===myRowIdx-1;
+      const gapBadge=isJustAbove?'<div class="lbd-gap-badge">'+Number(players[i].score-bestScore).toLocaleString('fr-FR')+' pts pour dépasser</div>':'';
+      return '<div class="lbd-row '+rankClass+meClass+'" id="lbd-row-'+i+'">'+
+        '<div class="lbd-medal '+medalClass+'">'+rank+'</div>'+
+        '<div class="lbd-info">'+
+          '<div class="lbd-name">'+fullName+youBadge+'</div>'+
+          city+
+          gapBadge+
+        '</div>'+
+        '<div class="lbd-right">'+
+          '<div class="lbd-score">'+pts+'</div>'+
+          prize+
+        '</div>'+
+      '</div>';
+    }).join('');
+    // Proximity cue — show gap to next rank
+    if(hasPlayedOnce&&myEmail&&myRowIdx>=0){
+      const myScore=players[myRowIdx].score;
+      const above=players[myRowIdx-1];
+      const ptsAbove=above?above.score-myScore:null;
+      const rankAbove=myRowIdx; // 0-indexed so rank above = myRowIdx (rank myRowIdx+1 - 1)
+      let proxHTML='';
+      if(ptsAbove!==null&&ptsAbove>0){
+        proxHTML='<div class="lbd-proximity">'+
+          'Tu es à <b>'+Number(ptsAbove).toLocaleString('fr-FR')+' pts</b> de la <b>'+rankAbove+'ème place</b> !'+
+          '<span>Rejoue pour grimper dans le classement</span>'+
+        '</div>';
+      } else if(myRowIdx===0){
+        proxHTML='<div class="lbd-proximity">TU ES EN TÊTE DU CLASSEMENT !<span>Maintiens ta position</span></div>';
+      }
+      if(proxHTML){
+        const card=$('lbd-card');
+        if(card){const div=document.createElement('div');div.innerHTML=proxHTML;card.insertBefore(div.firstChild,card.firstChild);}
+      }
+    }
+    // Scroll to player row
+    if(myRowIdx>=0){
+      setTimeout(()=>{
+        const myRow=document.getElementById('lbd-row-'+myRowIdx);
+        if(myRow)myRow.scrollIntoView({behavior:'smooth',block:'center'});
+      },300);
+    }
+  }).catch(()=>{
+    const card=$('lbd-card');
+    if(card)card.innerHTML='<div class="lbd-empty">Classement temporairement indisponible.</div>';
+  });
+}
+
+// LOBBY — simple: prize + discount promise + play
+function renderLobby(){
+  const attemptsLeft=attempts;
+  const prizes=['Maillot Maroc','Polo Maroc','Ballon de foot'];
+  $('app').innerHTML=`
+  <div id="screen-lobby">
+
+    <!-- ── HEADER ── -->
+    <div class="lb-hero">
+      <div class="lb-hero-left">
+        <div class="lb-eyebrow">JUMIA ÉDITION FANS</div>
+        <div class="lb-title">GARDIEN<br>DE BUT</div>
+      </div>
+      <img class="lb-hero-ball" src="${IMG_SOCCER}" alt="" draggable="false">
+      <div class="lb-attempts-badge">
+        <div class="lb-attempts-num ${attemptsLeft<=1?'urgent':''}">${attemptsLeft}/4</div>
+        <div class="lb-attempts-lbl">ESSAIS</div>
+      </div>
+    </div>
+
+    <!-- ── PRIZE HERO — the only info that matters ── -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,5vw,32px) clamp(24px,6vw,36px);gap:clamp(12px,3vw,16px);">
+
+      <!-- Prize image — what they can win -->
+      <img src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp"
+        style="width:clamp(100px,28vw,140px);height:clamp(100px,28vw,140px);object-fit:contain;
+        filter:drop-shadow(0 8px 24px rgba(0,0,0,.25));display:block;"
+        alt="Maillot Maroc" draggable="false">
+
+      <!-- Discount promise -->
+      <div style="text-align:center;">
+        <div style="font-size:clamp(13px,3.5vw,16px);font-weight:700;color:rgba(26,36,56,.65);
+          font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">
+          JOUE ET GAGNE
+        </div>
+        <div style="font-size:clamp(38px,11vw,52px);font-weight:900;color:var(--navy);
+          font-family:var(--H1);line-height:.9;letter-spacing:-.01em;">
+          JUSQU'À<br>20% OFF
+        </div>
+        <div style="font-size:clamp(13px,3.5vw,15px);color:rgba(26,36,56,.6);
+          font-family:var(--H2);margin-top:8px;">
+          sur toute la sélection football Jumia
+        </div>
+      </div>
+
+      <!-- Leaderboard link — small, secondary -->
+      <div onclick="renderLeaderboard()"
+        style="font-size:clamp(10px,2.5vw,12px);font-weight:700;color:rgba(26,36,56,.5);
+        font-family:var(--H2);text-decoration:underline;cursor:pointer;margin-top:4px;">
+        Voir le classement ›
+      </div>
+
+    </div>
+
+    <!-- ── CTA ── -->
+    <div class="lb-cta">
+      ${attemptsLeft===0
+        ?`<div style="background:rgba(0,0,0,.18);border-radius:10px;padding:16px 18px;text-align:center;">
+            <div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--navy);font-family:${H1};margin-bottom:4px;">REVIENS DEMAIN !</div>
+            <div style="font-size:clamp(11px,2.8vw,13px);color:rgba(26,36,56,.65);font-family:${H2};">Tes essais se renouvellent à minuit.</div>
+          </div>`
+        :`<button class="btn-kickoff" id="btn-start">
+            <img class="btn-kickoff-icon" src="${IMG_SOCCER}" alt="" draggable="false">
+            JOUER MAINTENANT
+            <span class="btn-kickoff-arrow">›</span>
+          </button>`}
+    </div>
+
+  </div>`;
+
+  const bs=$('btn-start');
+  if(bs){
+    bs.addEventListener('pointerdown',()=>{
+      bs.style.animation='none';
+      if(!hasPlayedOnce){ showTutorialScreen(); }
+      else { goTo(startGame); }
+    });
+  }
+}
+
+// GAME SCREEN
+function renderGame(){
+  $('app').innerHTML=`
+  <div id="screen-game">
+    <div class="gm-hud">
+      <div class="gm-brand">
+        <div class="gm-title">GARDIEN DE BUT</div>
+        <div class="gm-tag"><span>ÉDITION FANS</span></div>
+      </div>
+      <div id="gm-tier-badge" style="margin-left:auto;font-size:clamp(9px,2.3vw,11px);font-weight:900;color:var(--orange);font-family:var(--H1);letter-spacing:.05em;opacity:.8;transition:opacity .3s;">5%</div>
+    </div>
+    <div class="gm-net"></div>
+    <div id="game-field">
+      <!-- Goalkeeper zone — spatial anchor -->
+      <div id="goal-zone">
+        <div id="goal-posts">
+          <div class="goal-post"></div>
+          <div class="goal-post"></div>
+        </div>
+      </div>
+      <div id="glove-el"><img src="${IMG_GLOVES}" alt="gloves"></div>
+      <div id="catch-ring"></div>
+      <div id="danger-bar"></div>
+      <div id="dodge-hint">ESQUIVE !</div>
+      <div id="game-overlay">
+        <div class="score-circle">
+          <div class="score-num" id="score-disp">0</div>
+          <div class="score-lbl">POINTS</div>
+        </div>
+        <div id="lives-counter">
+          <img src="${IMG_HEART}" alt="lives" id="lives-heart-img">
+          <div id="lives-count">5</div>
+        </div>
+      </div>
+      <button id="btn-cashout" id="btn-cashout"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="white" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser</button>
+      <button id="btn-mute" onclick="toggleMusic(this)" title="Couper la musique"><svg id="mute-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
+
+    </div>
+    <div class="gm-btns">
+      <button class="btn-arrow" id="btn-left">&#9664;</button>
+      <div class="combo-badge" id="combo-badge"></div>
+      <button class="btn-arrow" id="btn-right">&#9654;</button>
+    </div>
+  </div>`;
+
+  const fw=getFW(); gloveX=fw/2;
+  const ge=$('glove-el');
+  if(ge){ge.style.left='0px';ge.style.top=CATCH_Y(getFH())+'px';ge.style.transform=`translateX(${gloveX-GW/2}px)`;}
+
+  const bl=$('btn-left'),br=$('btn-right');
+  const onL=(e)=>{e.preventDefault();if(tutorialActive)dismissTutorial();pressDir='l';lastPressTime=Date.now();};
+  const onR=(e)=>{e.preventDefault();if(tutorialActive)dismissTutorial();pressDir='r';lastPressTime=Date.now();};
+  const off=(e)=>{e.preventDefault();pressDir=null;};
+  bl.addEventListener('pointerdown',onL,{passive:false});bl.addEventListener('pointerup',off,{passive:false});bl.addEventListener('pointerleave',off,{passive:false});
+  br.addEventListener('pointerdown',onR,{passive:false});br.addEventListener('pointerup',off,{passive:false});br.addEventListener('pointerleave',off,{passive:false});
+  bl.addEventListener('contextmenu',e=>e.preventDefault());
+  br.addEventListener('contextmenu',e=>e.preventDefault());
+  // Cash-out button
+  const co=$('btn-cashout');
+  if(co){
+    let coArmed=false,coTimer=null;
+    co.addEventListener('pointerdown',()=>{
+      if(!coArmed){
+        coArmed=true;co.textContent='Confirmer ?';co.classList.add('confirm-mode');
+        coTimer=setTimeout(()=>{coArmed=false;co.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="white" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser';co.classList.remove('confirm-mode');},2500);
+      } else {
+        clearTimeout(coTimer);endGame(scoreVal);
+      }
+    });
+  }
+}
+
+function dismissTutorial(){
+  // Tutorial is now a separate screen — this function is kept for safety
+  tutorialActive=false;
+}
+
+function showTutorialScreen(){
+  // Remove any existing tutorial screen
+  const old=$('screen-tutorial');if(old)old.remove();
+  const el=document.createElement('div');
+  el.id='screen-tutorial';
+  el.innerHTML=
+    '<div class="tuto-screen-title">COMMENT<br>JOUER</div>'+
+    '<div class="tuto-screen-sub">Lis les règles avant de commencer</div>'+
+    '<div class="tuto-screen-rules">'+
+      '<div class="tuto-screen-rule">'+
+        '<div class="tuto-screen-rule-icon catch"><img src="'+IMG_SOCCER+'" alt="" draggable="false"></div>'+
+        '<div class="tuto-screen-rule-text">'+
+          '<div class="tuto-screen-rule-title">ATTRAPE LES BALLONS</div>'+
+          '<div class="tuto-screen-rule-sub">Utilise les boutons ◄ ► pour déplacer les gants.</div>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-badge orange">+POINTS</div>'+
+      '</div>'+
+      '<div class="tuto-screen-rule">'+
+        '<div class="tuto-screen-rule-icon dodge"><img src="'+IMG_REDCARD+'" alt="" draggable="false"></div>'+
+        '<div class="tuto-screen-rule-text">'+
+          '<div class="tuto-screen-rule-title">ESQUIVE LES CARTONS</div>'+
+          '<div class="tuto-screen-rule-sub">Chaque carton rouge attrapé te coûte une vie.</div>'+
+        '</div>'+
+        '<div class="tuto-screen-rule-badge red">DANGER</div>'+
+      '</div>'+
+    '</div>'+
+    '<button class="tuto-screen-btn" id="tuto-start-btn">C\'EST PARTI !</button>';
+  document.body.appendChild(el);
+  const btn=document.getElementById('tuto-start-btn');
+  if(btn)btn.addEventListener('pointerdown',()=>{
+    el.style.transition='opacity .2s ease';
+    el.style.opacity='0';
+    setTimeout(()=>{el.remove();startGame();},220);
+  });
+}
+
+function startGame(){
+  startMusic();
+  tutorialActive=false; // tutorial now shown as separate screen before game
+  done=false;wid=0;itemsArr=[];
+  livesVal=5;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
+  lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;
+  renderGame();
+  const fw=getFW();gloveX=fw/2;
+  updateLivesDisplay();
+  animId=requestAnimationFrame(tick);
+}
+
+function updateLivesDisplay(){
+  const badge=$('lives-count'),heart=$('lives-heart-img');
+  if(badge)badge.textContent=livesVal;
+  if(heart){
+    heart.style.transform='scale(1.4)';
+    setTimeout(()=>{if(heart)heart.style.transform='scale(1)';},200);
+    heart.style.filter=livesVal===1
+      ?'drop-shadow(0 0 8px rgba(236,35,38,.9)) drop-shadow(0 3px 10px rgba(0,0,0,.5))'
+      :'drop-shadow(0 3px 10px rgba(0,0,0,.5))';
+  }
+}
+
+// GAME LOOP
+function tick(ts){
+  if(done)return;
+  if(tutorialActive){lastT=null;animId=requestAnimationFrame(tick);return;}
+  if(!lastT)lastT=ts;
+  const dt=Math.min((ts-lastT)/16,3);lastT=ts;
+  const fw=getFW(),fh=getFH(),cy=CATCH_Y(fh);
+  elapsedSec+=dt/60;
+  speedVal=Math.min(4.0,1.1+elapsedSec*0.03);
+  spawnInt=Math.max(800,2200-elapsedSec*20);
+  const spd=7+elapsedSec*0.08;
+  if(pressDir==='l')gloveX=Math.max(GW/2,gloveX-spd*dt);
+  if(pressDir==='r')gloveX=Math.min(fw-GW/2,gloveX+spd*dt);
+  const ge=$('glove-el');
+  if(ge)ge.style.transform=`translateX(${gloveX-GW/2}px)`;
+  if(ts-lastSpawn>spawnInt){
+    const item=spawnItem(speedVal);itemsArr.push(item);lastSpawn=ts;addItemEl(item);
+    if(elapsedSec>45&&Math.random()<0.30){
+      setTimeout(()=>{if(done)return;const item2=spawnItem(speedVal*0.85);itemsArr.push(item2);addItemEl(item2);},350);
+    }
+  }
+  let livesLost=0,ptsGained=0,newCombo=comboVal,closestRedDist=9999;
+  itemsArr=itemsArr.filter(item=>{
+    item.y+=item.speed*dt;
+    const el=$('w-'+item.id);
+    if(el)el.style.top=item.y+'px';
+    const cx=item.x+item.width/2;
+    const inGlove=cx>=gloveX-GW/2&&cx<=gloveX+GW/2;
+    if(item.type==='redcard'){
+      const distY=cy-item.y;
+      if(distY>0&&distY<closestRedDist)closestRedDist=distY;
+      if(distY<100&&el)el.classList.add('danger-close');
+      else if(el)el.classList.remove('danger-close');
+    }
+    if(item.y+item.height*0.5>=cy&&item.y<cy+GH){
+      if(inGlove){
+        if(item.type==='ball'){
+          newCombo++;
+          const pts=Math.round((25+Math.floor(elapsedSec)*0.3)*Math.min(newCombo,3));
+          ptsGained+=pts;
+          showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' GOAL!',true);sfxCatch();
+          triggerCatchRing(gloveX,cy);
+          if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
+        } else if(item.type==='golden'){
+          newCombo++;
+          const pts=Math.round((75+Math.floor(elapsedSec)*0.3)*Math.min(newCombo,3));
+          ptsGained+=pts;
+          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'BONUS +'+pts,true);sfxGolden();
+          triggerCatchRing(gloveX,cy);
+          if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
+        } else {
+          // Red card — skip if within 180ms of button press (swipe protection)
+          if(Date.now()-lastPressTime<180){if(el)el.remove();return false;}
+          newCombo=0;livesLost++;
+          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'CARTON !',false);sfxRedCard();
+          const sg=$('screen-game');
+          if(sg){sg.classList.add('hit-flash');setTimeout(()=>sg&&sg.classList.remove('hit-flash'),400);}
+          if(ge){ge.classList.remove('big-shake');void ge.offsetWidth;ge.classList.add('big-shake');setTimeout(()=>ge&&ge.classList.remove('big-shake'),500);}
+        }
+        if(el)el.remove();return false;
+      }
+    }
+    if(item.y>fh+10){
+      // Missed ball resets combo — catch streak must be maintained
+      if(item.type==='ball'||item.type==='golden'){comboVal=0;const cb=$('combo-badge');if(cb)cb.style.display='none';}
+      if(el)el.remove();return false;
+    }
+    return true;
+  });
+  const db=$('danger-bar'),dh=$('dodge-hint');
+  if(db){
+    if(closestRedDist<120){
+      const intensity=Math.max(0,(120-closestRedDist)/120);
+      db.style.height=(intensity*8)+'px';db.style.opacity=intensity;
+      if(dh){dh.style.top=(cy-48-(intensity*12))+'px';dh.style.opacity=closestRedDist<60?'1':'0';}
+    } else {db.style.height='0';db.style.opacity='0';if(dh)dh.style.opacity='0';}
+  }
+  comboVal=newCombo;
+  if(newCombo>maxComboVal)maxComboVal=newCombo;
+  if(ptsGained){
+    scoreVal+=ptsGained;
+    const sd=$('score-disp');if(sd)sd.textContent=scoreVal;
+    // Tier-up celebration
+    const tierMap=[{t:2000,l:'LÉGENDE',d:'20% DE RÉD.'},{t:800,l:'CHAMPION',d:'15% DE RÉD.'},{t:300,l:'MATCH READY',d:'10% DE RÉD.'}];
+    for(const tier of tierMap){
+      if(scoreVal>=tier.t&&lastTierReached<tier.t){lastTierReached=tier.t;showTierUp(tier.l,tier.d);break;}
+    }
+    // Update tier bar
+
+    // Update score circle ring colour by tier
+    const circle=$('.score-circle')||document.querySelector('.score-circle');
+    const badge=$('gm-tier-badge');
+    if(circle){
+      let ring,label;
+      if(scoreVal>=2000){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,230,100,1),0 0 14px 4px rgba(255,220,50,.6)';label='20%';}
+      else if(scoreVal>=800){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,186,0,1),0 0 10px 2px rgba(255,186,0,.5)';label='15%';}
+      else if(scoreVal>=300){ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,153,0,1),0 0 8px 2px rgba(255,153,0,.4)';label='10%';}
+      else{ring='0 4px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,255,255,.25)';label='5%';}
+      circle.style.boxShadow=ring;
+      if(badge&&badge.textContent!==label){badge.textContent=label;badge.style.opacity='1';setTimeout(()=>{if(badge)badge.style.opacity='.65';},800);}
+    }
+  }
+  const cb=$('combo-badge');
+  if(cb){cb.style.display=newCombo>1?'inline-block':'none';cb.textContent='×'+Math.min(newCombo,3)+' COMBO';}
+  if(livesLost){livesVal=Math.max(0,livesVal-livesLost);updateLivesDisplay();if(livesVal<=0){endGame(scoreVal);return;}}
+  animId=requestAnimationFrame(tick);
+}
+
+function addItemEl(item){
+  const field=$('game-field');if(!field)return;
+  const el=document.createElement('div');
+  el.id='w-'+item.id;el.style.left=item.x+'px';el.style.top=item.y+'px';
+  if(item.type==='ball'){el.className='falling-item item-ball';el.innerHTML=`<img src="${IMG_SOCCER}" alt="ball" draggable="false">`;}
+  else if(item.type==='golden'){el.className='falling-item item-golden';el.innerHTML=`<img src="${IMG_GOLDEN}" alt="golden" draggable="false">`;}
+  else{el.className='falling-item item-redcard';el.style.width=item.width+'px';el.style.height=item.height+'px';el.innerHTML=`<img src="${IMG_REDCARD}" alt="red card" draggable="false">`;}
+  field.appendChild(el);
+}
+
+function triggerCatchRing(x,y){
+  const ring=$('catch-ring');if(!ring)return;
+  ring.style.left=(x-30)+'px';ring.style.top=(y-30)+'px';ring.style.width='60px';ring.style.height='60px';
+  ring.classList.remove('pop');void ring.offsetWidth;ring.classList.add('pop');
+  setTimeout(()=>ring&&ring.classList.remove('pop'),320);
+}
+
+function showFlash(x,y,text,good){
+  const field=$('game-field');if(!field)return;
+  const el=document.createElement('div');
+  el.className='flash-msg';el.textContent=text;
+  el.style.cssText=`left:${x}px;top:${y}px;background:${good?'#ff9900':'#ec2326'};color:${good?'#1a2438':'#fff'};`;
+  field.appendChild(el);setTimeout(()=>el.remove(),1100);
+}
+
+function endGame(finalScore){
+  if(done)return;done=true;
+  cancelAnimationFrame(animId);
+  stopMusic();
+  if(finalScore>=150)vWon++;
+  totalPts+=finalScore;scoreVal=finalScore;
+  attempts=Math.max(0,attempts-1);
+  if(finalScore>bestScore)bestScore=finalScore;
+  hasPlayedOnce=true;
+  if(SHEET_URL.startsWith("https://")&&playerName){
+    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+(playerLastName?' '+playerLastName:''),email:playerEmail,city:playerCity,score:finalScore,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(finalScore).code,source:'JumiaGardienDeBut'});
+    fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+  }
+  // If player hasn't given info yet, show form then result
+  // If already registered, go straight to result
+  if(!playerName){
+    goTo(()=>renderFormPost());
+  } else {
+    goTo(renderResult);
+  }
+}
+
+// FORM — post-game version (appears after first game to collect info)
+function renderFormPost(){
+  startMusic();
+  $('app').innerHTML=`
+  <div id="screen-form">
+    <div class="fm-top">
+      <img src="${IMG_GLOVES}" style="height:clamp(52px,14vw,68px);width:auto;display:block;margin:0 auto clamp(10px,2.5vw,14px);filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))" alt="gloves">
+      <div class="fm-title">BIEN JOUÉ !</div>
+      <div class="fm-sub">Saisis tes infos pour<br><b>recevoir ton bon de réduction Jumia</b></div>
+    </div>
+    <div class="fm-card">
+      <div class="fm-field">
+        <label class="fm-label" for="inp-name">Prénom</label>
+        <input class="fm-input" id="inp-name" type="text" placeholder="Ex : Yasmine" autocomplete="given-name">
+        <div class="fm-error-msg" id="err-name">Prénom requis</div>
+      </div>
+      <div class="fm-field">
+        <label class="fm-label" for="inp-lastname">Nom de famille</label>
+        <input class="fm-input" id="inp-lastname" type="text" placeholder="Ex : Alaoui" autocomplete="family-name">
+        <div class="fm-error-msg" id="err-lastname">Nom requis</div>
+      </div>
+      <div class="fm-field">
+        <label class="fm-label" for="inp-email">Adresse e-mail</label>
+        <input class="fm-input" id="inp-email" type="email" placeholder="Ex : yasmine@email.com" autocomplete="email">
+        <div class="fm-error-msg" id="err-email">E-mail valide requis</div>
+      </div>
+      <div class="fm-field" style="margin-bottom:0">
+        <label class="fm-label" for="inp-city">Ville</label>
+        <input class="fm-input" id="inp-city" type="text" placeholder="Ex : Casablanca" autocomplete="address-level2">
+        <div class="fm-error-msg" id="err-city">Ville requise</div>
+      </div>
+    </div>
+    <div class="fm-spacer"></div>
+    <div style="padding:clamp(12px,3vw,16px) clamp(16px,4vw,22px) 0;">
+      <button class="btn-submit" id="btn-submit">
+        <span id="submit-label">VOIR MON BON DE RÉDUCTION</span>
+        <div class="spinner" id="submit-spinner"></div>
+      </button>
+    </div>
+    <div class="fm-legal">En soumettant ce formulaire, tu acceptes d'être contacté(e)<br>par Jumia. Tes données restent confidentielles.</div>
+  </div>`;
+  $('btn-submit').addEventListener('click',submitFormPost);
+  $('inp-city').addEventListener('keydown',e=>{if(e.key==='Enter')submitFormPost();});
+  ['inp-name','inp-lastname','inp-email','inp-city'].forEach(id=>{
+    const el=$(id);
+    if(el)el.addEventListener('focus',()=>{setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),300);});
+  });
+}
+
+function submitFormPost(){
+  const name=$('inp-name')?.value.trim();
+  const lastname=$('inp-lastname')?.value.trim()||'';
+  const email=$('inp-email')?.value.trim();
+  const city=$('inp-city')?.value.trim();
+  let valid=true;
+  const emailRe=new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+  const testNameRe=/^(test|tset|demo|user|admin|fake|dummy|azerty|qwerty|asdf|aaa+|bbb+|xxx+|abc|123|nom|name|prénom|prenom|foo|bar|baz)$/i;
+  const testEmailRe=/(test|fake|demo|dummy|mailinator|guerrillamail|yopmail|trashmail|tempmail|maildrop|spambox)/i;
+  const testCityRe=/^(test|tset|demo|fake|city|ville|abc|aaa+|xxx+|123|azerty|foo|bar|na|none|aucune|nowhere)$/i;
+  const repeatedRe=/^(.){2,}$/;
+  const nameIsTest=testNameRe.test(name)||repeatedRe.test(name)||name.length<2;
+  const emailIsTest=testEmailRe.test(email);
+  const cityIsTest=testCityRe.test(city)||repeatedRe.test(city)||city.length<2;
+  const fields=[
+    ['inp-name','err-name',!name||nameIsTest,nameIsTest?'Prénom invalide':'Prénom requis'],
+    ['inp-lastname','err-lastname',!lastname||testNameRe.test(lastname)||repeatedRe.test(lastname)||lastname.length<2,'Nom invalide ou requis'],
+    ['inp-email','err-email',!emailRe.test(email)||emailIsTest,emailIsTest?'E-mail invalide':'E-mail valide requis'],
+    ['inp-city','err-city',!city||cityIsTest,cityIsTest?'Ville invalide':'Ville requise'],
+  ];
+  fields.forEach(([inp,err,fail,msg])=>{
+    $(inp)?.classList.toggle('error',fail);
+    const em=$(err);if(em){em.textContent=msg;em.classList.toggle('visible',fail);}
+    if(fail)valid=false;
+  });
+  if(!valid)return;
+  playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
+  // Submit score to sheet now that we have info
+  if(SHEET_URL.startsWith("https://")){
+    const params=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+    fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+  }
+  const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
+  if(btn)btn.disabled=true;if(lbl)lbl.style.display='none';if(spn)spn.style.display='block';
+  goTo(renderResult);
+}
+
+// FORM — pre-game version (for replay when info already known — not shown anymore)
+function renderForm(){
+  startMusic();
+  $('app').innerHTML=`
+  <div id="screen-form">
+    <!-- Header strip -->
+    <div class="fm-top">
+      <img src="${IMG_GLOVES}" style="height:clamp(52px,14vw,68px);width:auto;display:block;margin:0 auto clamp(10px,2.5vw,14px);filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))" alt="gloves">
+      <div class="fm-title">UNE AUTRE<br>PARTIE ?</div>
+      <div class="fm-sub">Saisis tes infos pour<br><b>participer et gagner ton bon Jumia</b></div>
+    </div>
+    <!-- White card — Jumia ink dark text, warm tint inputs -->
+    <div class="fm-card">
+      <div class="fm-field">
+        <label class="fm-label" for="inp-name">Prénom</label>
+        <input class="fm-input" id="inp-name" type="text" placeholder="Ex : Yasmine" autocomplete="given-name">
+        <div class="fm-error-msg" id="err-name">Prénom requis</div>
+      </div>
+      <div class="fm-field">
+        <label class="fm-label" for="inp-lastname">Nom de famille</label>
+        <input class="fm-input" id="inp-lastname" type="text" placeholder="Ex : Alaoui" autocomplete="family-name">
+        <div class="fm-error-msg" id="err-lastname">Nom requis</div>
+      </div>
+      <div class="fm-field">
+        <label class="fm-label" for="inp-email">Adresse e-mail</label>
+        <input class="fm-input" id="inp-email" type="email" placeholder="Ex : yasmine@email.com" autocomplete="email">
+        <div class="fm-error-msg" id="err-email">E-mail valide requis</div>
+      </div>
+      <div class="fm-field" style="margin-bottom:0">
+        <label class="fm-label" for="inp-city">Ville</label>
+        <input class="fm-input" id="inp-city" type="text" placeholder="Ex : Casablanca" autocomplete="address-level2">
+        <div class="fm-error-msg" id="err-city">Ville requise</div>
+      </div>
+    </div>
+    <div class="fm-spacer"></div>
+    <!-- Orange Peel primary CTA — Jumia brand standard -->
+    <div style="padding:clamp(12px,3vw,16px) clamp(16px,4vw,22px) 0;">
+      <button class="btn-submit" id="btn-submit">
+        <span id="submit-label">JE JOUE POUR GAGNER MON BON</span>
+        <div class="spinner" id="submit-spinner"></div>
+      </button>
+    </div>
+    <div class="fm-legal">En soumettant ce formulaire, tu acceptes d'être contacté(e)<br>par Jumia. Tes données restent confidentielles.</div>
+  </div>`;
+  $('btn-submit').addEventListener('click',submitForm);
+  $('inp-city').addEventListener('keydown',e=>{if(e.key==='Enter')submitForm();});
+  ['inp-name','inp-email','inp-city'].forEach(id=>{
+    const el=$(id);
+    if(el)el.addEventListener('focus',()=>{setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),300);});
+  });
+}
+
+function submitForm(){
+  const name=$('inp-name')?.value.trim();
+  const lastname=$('inp-lastname')?.value.trim()||'';
+  const email=$('inp-email')?.value.trim();
+  const city=$('inp-city')?.value.trim();
+  let valid=true;
+  const emailRe=new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+
+  // ── TEST-ENTRY DETECTION ──────────────────────────────────────────────────
+  // Block submissions that look like placeholder / test data.
+  const testNameRe=/^(test|tset|ttest|demo|user|admin|fake|dummy|sample|essai|exemple|example|azerty|qwerty|asdf|aaa+|bbb+|ccc+|xxx+|yyy+|zzz+|abc|123|nom|name|prénom|prenom|foo|bar|baz)$/i;
+  const testEmailRe=/(test|fake|demo|dummy|sample|example|noreply|no-reply|tset|ttest|admin|temp|trash|throwaway|mailinator|guerrillamail|sharklasers|yopmail|trashmail|dispostable|tempmail|maildrop|spamgourmet|10minutemail|minutemail|disposablemail|spambox)/i;
+  const testCityRe=/^(test|tset|demo|fake|city|ville|here|there|abc|aaa+|bbb+|xxx+|yyy+|zzz+|123|azerty|qwerty|asdf|foo|bar|baz|n\/a|na|none|aucune|aucun|partout|anywhere|somewhere|nowhere)$/i;
+  // Also block entries where any field is pure repeated characters (e.g. "aaaa", "1111")
+  const repeatedRe=/^(.)\1{2,}$/;
+
+  const nameIsTest  = testNameRe.test(name)  || repeatedRe.test(name)  || name.length<2;
+  const emailIsTest = testEmailRe.test(email);
+  const cityIsTest  = testCityRe.test(city)  || repeatedRe.test(city)  || city.length<2;
+
+  const fields=[
+    ['inp-name',  'err-name',  !name  || nameIsTest,  nameIsTest  ? 'Prénom invalide' : 'Prénom requis'],
+    ['inp-email', 'err-email', !emailRe.test(email)||emailIsTest, emailIsTest ? 'E-mail invalide'  : 'E-mail valide requis'],
+    ['inp-city',  'err-city',  !city  || cityIsTest,  cityIsTest  ? 'Ville invalide'  : 'Ville requise'],
+  ];
+  fields.forEach(([inp,err,fail,msg])=>{
+    $(inp)?.classList.toggle('error',fail);
+    const em=$(err);
+    if(em){em.textContent=msg;em.classList.toggle('visible',fail);}
+    if(fail)valid=false;
+  });
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if(!valid)return;
+  playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
+  const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
+  if(btn)btn.disabled=true;if(lbl)lbl.style.display='none';if(spn)spn.style.display='block';
+  goTo(startGame);
+}
+
+
+// VOUCHER POPUP
+function showVoucherPopup(v){
+  // Remove any existing popup
+  const old=$('voucher-popup');if(old)old.remove();
+
+  const popup=document.createElement('div');
+  popup.id='voucher-popup';
+
+  const sheet=document.createElement('div');
+  sheet.className='vp-sheet';
+
+  sheet.innerHTML=
+    '<div class="vp-handle"></div>'+
+    '<div class="vp-eyebrow">TON BON DE RÉDUCTION</div>'+
+    '<div class="vp-disc">'+v.disc+'</div>'+
+    '<div class="vp-disc-sub">'+v.label+' · sélection football Jumia</div>'+
+    '<div class="vp-code-row">'+
+      '<div class="vp-code" id="vp-code-text">'+v.code+'</div>'+
+      '<button class="vp-copy" id="vp-copy-btn">COPIER</button>'+
+    '</div>'+
+    '<button class="vp-cta" id="vp-cta-btn">UTILISER SUR JUMIA</button>'+
+    '<button class="vp-dismiss" id="vp-dismiss-btn">Fermer</button>';
+
+  popup.appendChild(sheet);
+  document.body.appendChild(popup);
+
+  // Copy button
+  const copyBtn=$('vp-copy-btn');
+  if(copyBtn){
+    copyBtn.addEventListener('click',function(e){
+      e.stopPropagation();
+      copyCode(v.code,copyBtn);
+    });
+  }
+
+  // Main CTA
+  const ctaBtn=$('vp-cta-btn');
+  if(ctaBtn){
+    ctaBtn.addEventListener('click',function(){
+      // Copy code first, then open Jumia
+      if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(v.code).catch(()=>{});
+      }
+      window.open('https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=voucher-'+v.label.toLowerCase().replace(/\s+/g,'-'),'_blank');
+      popup.remove();
+      renderLobby();
+    });
+  }
+
+  // Dismiss
+  const dismissBtn=$('vp-dismiss-btn');
+  if(dismissBtn){
+    dismissBtn.addEventListener('click',function(){
+      popup.remove();
+    });
+  }
+
+  // Tap backdrop to dismiss
+  popup.addEventListener('pointerdown',function(e){
+    if(e.target===popup)popup.remove();
+  });
+}
+
+// RESULT
+function renderResult(){
+  const v=getVoucher(scoreVal),s=scoreVal;
+  const isLowScore=s<80;
+  const saving=v.label==='L\u00c9GENDE'?'\u2248 100 MAD':v.label==='CHAMPION'?'\u2248 75 MAD':v.label==='MATCH READY'?'\u2248 50 MAD':'\u2248 25 MAD';
+  const replayLabel=isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE - TON MEILLEUR BON EST EN JEU';
+  const attemptsLabel='Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' - ne les perds pas';
+  $('app').innerHTML=`
+  <div id="screen-result">
+
+    <!-- Header: compact -->
+    <div class="rs-header">
+      <div class="rs-header-left">
+        <div class="rs-brand">JUMIA ÉDITION FANS</div>
+        <div class="rs-title">${isLowScore?'PRESQUE !':s>=800?'EXCELLENT !':s>=300?'BIEN JOUÉ !':'CONTINUE !'}</div>
+        <div class="rs-sub">${isLowScore?'Rejoue pour gagner ton bon !':'Tu as gagné une réduction Jumia !'}</div>
+      </div>
+    </div>
+
+    <!-- Score pills -->
+    <div class="rs-scores">
+      ${[{val:s,lbl:'POINTS'},{val:'×'+Math.min(maxComboVal,3),lbl:'COMBO'},{val:Math.floor(elapsedSec)+'s',lbl:'SURVIE'}].map((sc,i)=>`
+        <div class="rs-score-card">
+          <div class="rs-score-val" ${i===0?'id="rs-score-val-pts"':''}>${i===0?'0':sc.val}</div>
+          <div class="rs-score-lbl">${sc.lbl}</div>
+        </div>`).join('')}
+    </div>
+
+    ${isLowScore?`
+    <!-- Low score -->
+    <div class="rs-low-score">
+      <div class="rs-low-score-title">SCORE TROP BAS</div>
+      <div class="rs-low-score-sub">Atteins <b>300 pts</b> pour gagner un bon de réduction.<br>Attrape plus de ballons !</div>
+    </div>`:`
+    <!-- Voucher hero -->
+    <div class="rs-voucher-hero">
+      <div class="rs-voucher-eyebrow">TON BON DE RÉDUCTION JUMIA</div>
+      <div class="rs-voucher-pct">${v.disc}</div>
+      <div class="rs-voucher-label">${v.label} · sur la sélection football</div>
+      <div class="rs-voucher-saving">${saving} économisés</div>
+    </div>`}
+
+    <div class="rs-spacer"></div>
+
+    <!-- Actions: simple hierarchy -->
+    <div class="rs-actions">
+      ${isLowScore?'':`
+      <button class="rs-cta-primary" onclick="showVoucherPopup(getVoucher(scoreVal))">
+        UTILISER MON BON SUR JUMIA
+      </button>`}
+      ${attempts>0
+        ?`<button class="rs-cta-replay" id="btn-replay">
+            REJOUER
+            <div style="font-size:clamp(9px,2.3vw,10px);font-weight:500;opacity:.6;margin-top:2px;text-transform:none;letter-spacing:.02em;">
+              ${attemptsLabel}
+            </div>
+          </button>`
+        :`<div style="text-align:center;padding:10px 0;">
+            <div style="font-weight:900;font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.7);font-family:var(--H1);">REVIENS DEMAIN !</div>
+            <div style="font-size:clamp(10px,2.5vw,11px);color:rgba(255,255,255,.4);font-family:var(--H2);margin-top:3px;">Tes essais se renouvellent à minuit.</div>
+          </div>`}
+      <button class="rs-cta-secondary" onclick="renderLeaderboard()">CLASSEMENT</button>
+    </div>
+
+  </div>`;
+  // Score count-up animation
+  const scoreEl=$('rs-score-val-pts');
+  if(scoreEl&&s>0){
+    let cur=0;const step=Math.max(1,Math.ceil(s/40));const iv=setInterval(()=>{
+      cur=Math.min(s,cur+step);scoreEl.textContent=Number(cur).toLocaleString('fr-FR');
+      if(cur>=s)clearInterval(iv);
+    },30);
+  }
+
+  // Live leaderboard rank update
+  if(!isLowScore){
+    fetchLeaderboard().then(players=>{
+      const pImgs=['https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp','https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp'];
+      const pNames=['Maillot Maroc','Polo Maroc','Ballon de foot'];
+      const myEmail2=playerEmail?playerEmail.toLowerCase().trim():'';
+      const myIdx=myEmail2?players.findIndex(p=>(p.email||'')===myEmail2):-1;
+      const myRank=myIdx>=0?myIdx+1:null;
+      const rankEl=$('rs-prize-rank'),subEl=$('rs-prize-sub'),imgEl=$('rs-prize-img');
+      if(rankEl&&subEl&&imgEl){
+        if(myRank&&myRank<=3){imgEl.src=pImgs[myRank-1];rankEl.textContent='#'+myRank+' \u2014 '+pNames[myRank-1];subEl.innerHTML='<b style="color:var(--orange)">Tu gagnes ce prix\u00a0!</b>';}
+        else if(myRank&&myRank<=10){rankEl.textContent='TU ES #'+myRank;subEl.textContent='Rejoue pour entrer dans le top 3\u00a0!';}
+      }
+    }).catch(()=>{});
+  }
+
+  const br=$('btn-replay');
+  if(br){br.addEventListener('click',()=>{goTo(startGame);});}
+}
+
+// LOBBY HELPERS
+function toggleHow(){
+  const rows=$('lb-how-rows'),chevron=$('lb-how-chevron');
+  if(!rows)return;
+  const hidden=rows.style.display==='none';
+  rows.style.display=hidden?'':'none';
+  if(chevron)chevron.style.transform=hidden?'':'rotate(-90deg)';
+}
+
+// NAV HELPERS
+
+
+function navRewards(){
+  // If the player has played at least once, show their voucher popup
+  if(hasPlayedOnce){
+    const v=getVoucher(scoreVal);
+    showVoucherPopup(v);
+  } else {
+    // Not played yet — show a friendly nudge overlay
+    showNavOverlay(
+      IMG_VOUCHER,
+      'Tes récompenses',
+      'Ne pars pas sans ton bon ! Joue une partie et gagne jusqu’à <b>20% de réduction</b> sur Jumia.',
+      'NE PAS RATER MON BON',
+      ()=>{ if(attempts>0) goTo(renderForm); }
+    );
+  }
+}
+
+function navHelp(){
+  showNavOverlay(
+    IMG_TROPHY,
+    'FAQ Récompenses',
+    '<b>Quels sont les prix ?</b><br>Top 1 : Maillot Maroc · Top 2 : Polo Maroc · Top 3 : Ballon de foot.<br><br>' +
+    '<b>Le bon de réduction ?</b><br>Score 300+ pts = 10% · 800+ = 15% · 2000+ = 20%. Copie le code et colle-le au paiement sur Jumia.<br><br>' +
+    '<b>Combien de tentatives ?</b><br>4 essais par jour, renouvelés à minuit.<br><br>' +
+    '<b>Durée du bon ?</b><br>Valable <b>7 jours</b> sans montant minimum.<br><br>' +
+    '<b>Prix physique ?</b><br>Les 3 meilleurs scores à la fin de l\'opération.',
+    'OK, COMPRIS',
+    null
+  );
+}
+// OLD navHelp replaced
+
+function showNavOverlay(icon,title,body,btnLabel,btnAction){
+  var old=$('nav-overlay');if(old)old.remove();
+  var el=document.createElement('div');
+  el.id='nav-overlay';
+  el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,15,25,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+
+  var sheet=document.createElement('div');
+  sheet.style.cssText='background:#1a2438;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:clamp(22px,6vw,32px) clamp(20px,5vw,28px) clamp(24px,6vw,36px);box-shadow:0 -6px 32px rgba(0,0,0,.5);';
+
+  var iconEl=document.createElement('div');
+  iconEl.style.cssText='font-size:36px;text-align:center;margin-bottom:10px;';
+  if(icon && (icon.startsWith('http')||icon.startsWith('data:')||icon.startsWith('/')||icon.startsWith('.'))) {
+    var img=document.createElement('img');
+    img.src=icon;img.style.cssText='width:40px;height:40px;object-fit:contain;display:block;margin:0 auto;';
+    iconEl.appendChild(img);
+  } else if(icon) {
+    iconEl.textContent=icon;
+  }
+
+  var titleEl=document.createElement('div');
+  titleEl.style.cssText='font-size:clamp(20px,6vw,26px);font-weight:900;color:#fff;font-family:var(--H1);text-align:center;text-transform:uppercase;margin-bottom:12px;line-height:1;';
+  titleEl.textContent=title;
+
+  var bodyEl=document.createElement('div');
+  bodyEl.style.cssText='font-size:clamp(13px,3.5vw,15px);color:rgba(255,255,255,.72);font-family:var(--H2);line-height:1.55;margin-bottom:22px;text-align:center;';
+  bodyEl.innerHTML=body;
+
+  var closeBtn=document.createElement('button');
+  closeBtn.textContent='FERMER';
+  closeBtn.style.cssText='width:100%;background:transparent;color:rgba(255,255,255,.4);border:none;padding:10px;font-size:clamp(12px,3.2vw,14px);cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;';
+  closeBtn.addEventListener('click',function(){el.remove();});
+
+  sheet.appendChild(iconEl);
+  sheet.appendChild(titleEl);
+  sheet.appendChild(bodyEl);
+
+  if(btnLabel){
+    var actionBtn=document.createElement('button');
+    actionBtn.textContent=btnLabel;
+    actionBtn.style.cssText='width:100%;background:#ec2326;color:#fff;border:none;border-radius:10px;padding:clamp(15px,4vw,18px);font-size:clamp(15px,4.2vw,18px);font-weight:900;cursor:pointer;letter-spacing:.06em;font-family:var(--H1);text-transform:uppercase;box-shadow:0 5px 0 #a31a1d;margin-bottom:10px;display:block;';
+    actionBtn.addEventListener('click',function(){el.remove();if(btnAction)btnAction();});
+    sheet.appendChild(actionBtn);
+  }
+  sheet.appendChild(closeBtn);
+  el.appendChild(sheet);
+  el.addEventListener('pointerdown',function(e){if(e.target===el)el.remove();});
+  document.body.appendChild(el);
+}
+
+// PRELOADER
+function preloadAssets(){
+  const images=[IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_REDCARD,
+    'https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp',
+    'https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp',
+    'https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp',
+    "https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
+  const bar=$('loading-bar'),sub=$('loading-sub'),gWrap=$('loading-gloves-wrap');
+  const total=images.length+1;let loaded=0,finished=false;
+  function tick(){
+    loaded++;
+    const pct=Math.round((loaded/total)*100);
+    if(bar)bar.style.width=pct+'%';
+    if(loaded>=5&&gWrap&&!gWrap.querySelector('img')){const g=new Image();g.className='loading-gloves';g.src=IMG_GLOVES;g.alt='';gWrap.appendChild(g);}
+    if(loaded>=total&&!finished)finish();
+  }
+  function finish(){
+    finished=true;
+    if(sub)sub.textContent='Prêt !';
+    if(bar)bar.style.width='100%';
+    setTimeout(()=>{
+      requestAnimationFrame(()=>{
+        const screen=$('loading-screen');
+        if(screen)screen.classList.add('fade-out');
+        setTimeout(()=>{const s2=$('loading-screen');if(s2)s2.remove();renderLobby();},420);
+      });
+    },400);
+  }
+  images.forEach(src=>{const img=new Image();img.onload=tick;img.onerror=tick;img.src=src;});
+  music.addEventListener('canplaythrough',tick,{once:true});
+  music.addEventListener('error',tick,{once:true});
+  music.load();
+  setTimeout(()=>{if(!finished)finish();},8000);
+}
+
+preloadAssets();
+</script>
+</body>
+</html>
