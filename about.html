@@ -1122,25 +1122,23 @@ body{width:100%;height:100%;overflow:hidden;background:var(--orange);display:fle
 <div id="app"></div>
 <div id="play-transition"></div>
 <div id="loading-screen">
-  <div style="font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.14em;color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;text-transform:uppercase;margin-bottom:4px;">JUMIA ÉDITION FANS</div>
+  <div style="font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.14em;color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;text-transform:uppercase;margin-bottom:2px;">JUMIA ÉDITION FANS</div>
   <div class="loading-logo">GARDIEN<br>DE BUT</div>
-  <div class="loading-gloves-wrap" id="loading-gloves-wrap"></div>
-  <div style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:4px;">
-    <div style="text-align:center;">
-      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">20%</div>
-      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">max réduction</div>
-    </div>
-    <div style="width:1px;height:32px;background:rgba(26,36,56,.2);"></div>
-    <div style="text-align:center;">
-      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">3</div>
-      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">prix physiques</div>
-    </div>
-    <div style="width:1px;height:32px;background:rgba(26,36,56,.2);"></div>
-    <div style="text-align:center;">
-      <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--navy);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1;">4</div>
-      <div style="font-size:clamp(8px,2vw,10px);color:rgba(26,36,56,.6);font-family:'HelveticaText','Gotham',Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">essais/jour</div>
+
+  <!-- Rotating prize banner — what they're playing for -->
+  <div id="loading-prize-banner" style="background:var(--navy);border-radius:12px;padding:clamp(12px,3vw,16px) clamp(16px,4vw,22px);display:flex;align-items:center;gap:14px;width:clamp(240px,70vw,300px);transition:opacity .3s;">
+    <img id="loading-prize-img"
+      src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp"
+      style="width:clamp(48px,13vw,60px);height:clamp(48px,13vw,60px);object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4));"
+      alt="" draggable="false">
+    <div>
+      <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:rgba(255,255,255,.45);font-family:'HelveticaText','Gotham',Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;">PRIX À GAGNER</div>
+      <div id="loading-prize-name" style="font-size:clamp(14px,3.8vw,17px);font-weight:900;color:var(--orange);font-family:'HelveticaDisplay','Gotham','Arial Black',Arial,sans-serif;line-height:1.1;margin-top:2px;">Maillot Maroc</div>
+      <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.5);font-family:'HelveticaText','Gotham',Arial,sans-serif;margin-top:2px;">Top 1 au classement</div>
     </div>
   </div>
+
+  <div class="loading-gloves-wrap" id="loading-gloves-wrap"></div>
   <div class="loading-sub" id="loading-sub">Chargement en cours...</div>
   <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
 </div>
@@ -1173,10 +1171,10 @@ const IMG_HEART   = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 const IMG_REDCARD = "https://raw.githubusercontent.com/Madzack69/Icons/main/Red.png";
 
 function getVoucher(s){
-  if(s>=2000) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"LÉGENDE",bg:"#1a2438"};
-  if(s>=800)  return{disc:"15% DE RÉD.",code:"JMCHAMP15",label:"CHAMPION",bg:"#1a2438"};
-  if(s>=300)  return{disc:"10% DE RÉD.",code:"JMMATCH10",label:"MATCH READY",bg:"#1a2438"};
-  return           {disc:"5% DE RÉD.", code:"JMSTART5",label:"DÉBUTANT",bg:"#1a2438"};
+  if(s>=2000) return{disc:"20% DE RÉD.",code:"JMLEGENDE20",label:"LÉGENDE",  bg:"#1a2438",min:400};
+  if(s>=800)  return{disc:"15% DE RÉD.",code:"JMCHAMP15", label:"CHAMPION",  bg:"#1a2438",min:250};
+  if(s>=300)  return{disc:"10% DE RÉD.",code:"JMMATCH10", label:"MATCH READY",bg:"#1a2438",min:150};
+  return           {disc:"5% DE RÉD.", code:"JMSTART5",  label:"DÉBUTANT",   bg:"#1a2438",min:0};
 }
 
 // STATE
@@ -1524,7 +1522,7 @@ function renderLobby(){
         </div>
         <div style="font-size:clamp(13px,3.5vw,15px);color:rgba(26,36,56,.6);
           font-family:var(--H2);margin-top:8px;">
-          sur toute la sélection football Jumia
+          jusqu'à 20% · dès 150 MAD d'achat
         </div>
       </div>
 
@@ -1551,6 +1549,37 @@ function renderLobby(){
           </button>`}
     </div>
 
+    <!-- Product strip — what to buy with the voucher -->
+    <div style="padding:clamp(8px,2vw,10px) clamp(14px,3.5vw,18px) clamp(12px,3vw,16px);">
+      <div style="font-size:clamp(8px,2vw,10px);font-weight:700;color:rgba(26,36,56,.5);font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;text-align:center;margin-bottom:8px;">Utilise ton bon sur ces articles</div>
+      <div style="display:flex;gap:8px;">
+        <a href="https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=lobby-banner-maillot"
+          target="_blank"
+          style="flex:1;background:var(--white);border-radius:10px;padding:10px 6px;text-align:center;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.1);display:block;">
+          <img src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp"
+            style="width:clamp(40px,11vw,52px);height:clamp(40px,11vw,52px);object-fit:contain;display:block;margin:0 auto 4px;"
+            alt="Maillot" draggable="false">
+          <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:var(--navy);font-family:var(--H2);line-height:1.2;">Maillot<br>Maroc</div>
+        </a>
+        <a href="https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=lobby-banner-polo"
+          target="_blank"
+          style="flex:1;background:var(--white);border-radius:10px;padding:10px 6px;text-align:center;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.1);display:block;">
+          <img src="https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp"
+            style="width:clamp(40px,11vw,52px);height:clamp(40px,11vw,52px);object-fit:contain;display:block;margin:0 auto 4px;"
+            alt="Polo" draggable="false">
+          <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:var(--navy);font-family:var(--H2);line-height:1.2;">Polo<br>Maroc</div>
+        </a>
+        <a href="https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=lobby-banner-ballon"
+          target="_blank"
+          style="flex:1;background:var(--white);border-radius:10px;padding:10px 6px;text-align:center;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.1);display:block;">
+          <img src="https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp"
+            style="width:clamp(40px,11vw,52px);height:clamp(40px,11vw,52px);object-fit:contain;display:block;margin:0 auto 4px;"
+            alt="Ballon" draggable="false">
+          <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:var(--navy);font-family:var(--H2);line-height:1.2;">Ballon<br>de foot</div>
+        </a>
+      </div>
+    </div>
+
   </div>`;
 
   const bs=$('btn-start');
@@ -1572,7 +1601,11 @@ function renderGame(){
         <div class="gm-title">GARDIEN DE BUT</div>
         <div class="gm-tag"><span>ÉDITION FANS</span></div>
       </div>
-      <div id="gm-tier-badge" style="margin-left:auto;font-size:clamp(9px,2.3vw,11px);font-weight:900;color:var(--orange);font-family:var(--H1);letter-spacing:.05em;opacity:.8;transition:opacity .3s;">5%</div>
+      <!-- Product motivation + tier badge -->
+      <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <div id="gm-tier-badge" style="font-size:clamp(9px,2.3vw,11px);font-weight:900;color:var(--orange);font-family:var(--H1);letter-spacing:.05em;opacity:.8;transition:opacity .3s;">5%</div>
+        <div style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:rgba(255,255,255,.35);font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;">pour le Maillot Maroc</div>
+      </div>
     </div>
     <div class="gm-net"></div>
     <div id="game-field">
@@ -2049,12 +2082,23 @@ function showVoucherPopup(v){
     '<div class="vp-handle"></div>'+
     '<div class="vp-eyebrow">TON BON DE RÉDUCTION</div>'+
     '<div class="vp-disc">'+v.disc+'</div>'+
-    '<div class="vp-disc-sub">'+v.label+' · sélection football Jumia</div>'+
+    '<div class="vp-disc-sub">'+v.label+(v.min>0?' · Commande min. '+v.min+' MAD':' · Sans minimum')+'</div>'+
     '<div class="vp-code-row">'+
       '<div class="vp-code" id="vp-code-text">'+v.code+'</div>'+
       '<button class="vp-copy" id="vp-copy-btn">COPIER</button>'+
     '</div>'+
     '<button class="vp-cta" id="vp-cta-btn">UTILISER SUR JUMIA</button>'+
+    '<a href="https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=popup-product-banner"'+
+      ' target="_blank"'+
+      ' style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 12px;text-decoration:none;margin-bottom:8px;">'+
+      '<img src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp"'+
+        ' style="width:38px;height:38px;object-fit:contain;flex-shrink:0;" alt="" draggable="false">'+
+      '<div style="flex:1;">'+
+        '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;">PARFAIT AVEC TON BON</div>'+
+        '<div style="font-size:14px;font-weight:900;color:var(--white);font-family:var(--H1);">Maillot Maroc</div>'+
+      '</div>'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+    '</a>'+
     '<button class="vp-dismiss" id="vp-dismiss-btn">Fermer</button>';
 
   popup.appendChild(sheet);
@@ -2101,7 +2145,7 @@ function showVoucherPopup(v){
 function renderResult(){
   const v=getVoucher(scoreVal),s=scoreVal;
   const isLowScore=s<80;
-  const saving=v.label==='L\u00c9GENDE'?'\u2248 100 MAD':v.label==='CHAMPION'?'\u2248 75 MAD':v.label==='MATCH READY'?'\u2248 50 MAD':'\u2248 25 MAD';
+  const saving=v.min>0?'Commande min. '+v.min+' MAD':'Aucun montant minimum';
   const replayLabel=isLowScore?'REJOUE POUR GAGNER TON BON':'REJOUE - TON MEILLEUR BON EST EN JEU';
   const attemptsLabel='Il te reste '+attempts+' essai'+(attempts>1?'s':'')+' - ne les perds pas';
   $('app').innerHTML=`
@@ -2135,9 +2179,26 @@ function renderResult(){
     <div class="rs-voucher-hero">
       <div class="rs-voucher-eyebrow">TON BON DE RÉDUCTION JUMIA</div>
       <div class="rs-voucher-pct">${v.disc}</div>
-      <div class="rs-voucher-label">${v.label} · sur la sélection football</div>
-      <div class="rs-voucher-saving">${saving} économisés</div>
+      <div class="rs-voucher-label">${v.label} · sélection football Jumia</div>
+      <div class="rs-voucher-saving">${saving}</div>
     </div>`}
+
+    <!-- Product banner — convert voucher into purchase immediately -->
+    <div style="margin:0 clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);">
+      <a href="https://www.jumia.ma/mlp-foot-20253/?utm_source=game&utm_medium=gamification&utm_campaign=gardien-de-but&utm_content=result-product-banner"
+        target="_blank"
+        style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:10px;padding:clamp(10px,2.5vw,14px);text-decoration:none;">
+        <img src="https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp"
+          style="width:clamp(44px,12vw,56px);height:clamp(44px,12vw,56px);object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4));"
+          alt="Maillot" draggable="false">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:rgba(255,255,255,.45);font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">DISPONIBLE SUR JUMIA</div>
+          <div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:var(--white);font-family:var(--H1);line-height:1.1;">Maillot Maroc</div>
+          <div style="font-size:clamp(10px,2.5vw,11px);color:var(--orange);font-family:var(--H2);font-weight:700;margin-top:2px;">Utilise ton bon sur cet article</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
 
     <div class="rs-spacer"></div>
 
@@ -2227,7 +2288,7 @@ function navHelp(){
     '<b>Quels sont les prix ?</b><br>Top 1 : Maillot Maroc · Top 2 : Polo Maroc · Top 3 : Ballon de foot.<br><br>' +
     '<b>Le bon de réduction ?</b><br>Score 300+ pts = 10% · 800+ = 15% · 2000+ = 20%. Copie le code et colle-le au paiement sur Jumia.<br><br>' +
     '<b>Combien de tentatives ?</b><br>4 essais par jour, renouvelés à minuit.<br><br>' +
-    '<b>Durée du bon ?</b><br>Valable <b>7 jours</b> sans montant minimum.<br><br>' +
+    '<b>Durée du bon ?</b><br>Valable <b>7 jours</b>. Montant minimum selon le tier :<br>5% = sans minimum · 10% = 150 MAD · 15% = 250 MAD · 20% = 400 MAD.<br><br>' +
     '<b>Prix physique ?</b><br>Les 3 meilleurs scores à la fin de l\'opération.',
     'OK, COMPRIS',
     null
@@ -2286,6 +2347,27 @@ function showNavOverlay(icon,title,body,btnLabel,btnAction){
 
 // PRELOADER
 function preloadAssets(){
+  // Rotate prize banner during loading
+  const prizes=[
+    {img:'https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp',name:'Maillot Maroc',rank:'Top 1 au classement'},
+    {img:'https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp',   name:'Polo Maroc',   rank:'Top 2 au classement'},
+    {img:'https://raw.githubusercontent.com/Madzack69/Icons/main/Ballon.webp', name:'Ballon de foot',rank:'Top 3 au classement'},
+  ];
+  let pi=0;
+  const bannerRotate=setInterval(()=>{
+    pi=(pi+1)%prizes.length;
+    const banner=document.getElementById('loading-prize-banner');
+    const img=document.getElementById('loading-prize-img');
+    const nm=document.getElementById('loading-prize-name');
+    if(!banner)return clearInterval(bannerRotate);
+    banner.style.opacity='0';
+    setTimeout(()=>{
+      if(img)img.src=prizes[pi].img;
+      if(nm)nm.textContent=prizes[pi].name;
+      if(banner)banner.style.opacity='1';
+    },300);
+  },2200);
+
   const images=[IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_REDCARD,
     'https://raw.githubusercontent.com/Madzack69/Icons/main/Maillot.webp',
     'https://raw.githubusercontent.com/Madzack69/Icons/main/Polo.webp',
