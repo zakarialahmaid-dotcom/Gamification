@@ -25,14 +25,6 @@
 @font-face{font-family:'Gotham';src:url('https://raw.githubusercontent.com/Madzack69/Fonts/main/Gotham-Black.otf') format('opentype');font-weight:900;}
 
 :root{
-  /* ══ MINIMALIST SYSTEM ════════════════════════════════════
-     BG:      #F1F1F2  near-white — all screen backgrounds
-     Card:    #FFFFFF  white with 1px #E4E4E6 border
-     Navy:    #1E293B  primary text & structure
-     Grey:    #8A8A9A  labels, sub-text
-     Orange:  #ff9900  header bars, CTAs, accent values only
-     Red:     #ec2326  danger (game element only)
-  ══════════════════════════════════════════════════════════ */
   --bg:      #F1F1F2;
   --card:    #ffffff;
   --border:  #E4E4E6;
@@ -45,7 +37,6 @@
   --red:     #ec2326;
   --redD:    #a31a1d;
   --white:   #ffffff;
-  /* legacy aliases — keep game working */
   --dark:    #1E293B;
   --panel:   #ffffff;
   --blue:    #1E293B;
@@ -60,7 +51,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#F1F1F2;overscroll-b
 body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select:none;user-select:none;background:#F1F1F2;}
 #app{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
 
-/* ── KEYFRAMES ── */
 @keyframes fadeIn{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-60px) scale(.8)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
@@ -78,7 +68,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 @keyframes hintLeft{0%,100%{transform:translateX(0);opacity:.6}50%{transform:translateX(-7px);opacity:1}}
 @keyframes hintRight{0%,100%{transform:translateX(0);opacity:.6}50%{transform:translateX(7px);opacity:1}}
 
-/* ── LOADING ── */
 #loading-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:#F1F1F2;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .4s;}
 #loading-screen.fade-out{opacity:0;pointer-events:none;}
 .loading-logo{font-size:clamp(38px,12vw,54px);font-weight:900;color:#1E293B;font-family:var(--H1);line-height:.9;text-align:center;text-transform:uppercase;letter-spacing:-.01em;}
@@ -87,46 +76,14 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .loading-bar{height:100%;width:0%;background:#ff9900;border-radius:2px;transition:width .25s ease;}
 .loading-gloves{height:clamp(52px,14vw,68px);width:auto;filter:drop-shadow(0 3px 8px rgba(30,41,59,.2));}
 
-/* ── ROTATE ── */
 #rotate-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#F1F1F2;z-index:99998;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 #rotate-screen.show{display:flex;}
 .rotate-msg{font-size:clamp(16px,5vw,20px);font-weight:900;color:var(--white);font-family:var(--H1);text-align:center;}
 @media (orientation:landscape) and (max-height:500px){body{display:none;}}
 
-/* ── TRANSITION WIPE ── */
 #play-transition{position:fixed;top:0;left:0;right:0;bottom:0;background:#ff9900;z-index:9999;pointer-events:none;transform:scaleY(0);transform-origin:bottom;}
 #play-transition.go{animation:wipeIn .45s cubic-bezier(.76,0,.24,1) forwards;}
 
-/* ══════════════════════
-   LOBBY
-══════════════════════ */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ══════════════════════
-   GAME
-══════════════════════ */
 #screen-game{flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .15s ease;}
 .gm-hud{flex:0 0 auto;background:var(--orange);padding:clamp(8px,2vw,12px) clamp(14px,4vw,22px);display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--orangeD);}
 .gm-title{font-size:clamp(16px,4.5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;}
@@ -135,7 +92,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 
 #game-field{flex:1;position:relative;overflow:hidden;touch-action:none;-ms-touch-action:none;background:url('https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp') center/cover no-repeat;}
 
-/* Overlay HUD */
 #game-overlay{position:absolute;top:clamp(10px,2.5vw,14px);right:clamp(10px,2.5vw,14px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vw,12px);z-index:8;}
 .score-circle{width:clamp(60px,15vw,74px);height:clamp(60px,15vw,74px);background:#ffffff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 4px 16px rgba(0,0,0,.25);flex-shrink:0;}
 .score-num{font-size:clamp(17px,5vw,22px);font-weight:900;color:#1E293B;line-height:1;font-family:var(--H1);}
@@ -144,13 +100,11 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 #lives-counter img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5));transition:transform .2s;}
 #lives-count{position:absolute;top:-4px;right:-5px;background:var(--red);color:var(--white);border-radius:50%;width:clamp(18px,5vw,22px);height:clamp(18px,5vw,22px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,13px);font-weight:900;font-family:var(--H1);border:2px solid var(--white);}
 
-/* Goal zone */
 #goal-zone{position:absolute;bottom:0;left:0;right:0;height:clamp(120px,30vw,150px);pointer-events:none;z-index:2;border-top:2px solid rgba(255,255,255,.2);}
 #goal-zone::before{content:'';position:absolute;top:-1px;left:12%;right:12%;height:2px;background:rgba(255,255,255,.35);border-radius:1px;}
 #goal-posts{position:absolute;top:-10px;left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%);display:flex;align-items:flex-end;gap:clamp(56px,16vw,84px);}
 .goal-post{width:4px;height:clamp(18px,5vw,24px);background:rgba(255,255,255,.45);border-radius:2px 2px 0 0;}
 
-/* Falling items */
 .falling-item{position:absolute;display:flex;align-items:center;justify-content:center;animation:itemIn .15s ease;z-index:5;pointer-events:none;user-select:none;-webkit-user-select:none;}
 .falling-item img{pointer-events:none;-webkit-user-drag:none;user-select:none;}
 .item-ball{width:clamp(42px,11vw,56px);height:clamp(42px,11vw,56px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));}
@@ -162,34 +116,26 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .item-redcard img{width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;}
 .item-redcard.danger-close{filter:drop-shadow(0 0 12px rgba(255,0,0,1)) drop-shadow(0 0 22px rgba(255,0,0,.6));animation:dangerPulse .35s ease infinite;}
 
-/* Glove */
 #glove-el{position:absolute;z-index:6;left:0;width:90px;display:flex;align-items:center;justify-content:center;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);contain:layout style;}
 #glove-el img{display:block;height:clamp(62px,16vw,82px);width:90px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,153,0,.5)) drop-shadow(0 6px 12px rgba(0,0,0,.5));-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:filter;}
 #glove-el.catching img{filter:drop-shadow(0 0 16px rgba(255,255,255,.9)) drop-shadow(0 0 28px rgba(255,200,0,.7));}
 #glove-el.big-shake{-webkit-animation:bigShake .5s ease;animation:bigShake .5s ease;}
 
-/* Catch ring */
 #catch-ring{position:absolute;border-radius:50%;border:3px solid rgba(255,255,255,.8);opacity:0;pointer-events:none;z-index:7;transform:scale(0);transition:transform .3s,opacity .3s;}
 #catch-ring.pop{opacity:1;-webkit-transform:scale(1.6);transform:scale(1.6);}
 
-/* Flash messages */
 .flash-msg{position:absolute;border-radius:20px;padding:4px 13px;font-size:clamp(12px,3.2vw,15px);font-weight:900;pointer-events:none;animation:floatUp 1.1s ease forwards;z-index:10;white-space:nowrap;font-family:var(--H1);}
 
-/* Danger bar */
 #danger-bar{position:absolute;bottom:0;left:0;right:0;height:0;background:var(--red);transition:height .15s,opacity .15s;opacity:0;z-index:3;}
 #dodge-hint{position:absolute;left:50%;transform:translateX(-50%);background:rgba(236,35,38,.92);color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:900;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8;font-family:var(--H2);}
 
-/* Screen flash on hit */
 #screen-game.hit-flash{-webkit-animation:screenFlash .4s ease;animation:screenFlash .4s ease;}
 
-/* Mute button */
 #btn-mute{position:absolute;bottom:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);border-radius:50%;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.2);cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:9;touch-action:manipulation;}
 
-/* Cash-out */
 #btn-cashout{position:absolute;top:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.8);border-radius:6px;padding:5px 10px;font-size:clamp(9px,2.3vw,10px);font-weight:700;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;z-index:9;touch-action:manipulation;display:flex;align-items:center;gap:5px;}
 #btn-cashout.confirm-mode{background:#ff9900;color:#ffffff;border-color:#e68800;}
 
-/* ── TOUCH HINT ── */
 #touch-hint{position:absolute;top:0;left:0;right:0;bottom:0;z-index:20;pointer-events:none;display:flex;align-items:stretch;opacity:1;transition:opacity .5s;}
 #touch-hint.hidden{opacity:0;}
 .touch-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.5vw,14px);padding:16px 8px;}
@@ -202,9 +148,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 #touch-flash-right{right:0;background:linear-gradient(270deg,rgba(255,153,0,.3) 0%,transparent 100%);}
 #touch-flash-left.active,#touch-flash-right.active{opacity:1;}
 
-/* ══════════════════════
-   TUTORIAL SCREEN
-══════════════════════ */
 #screen-tutorial{position:fixed;top:0;left:0;right:0;bottom:0;background:#F1F1F2;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(24px,6vw,40px) clamp(20px,5vw,28px);animation:fadeIn .3s ease;gap:clamp(10px,2.5vw,14px);}
 .tuto-title{font-size:clamp(28px,8vw,38px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;text-align:center;line-height:.93;}
 .tuto-title span{color:#ff9900;}
@@ -224,10 +167,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .tuto-screen-btn{width:100%;max-width:340px;background:#ff9900;color:#ffffff;border:none;border-radius:12px;padding:clamp(18px,5vw,22px);font-size:clamp(17px,4.8vw,21px);font-weight:900;font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;box-shadow:0 4px 0 #e68800;transition:transform .1s,box-shadow .1s;margin-top:6px;}
 .tuto-screen-btn:active{transform:translateY(4px);box-shadow:0 0 0 #e68800;}
 
-/* ══════════════════════
-   FORM
-══════════════════════ */
-#screen-form{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior:contain;animation:fadeIn .25s ease;}
+#screen-form{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;}
 .fm-top{flex:0 0 auto;background:#ff9900;padding:clamp(28px,7vw,40px) clamp(20px,5vw,28px) clamp(22px,5.5vw,28px);text-align:center;}
 .fm-icon{font-size:44px;margin-bottom:10px;}
 .fm-title{font-size:clamp(28px,8vw,36px);font-weight:900;color:#ffffff;line-height:.92;font-family:var(--H1);margin-bottom:8px;text-transform:uppercase;}
@@ -249,9 +189,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .fm-legal{padding:clamp(10px,2.5vw,14px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);text-align:center;font-size:clamp(9px,2.3vw,10px);color:#8A8A9A;font-family:var(--H2);line-height:1.5;}
 .spinner{width:18px;height:18px;border:2.5px solid #E4E4E6;border-top-color:#ff9900;border-radius:50%;animation:spin .7s linear infinite;display:none;}
 
-/* ══════════════════════
-   RESULT
-══════════════════════ */
 #screen-result{flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;}
 .rs-top{flex:0 0 auto;background:#ff9900;padding:clamp(28px,7vw,38px) clamp(20px,5vw,28px) clamp(22px,5.5vw,28px);text-align:center;}
 .rs-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;margin-bottom:6px;}
@@ -264,7 +201,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .rs-score-val.orange{color:#ff9900;}
 .rs-score-lbl{font-size:clamp(7px,1.8vw,9px);color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
 
-/* Voucher strip */
 .rs-voucher{margin:0 clamp(20px,5vw,28px) clamp(16px,4vw,22px);background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(16px,4vw,22px);text-align:center;}
 .rs-voucher-pct{font-size:clamp(48px,14vw,68px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:.88;letter-spacing:-.02em;}
 .rs-voucher-label{font-size:clamp(13px,3.5vw,16px);font-weight:700;color:#8A8A9A;font-family:var(--H2);margin-top:4px;}
@@ -280,9 +216,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .rs-cta-secondary{display:block;width:100%;background:#ffffff;color:#1E293B;border:1px solid #E4E4E6;border-radius:8px;padding:clamp(13px,3.5vw,16px);font-size:clamp(13px,3.2vw,15px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;transition:background .15s,border-color .15s;}
 .rs-cta-secondary:active{background:#F1F1F2;}
 
-/* ══════════════════════
-   LEADERBOARD
-══════════════════════ */
 #screen-leaderboard{flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;animation:fadeIn .2s ease;}
 .lbd-header{flex:0 0 auto;background:#ff9900;padding:clamp(16px,4vw,22px) clamp(16px,4vw,22px);display:flex;align-items:center;gap:12px;}
 .lbd-back{width:clamp(36px,9vw,42px);height:clamp(36px,9vw,42px);border-radius:50%;background:rgba(255,255,255,.25);border:none;cursor:pointer;color:#ffffff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -311,16 +244,8 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lbd-footer{flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(20px,5vw,28px);background:#F1F1F2;}
 .btn-lbd-back{display:block;width:100%;background:#ffffff;color:#1E293B;border:1px solid #E4E4E6;border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3vw,14px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;}
 
-/* ── Tier-up overlay ── */
 #tier-up-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:tierUpIn .3s ease;}
 
-/* ══ LOBBY — Minimalist #F1F1F2 ══════════════════════════════
-   BG:       #F1F1F2  near-white (dominant surface)
-   Cards:    #FFFFFF  white, 1px #E4E4E6 border
-   Primary:  #1E293B  deep navy — headings, body text
-   Sub:      #8A8A9A  mid-grey — labels, hints
-   Orange:   #ff9900  single accent — CTA + highlighted values
-   ══════════════════════════════════════════════════════════ */
 #screen-lobby{
   flex:1;display:flex;flex-direction:column;
   background:#F1F1F2;
@@ -329,7 +254,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   -webkit-overflow-scrolling:touch;
 }
 
-/* ── Orange header bar ── */
 .lb-header-bar{
   flex:0 0 auto;
   background:#ff9900;
@@ -362,7 +286,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   margin-top:2px;
 }
 
-/* ── Stats row ── */
 .lb-stats-row{
   display:flex;
   gap:10px;
@@ -398,7 +321,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 }
 .lb-stat-arrow{color:#ff9900;margin-left:1px;}
 
-/* ── CTA zone ── */
 .lb-cta{
   padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) clamp(10px,2.5vw,14px);
 }
@@ -437,7 +359,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 }
 .btn-kickoff:disabled{opacity:.35;cursor:not-allowed;animation:none;box-shadow:none;}
 
-/* ── No-attempts ── */
 .lb-no-attempts{
   background:#ffffff;
   border:1px solid #E4E4E6;
@@ -460,7 +381,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   line-height:1.5;
 }
 
-/* ── Divider + footer ── */
 .lb-divider{
   height:1px;
   background:#E4E4E6;
@@ -487,7 +407,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 <div id="app"></div>
 <div id="play-transition"></div>
 <div id="loading-screen">
-  <!-- Jumia wordmark — white on orange, correct brand colour order -->
   <svg viewBox="0 0 120 32" width="clamp(80px,22vw,110px)" fill="none" xmlns="http://www.w3.org/2000/svg">
     <text x="0" y="26" font-family="Arial Black,sans-serif" font-size="28" font-weight="900" fill="#403b3b" letter-spacing="-1">jumia</text>
   </svg>
@@ -517,10 +436,12 @@ const IMG_REDCARD="https://raw.githubusercontent.com/Madzack69/Icons/main/Red.pn
 const IMG_HEART="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 42 C24 42 6 28 6 17 C6 11 10.5 6 16.5 6 C20 6 23 8 24 10 C25 8 28 6 31.5 6 C37.5 6 42 11 42 17 C42 28 24 42 24 42Z' fill='%23ec2326' stroke='%23a31a1d' stroke-width='1.5'/%3E%3C/svg%3E";
 const IMG_TROPHY="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='19' y='35' width='10' height='6' fill='%23e68800'/%3E%3Crect x='14' y='41' width='20' height='5' rx='2' fill='%231a2438'/%3E%3Cpath d='M11 7 L37 7 L37 25 C37 33 31 36 24 36 C17 36 11 33 11 25 Z' fill='%23ff9900'/%3E%3Cpath d='M11 9 C11 9 5 9 5 17 C5 23 11 26 11 26' fill='none' stroke='%23ff9900' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M37 9 C37 9 43 9 43 17 C43 23 37 26 37 26' fill='none' stroke='%23ff9900' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
 
+// ── VOUCHER TIERS (score thresholds ×2.5 vs original) ─────────────────────
+// Original → New:  300→750  |  800→2000  |  2000→5000
 function getVoucher(s){
-  if(s>=2000)return{disc:"20%",code:"JMLEGENDE20",label:"LÉGENDE",min:400};
-  if(s>=800) return{disc:"15%",code:"JMCHAMP15", label:"CHAMPION",min:250};
-  if(s>=300) return{disc:"10%",code:"JMMATCH10", label:"MATCH READY",min:150};
+  if(s>=5000)return{disc:"20%",code:"JMLEGENDE20",label:"LÉGENDE",min:400};
+  if(s>=2000) return{disc:"15%",code:"JMCHAMP15", label:"CHAMPION",min:250};
+  if(s>=750) return{disc:"10%",code:"JMMATCH10", label:"MATCH READY",min:150};
   return          {disc:"5%", code:"JMSTART5",  label:"DÉBUTANT",min:0};
 }
 
@@ -540,11 +461,6 @@ function $(id){return document.getElementById(id);}
 
 function spawnItem(speed){
   var r=Math.random();var type,w,h;
-  // Difficulty-aware spawn ratios:
-  //   0-30s:  8% golden, 55% ball, 37% red  (gentle)
-  //   30-60s: 8% golden, 45% ball, 47% red  (building)
-  //   60-90s: 6% golden, 38% ball, 56% red  (hard)
-  //   90s+:   5% golden, 30% ball, 65% red  (adrenaline)
   var goldenChance, ballChance;
   if(elapsedSec<30){      goldenChance=0.08; ballChance=0.63;}
   else if(elapsedSec<60){ goldenChance=0.08; ballChance=0.53;}
@@ -564,7 +480,6 @@ function copyCode(text,btn){
   function fb(){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');ok();}catch(e){btn.textContent='Code: '+text;}document.body.removeChild(ta);}
 }
 
-// Only block scroll when game field is active — prevents form scroll breakage on Android
 document.addEventListener('touchmove',function(e){
   var field=document.getElementById('game-field');
   if(field&&field.contains(e.target)){e.preventDefault();}
@@ -582,7 +497,6 @@ window.addEventListener('resize',checkOrientation);
 window.addEventListener('orientationchange',checkOrientation);
 checkOrientation();
 
-// MUSIC
 const MUSIC_URL="https://raw.githubusercontent.com/zakarialahmaid-dotcom/Gamification/main/Football_game.mp3";
 const music=new Audio(MUSIC_URL);
 music.loop=true;music.volume=0;
@@ -609,19 +523,16 @@ function iconMute(){return'<svg width="18" height="18" viewBox="0 0 24 24" fill=
   window.addEventListener('focus',show);
 })();
 
-// AUDIO
 let _actx=null;
 function actx(){
   if(!_actx){
     try{_actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
   }
-  // Android WebView requires explicit resume after user gesture
   if(_actx&&_actx.state==='suspended'){
     try{_actx.resume();}catch(e){}
   }
   return _actx;
 }
-// Unlock AudioContext on first user touch (Android requirement)
 document.addEventListener('touchstart',function _unlock(){
   actx();
   document.removeEventListener('touchstart',_unlock);
@@ -632,7 +543,6 @@ function sfxGolden(){tone(660,'sine',.08,.3,880);setTimeout(()=>tone(880,'sine',
 function sfxRedCard(){tone(180,'sawtooth',.18,.3,80);try{navigator.vibrate&&navigator.vibrate([60,20,60]);}catch(e){}}
 function sfxTierUp(){tone(523,'sine',.12,.4,659);setTimeout(()=>tone(659,'sine',.12,.35,784),120);setTimeout(()=>tone(784,'sine',.2,.4,1047),240);try{navigator.vibrate&&navigator.vibrate([30,20,30,20,80]);}catch(e){}}
 
-// TIER-UP
 function showTierUp(label,disc){
   const old=document.getElementById('tier-up-overlay');if(old)old.remove();
   const el=document.createElement('div');
@@ -643,7 +553,6 @@ function showTierUp(label,disc){
   setTimeout(()=>{el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>el.remove(),420);},1800);
 }
 
-// TRANSITION
 function goTo(fn){
   const t=$('play-transition');
   if(!t){fn();return;}
@@ -652,7 +561,6 @@ function goTo(fn){
   setTimeout(()=>{fn();setTimeout(()=>{t.style.transition='opacity .25s';t.style.opacity='0';setTimeout(()=>{t.classList.remove('go');t.style.animation='none';t.style.transform='scaleY(0)';t.style.opacity='1';t.style.transition='';},260);},60);},440);
 }
 
-// LEADERBOARD DATA
 async function fetchLeaderboard(){
   const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 50');
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
@@ -668,7 +576,6 @@ async function fetchLeaderboard(){
   }catch(e){return[];}
 }
 
-// ── LEADERBOARD SCREEN ──────────────────────────────────────
 function renderLeaderboard(){
   $('app').innerHTML=`
   <div id="screen-leaderboard">
@@ -714,13 +621,10 @@ function renderLeaderboard(){
   }).catch(()=>{const c=$('lbd-card');if(c)c.innerHTML='<div class="lbd-empty">Classement temporairement indisponible.</div>';});
 }
 
-// ── LOBBY ────────────────────────────────────────────────────
 function renderLobby(){
   const att=attempts;
   $('app').innerHTML=`
   <div id="screen-lobby">
-
-    <!-- Orange header bar — the only orange surface -->
     <div class="lb-header-bar">
       <div class="lb-eyebrow">JUMIA · ÉDITION FANS</div>
       <div class="lb-title">
@@ -728,8 +632,6 @@ function renderLobby(){
         <em>DE BUT</em>
       </div>
     </div>
-
-    <!-- Stats — white cards on #F1F1F2 -->
     <div class="lb-stats-row">
       <div class="lb-stat">
         <div class="lb-stat-val ${att<=1?'hi':''}">${att}<span style="font-size:.42em;font-weight:600;color:#8A8A9A;"> / 4</span></div>
@@ -742,12 +644,10 @@ function renderLobby(){
       <div class="lb-stat" id="lb-stat-voucher"
            style="cursor:pointer;"
            onclick="goTo(renderMyVouchers)">
-        <div class="lb-stat-val${bestScore>0?' hi':''}">${bestScore>=2000?'20%':bestScore>=800?'15%':bestScore>=300?'10%':bestScore>0?'5%':'—'}</div>
+        <div class="lb-stat-val${bestScore>0?' hi':''}">${bestScore>=5000?'20%':bestScore>=2000?'15%':bestScore>=750?'10%':bestScore>0?'5%':'—'}</div>
         <div class="lb-stat-lbl">Mes bons <span class="lb-stat-arrow">›</span></div>
       </div>
     </div>
-
-    <!-- Primary CTA -->
     ${att===0
       ? `<div class="lb-no-attempts">
            <div class="lb-no-attempts-title">Reviens demain !</div>
@@ -757,15 +657,12 @@ function renderLobby(){
            <div class="lb-cta-hint">${att} essai${att>1?'s':''} restant${att>1?'s':''}</div>
            <button class="btn-kickoff" id="btn-start">⚽  Jouer maintenant</button>
          </div>`}
-
-    <!-- Divider + Footer links -->
     <div class="lb-divider"></div>
     <div class="lb-footer">
       <span class="lb-footer-link" onclick="goTo(renderLeaderboard)">Classement</span>
       <div class="lb-footer-dot"></div>
       <span class="lb-footer-link" onclick="${earnedVouchers.length>0?'goTo(renderMyVouchers)':''}">Mes bons</span>
     </div>
-
   </div>`;
 
   var bs=$('btn-start');
@@ -780,7 +677,6 @@ function renderLobby(){
   }
 }
 
-// ── TUTORIAL SCREEN ──────────────────────────────────────────
 function showTutorialScreen(){
   const old=$('screen-tutorial');if(old)old.remove();
   const el=document.createElement('div');el.id='screen-tutorial';
@@ -805,7 +701,6 @@ function showTutorialScreen(){
         <div class="tuto-rule-badge red">DANGER</div>
       </div>
     </div>
-    <!-- Touch demo SVGs -->
     <div style="display:flex;align-items:center;justify-content:center;gap:clamp(16px,4vw,28px);">
       <div style="display:flex;flex-direction:column;align-items:center;gap:7px;">
         <svg viewBox="0 0 54 68" width="54" height="68" fill="none" style="animation:hintLeft 1.2s ease-in-out infinite;">
@@ -839,7 +734,6 @@ function showTutorialScreen(){
   var _tsb=document.getElementById('tuto-start-btn');if(_tsb){_tsb.addEventListener('pointerdown',function(){el.style.transition='opacity .2s';el.style.opacity='0';setTimeout(function(){el.remove();touchHintDismissed=false;startGame();},220);});}
 }
 
-// ── GAME RENDER ──────────────────────────────────────────────
 function renderGame(){
   $('app').innerHTML=`
   <div id="screen-game">
@@ -857,7 +751,6 @@ function renderGame(){
         <div class="score-circle"><div class="score-num" id="score-disp">0</div><div class="score-lbl">POINTS</div></div>
         <div id="lives-counter"><img src="${IMG_HEART}" alt="lives" id="lives-heart-img"><div id="lives-count">3</div></div>
       </div>
-      <!-- Touch hint -->
       <div id="touch-hint">
         <div class="touch-zone touch-zone-left">
           <svg viewBox="0 0 50 62" width="clamp(40px,10vw,52px)" height="auto" fill="none" style="animation:hintLeft 1.1s ease-in-out infinite;">
@@ -896,28 +789,19 @@ function renderGame(){
   const ge=$('glove-el');
   if(ge){ge.style.left='0px';ge.style.top=CATCH_Y(getFH())+'px';var _itx=Math.round(gloveX-GW/2);ge.style.webkitTransform='translate3d('+_itx+'px,0,0)';ge.style.transform='translate3d('+_itx+'px,0,0)';}
 
-  // ── DIRECT-TRACK SWIPE CONTROLS ──────────────────────────
-  // Core principle: finger delta maps DIRECTLY to gloveX.
-  // No velocity simulation in the event handler.
-  // gloveX is updated immediately in touchmove (not deferred to rAF).
-  // rAF tick reads the already-updated gloveX — zero extra latency.
   const field=$('game-field');
   const flashL=$('touch-flash-left'),flashR=$('touch-flash-right'),hint=$('touch-hint');
 
-  // _touchAnchor: per-touch {startX, lastX, startGloveX}
-  // Multiple touches supported — first active touch wins for gloveX
-  var _touchAnchor = {};    // id → {lastX, startGloveX}
-  var _primaryId   = -1;    // touch id currently controlling the glove
+  var _touchAnchor = {};
+  var _primaryId   = -1;
   window._swipeActive = false;
-  window._swipeVel    = 0;  // used by tick() for tiny coast on lift
+  window._swipeVel    = 0;
 
   function dismissHint(){
     if(touchHintDismissed)return;touchHintDismissed=true;
     if(hint){hint.classList.add('hidden');setTimeout(function(){if(hint)hint.style.display='none';},600);}
   }
 
-  // Direct glove update — called from touchmove, bypasses rAF delay
-  // Direct position update — glove CENTER = finger X (clamped to field)
   function _applyGlovePos(fingerX){
     var fw=getFW();
     gloveX=Math.max(GW/2,Math.min(fw-GW/2,fingerX));
@@ -939,7 +823,6 @@ function renderGame(){
       _touchAnchor[t.identifier]={lastX:t.clientX,startGloveX:gloveX};
       if(_primaryId===-1){
         _primaryId=t.identifier;
-        // Snap glove to finger immediately on touch
         _applyGlovePos(t.clientX);
       }
     }
@@ -956,7 +839,6 @@ function renderGame(){
       if(!anchor)continue;
       window._swipeVel=t.clientX-anchor.lastX;
       anchor.lastX=t.clientX;
-      // Glove center = finger X — no delta, no drift, always under thumb
       _applyGlovePos(t.clientX);
     }
   },{passive:false});
@@ -967,14 +849,12 @@ function renderGame(){
       var id=e.changedTouches[i].identifier;
       delete _touchAnchor[id];
       if(_primaryId===id){
-        // Hand primary to another active touch if exists
         var remaining=Object.keys(_touchAnchor);
         _primaryId=remaining.length>0?parseInt(remaining[0]):-1;
       }
     }
     if(_primaryId===-1){
       window._swipeActive=false;
-      // Keep last _swipeVel for coast — tick() decays it
     }
   },{passive:false});
 
@@ -983,7 +863,6 @@ function renderGame(){
     window._swipeActive=false;window._swipeVel=0;
   },{passive:false});
 
-  // Mouse fallback (desktop) — drag directly moves glove
   var _mDown=false,_mLast=0;
   field.addEventListener('pointerdown',function(e){
     if(e.pointerType==='touch')return;
@@ -1001,7 +880,6 @@ function renderGame(){
     _mDown=false;window._swipeActive=false;
   });
 
-  // Flush flash state once per rAF (keeps classList changes off the touch thread)
   function _flushFlash(){
     if(!flashL||!flashR)return;
     var d=window._swipeDir;
@@ -1012,7 +890,6 @@ function renderGame(){
   window._swipeDir=null;
   window._flushFlash=_flushFlash;
 
-  // Cash-out
   const co=$('btn-cashout');
   if(co){
     let armed=false,timer=null;
@@ -1021,6 +898,9 @@ function renderGame(){
       else{clearTimeout(timer);endGame(scoreVal);}
     });
   }
+
+  const mb=$('btn-mute');
+  if(mb)mb.addEventListener('pointerdown',()=>toggleMusic(mb));
 }
 
 function startGame(){
@@ -1029,7 +909,6 @@ function startGame(){
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
   lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;touchHintDismissed=false;
   window._swipeVel=0;window._swipeActive=false;
-  // Adrenaline state
   window._adrenaline=false;window._adrenalineShown=false;
   renderGame();
   gloveX=getFW()/2;
@@ -1044,7 +923,6 @@ function updateLivesDisplay(){
     h.style.filter=livesVal===1?'drop-shadow(0 0 8px rgba(236,35,38,.9))':'drop-shadow(0 3px 10px rgba(0,0,0,.5))';}
 }
 
-// ── GAME LOOP ────────────────────────────────────────────────
 function tick(ts){
   if(done)return;
   if(!lastT)lastT=ts;
@@ -1052,42 +930,27 @@ function tick(ts){
   const fw=getFW(),fh=getFH(),cy=CATCH_Y(fh);
   elapsedSec+=dt/60;
 
-  // ── ADRENALINE MODE (90s+) ────────────────────────────────
   var isAdrenaline = elapsedSec >= 90;
   if(isAdrenaline && !window._adrenalineShown){
     window._adrenalineShown=true;
     window._adrenaline=true;
-    // Show adrenaline flash
     showTierUp('ADRENALINE !','⚡');
-    // HUD glow pulse — orange ring pulses red
     var hud=$('screen-game');
     if(hud)hud.style.animation='adrenalinePulse 1.2s ease-in-out infinite';
   }
 
-  // ── SPEED & SPAWN CURVE ───────────────────────────────────
-  // Phase 1 (0-30s):  gentle warm-up
-  // Phase 2 (30-60s): steady ramp
-  // Phase 3 (60-90s): hard
-  // Phase 4 (90s+):   adrenaline — much faster, never slows
-  var speedCap = isAdrenaline ? 7.0 : 4.0;
   var speedBase = isAdrenaline
     ? Math.min(7.0, 3.0 + (elapsedSec-90)*0.06)
     : Math.min(4.0, 1.1 + elapsedSec*0.03);
   speedVal = speedBase;
 
-  // Spawn interval: starts slow, tightens hard in adrenaline
-  var spawnFloor = isAdrenaline ? 380 : 750;
   var spawnBase  = isAdrenaline
     ? Math.max(380, 900 - (elapsedSec-90)*8)
     : Math.max(750, 2200 - elapsedSec*22);
   spawnInt = spawnBase;
 
-  // ── GLOVE MOVEMENT ───────────────────────────────────────
-  // gloveX is already updated directly in touchmove (_applyGlovePos).
-  // tick() only handles the coast-on-lift momentum (3-4 frames max).
-  // NO classList or DOM work here — that's batched in _flushFlash().
   if(!window._swipeActive && window._swipeVel){
-    var coastDelta = window._swipeVel * 0.45;  // fast decay, ~4 frames
+    var coastDelta = window._swipeVel * 0.45;
     if(Math.abs(coastDelta) > 0.5){
       gloveX = Math.max(GW/2, Math.min(fw-GW/2, gloveX + coastDelta));
       window._swipeVel = coastDelta;
@@ -1101,22 +964,18 @@ function tick(ts){
       window._swipeVel=0;
     }
   }
-  // Flush visual flash state (classList changes deferred off touch thread)
   if(window._flushFlash) window._flushFlash();
 
-  const ge=$('glove-el');  // still needed by catching animation below
+  const ge=$('glove-el');
 
-  // ── SPAWN LOGIC ───────────────────────────────────────────
   if(ts-lastSpawn>spawnInt){
     const item=spawnItem(speedVal);itemsArr.push(item);lastSpawn=ts;addItemEl(item);
 
-    // Double spawn: starts at 45s, becomes triple in adrenaline
     if(elapsedSec>45){
       var extraChance = isAdrenaline ? 0.70 : 0.35;
       if(Math.random()<extraChance){
         setTimeout(function(){if(done)return;var i2=spawnItem(speedVal*0.88);itemsArr.push(i2);addItemEl(i2);},280);
       }
-      // Triple spawn in adrenaline
       if(isAdrenaline && Math.random()<0.40){
         setTimeout(function(){if(done)return;var i3=spawnItem(speedVal*0.78);itemsArr.push(i3);addItemEl(i3);},520);
       }
@@ -1161,15 +1020,15 @@ function tick(ts){
   if(ptsGained){
     scoreVal+=ptsGained;
     const sd=$('score-disp');if(sd)sd.textContent=scoreVal;
-    const tiers=[{t:2000,l:'LÉGENDE',d:'20%'},{t:800,l:'CHAMPION',d:'15%'},{t:300,l:'MATCH READY',d:'10%'}];
+    // ── Tier-up toasts at ×2.5 thresholds ──────────────────────────
+    const tiers=[{t:5000,l:'LÉGENDE',d:'20%'},{t:2000,l:'CHAMPION',d:'15%'},{t:750,l:'MATCH READY',d:'10%'}];
     for(const tier of tiers){if(scoreVal>=tier.t&&lastTierReached<tier.t){lastTierReached=tier.t;showTierUp(tier.l,tier.d);break;}}
-    // Score circle ring colour
     const circle=document.querySelector('.score-circle');
     if(circle){
       let ring;
-      if(scoreVal>=2000)ring='0 0 0 3px rgba(255,230,80,1),0 4px 20px rgba(0,0,0,.5)';
-      else if(scoreVal>=800)ring='0 0 0 3px rgba(255,186,0,1),0 4px 20px rgba(0,0,0,.5)';
-      else if(scoreVal>=300)ring='0 0 0 3px var(--orange),0 4px 20px rgba(0,0,0,.5)';
+      if(scoreVal>=5000)ring='0 0 0 3px rgba(255,230,80,1),0 4px 20px rgba(0,0,0,.5)';
+      else if(scoreVal>=2000)ring='0 0 0 3px rgba(255,186,0,1),0 4px 20px rgba(0,0,0,.5)';
+      else if(scoreVal>=750)ring='0 0 0 3px var(--orange),0 4px 20px rgba(0,0,0,.5)';
       else ring='0 0 0 3px var(--orange),0 4px 20px rgba(0,0,0,.5)';
       circle.style.boxShadow=ring;
     }
@@ -1203,7 +1062,6 @@ function showFlash(x,y,text,good){
   field.appendChild(el);setTimeout(()=>el.remove(),1100);
 }
 
-// ── END GAME ─────────────────────────────────────────────────
 function endGame(final){
   if(done)return;done=true;
   cancelAnimationFrame(animId);
@@ -1211,10 +1069,8 @@ function endGame(final){
   scoreVal=final;
   attempts=Math.max(0,attempts-1);
   if(final>bestScore)bestScore=final;
-  // Record this voucher (even low scores get 5% — store all)
   var ev=getVoucher(final);
-  // Deduplicate by tier — keep highest score per tier only
-  var tierKey=ev.code; // unique per tier
+  var tierKey=ev.code;
   var existing=earnedVouchers.filter(function(x){return x.code===tierKey;})[0];
   if(!existing||final>existing.score){
     earnedVouchers=earnedVouchers.filter(function(x){return x.code!==tierKey;});
@@ -1228,7 +1084,6 @@ function endGame(final){
   if(!playerName){goTo(renderFormPost);}else{goTo(renderResult);}
 }
 
-// ── FORM ──────────────────────────────────────────────────────
 function renderFormPost(){
   startMusic();
   $('app').innerHTML=`
@@ -1282,9 +1137,9 @@ function submitForm(){
   goTo(renderResult);
 }
 
-// ── RESULT ────────────────────────────────────────────────────
 function renderResult(){
-  const v=getVoucher(scoreVal),s=scoreVal,isLow=s<80;
+  // ── isLow threshold raised to 200 (was 80) ─────────────────
+  const v=getVoucher(scoreVal),s=scoreVal,isLow=s<200;
   const attLeft=attempts;
   $('app').innerHTML=`
   <div id="screen-result">
@@ -1298,7 +1153,7 @@ function renderResult(){
       <div class="rs-score-card"><div class="rs-score-val">${Math.floor(elapsedSec)}s</div><div class="rs-score-lbl">SURVIE</div></div>
     </div>
     ${isLow
-      ?`<div class="rs-low"><div class="rs-low-title">SCORE TROP BAS</div><div class="rs-low-sub">Atteins <b>300 pts</b> pour ton bon.<br>Attrape plus de ballons !</div></div>`
+      ?`<div class="rs-low"><div class="rs-low-title">SCORE TROP BAS</div><div class="rs-low-sub">Atteins <b>750 pts</b> pour ton bon.<br>Attrape plus de ballons !</div></div>`
       :`<div class="rs-voucher"><div class="rs-voucher-pct">${v.disc} OFF</div><div class="rs-voucher-label">${v.label}${v.min>0?' · min. '+v.min+' MAD':''}</div><div class="rs-voucher-code">${v.code}</div></div>`}
     <div style="flex:1;min-height:clamp(12px,3vw,20px);"></div>
     <div class="rs-actions">
@@ -1310,39 +1165,32 @@ function renderResult(){
     </div>
   </div>`;
 
-  // Score count-up
   const el=$('rs-pts');
   if(el&&s>0){let c=0;const step=Math.max(1,Math.ceil(s/40));const iv=setInterval(()=>{c=Math.min(s,c+step);el.textContent=Number(c).toLocaleString('fr-FR');if(c>=s)clearInterval(iv);},30);}
 
-  // Copy code button
   const copy=$('btn-copy-code');
   if(copy)copy.addEventListener('click',()=>copyCode(v.code,copy));
 
-  // Replay
   const rep=$('btn-replay');
   if(rep)rep.addEventListener('click',()=>goTo(startGame));
 }
 
-// ── MY VOUCHERS SCREEN ───────────────────────────────────────
 function renderMyVouchers(){
-  // All 4 tiers, always shown — unlocked or locked
+  // ── TIERS with ×2.5 pts thresholds ─────────────────────────
   var TIERS=[
-    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',    min:400, pts:2000, color:'#ff9900'},
-    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',   min:250, pts:800,  color:'#ff9900'},
-    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150, pts:300,  color:'#ff9900'},
+    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',    min:400, pts:5000, color:'#ff9900'},
+    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',   min:250, pts:2000, color:'#ff9900'},
+    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150, pts:750,  color:'#ff9900'},
     {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',   min:0,   pts:0,    color:'#ff9900'},
   ];
 
-  // Map earned vouchers by code
   var earned={};
   earnedVouchers.forEach(function(v){earned[v.code]=v;});
 
-  // Best unlocked tier index (0=20%, 3=5%)
   var bestTierIdx=-1;
   TIERS.forEach(function(t,i){if(earned[t.code]&&bestTierIdx===-1)bestTierIdx=i;});
-  var hasBest = bestTierIdx===0; // already has 20%
+  var hasBest = bestTierIdx===0;
 
-  // Points needed to reach next locked tier (for the "X pts away" nudge)
   var nextLockedTier=null;
   for(var ni=0;ni<TIERS.length;ni++){
     if(!earned[TIERS[ni].code]){nextLockedTier=TIERS[ni];break;}
@@ -1352,7 +1200,6 @@ function renderMyVouchers(){
   $('app').innerHTML=`
   <div id="screen-vouchers" style="flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;animation:fadeIn .25s ease;">
 
-    <!-- Orange header -->
     <div style="flex:0 0 auto;background:#ff9900;padding:clamp(16px,4vw,22px) clamp(16px,4vw,22px) clamp(18px,4.5vw,24px);">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:clamp(14px,3.5vw,18px);">
         <button onclick="goTo(renderLobby)" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;">
@@ -1363,8 +1210,6 @@ function renderMyVouchers(){
           <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:2px;">Tes réductions Jumia</div>
         </div>
       </div>
-
-      <!-- Progress strip: 4 tier dots -->
       <div style="display:flex;gap:6px;align-items:center;">
         ${TIERS.map(function(t,i){
           var unlocked=!!earned[t.code];
@@ -1379,12 +1224,10 @@ function renderMyVouchers(){
       </div>
     </div>
 
-    <!-- Tier cards -->
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(14px,3.5vw,18px) clamp(16px,4vw,22px);">
 
       ${hasBest
-        ?'<!-- Already at 20% — show top-3 leaderboard nudge -->'+
-          '<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:14px;text-align:center;">'+
+        ?'<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:14px;text-align:center;">'+
             '<div style="font-size:22px;margin-bottom:8px;">🏆</div>'+
             '<div style="font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;margin-bottom:4px;">Tu as le meilleur bon !</div>'+
             '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.5;">Vise maintenant le <b style="color:#1E293B;">Top 3</b><br>pour gagner un <b style="color:#ff9900;">cadeau physique</b> — Maillot, Polo ou Ballon.</div>'+
@@ -1403,13 +1246,10 @@ function renderMyVouchers(){
             '</div>'
           :'')}
 
-      <!-- The 4 tiers — always shown -->
       ${TIERS.map(function(t,i){
         var v=earned[t.code];
         var unlocked=!!v;
         return '<div style="background:#ffffff;border:1.5px solid '+(unlocked?'#ff9900':'#E4E4E6')+';border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:10px;opacity:'+(unlocked?'1':'0.55')+';">'+
-
-          // Top row: tier info
           '<div style="display:flex;align-items:center;gap:12px;margin-bottom:'+(unlocked?'12px':'0')+';">'+
             '<div style="flex:1;">'+
               '<div style="display:flex;align-items:baseline;gap:8px;">'+
@@ -1419,21 +1259,17 @@ function renderMyVouchers(){
               '<div style="font-size:clamp(10px,2.5vw,12px);color:#8A8A9A;font-family:var(--H2);margin-top:3px;">'+t.label+(t.min>0?' · min. '+t.min+' MAD':' · Sans minimum')+'</div>'+
             '</div>'+
           '</div>'+
-
-          // Code row — only when unlocked
           (unlocked?
             '<div style="display:flex;align-items:center;gap:8px;">'+
               '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(10px,2.5vw,12px) 10px;font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.18em;text-align:center;">'+t.code+'</div>'+
               '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
             '</div>'
-          :'')+ // locked: no code box
-
+          :'')+
         '</div>';
       }).join('')}
 
     </div>
 
-    <!-- Footer -->
     <div style="flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(20px,5vw,28px);background:#F1F1F2;">
       <button onclick="goTo(renderLobby)" style="display:block;width:100%;background:#ffffff;color:#1E293B;border:1px solid #E4E4E6;border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3vw,14px);font-weight:700;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.04em;">← RETOUR</button>
     </div>
@@ -1441,8 +1277,6 @@ function renderMyVouchers(){
   </div>`;
 }
 
-
-// ── PRELOADER ─────────────────────────────────────────────────
 function preloadAssets(){
   const images=[IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_REDCARD,
     "https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
