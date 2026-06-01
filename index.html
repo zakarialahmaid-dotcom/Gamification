@@ -740,10 +740,10 @@ function renderLobby(){
         <div class="lb-stat-lbl">Meilleur</div>
       </div>
       <div class="lb-stat" id="lb-stat-voucher"
-           style="cursor:${bestScore>0?'pointer':'default'};"
-           onclick="${bestScore>0?'goTo(renderMyVouchers)':''}">
+           style="cursor:pointer;"
+           onclick="goTo(renderMyVouchers)">
         <div class="lb-stat-val${bestScore>0?' hi':''}">${bestScore>=2000?'20%':bestScore>=800?'15%':bestScore>=300?'10%':bestScore>0?'5%':'—'}</div>
-        <div class="lb-stat-lbl">Bon gagné${bestScore>0?'<span class="lb-stat-arrow"> ›</span>':''}</div>
+        <div class="lb-stat-lbl">Mes bons <span class="lb-stat-arrow">›</span></div>
       </div>
     </div>
 
@@ -1213,7 +1213,13 @@ function endGame(final){
   if(final>bestScore)bestScore=final;
   // Record this voucher (even low scores get 5% — store all)
   var ev=getVoucher(final);
-  earnedVouchers.push({score:final,disc:ev.disc,code:ev.code,label:ev.label,min:ev.min,date:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})});
+  // Deduplicate by tier — keep highest score per tier only
+  var tierKey=ev.code; // unique per tier
+  var existing=earnedVouchers.filter(function(x){return x.code===tierKey;})[0];
+  if(!existing||final>existing.score){
+    earnedVouchers=earnedVouchers.filter(function(x){return x.code!==tierKey;});
+    earnedVouchers.push({score:final,disc:ev.disc,code:ev.code,label:ev.label,min:ev.min,date:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})});
+  }
   hasPlayedOnce=true;
   if(SHEET_URL.startsWith('https://')&&playerName){
     const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+(playerLastName?' '+playerLastName:''),email:playerEmail,city:playerCity,score:final,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(final).code,source:'JumiaGardienDeBut'});
@@ -1319,59 +1325,122 @@ function renderResult(){
 
 // ── MY VOUCHERS SCREEN ───────────────────────────────────────
 function renderMyVouchers(){
-  var best=earnedVouchers.length?earnedVouchers.reduce(function(a,b){return a.score>=b.score?a:b;}):null;
+  // All 4 tiers, always shown — unlocked or locked
+  var TIERS=[
+    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',    min:400, pts:2000, color:'#ff9900'},
+    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',   min:250, pts:800,  color:'#ff9900'},
+    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150, pts:300,  color:'#ff9900'},
+    {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',   min:0,   pts:0,    color:'#ff9900'},
+  ];
+
+  // Map earned vouchers by code
+  var earned={};
+  earnedVouchers.forEach(function(v){earned[v.code]=v;});
+
+  // Best unlocked tier index (0=20%, 3=5%)
+  var bestTierIdx=-1;
+  TIERS.forEach(function(t,i){if(earned[t.code]&&bestTierIdx===-1)bestTierIdx=i;});
+  var hasBest = bestTierIdx===0; // already has 20%
+
+  // Points needed to reach next locked tier (for the "X pts away" nudge)
+  var nextLockedTier=null;
+  for(var ni=0;ni<TIERS.length;ni++){
+    if(!earned[TIERS[ni].code]){nextLockedTier=TIERS[ni];break;}
+  }
+  var ptsToNext = nextLockedTier ? Math.max(0, nextLockedTier.pts - bestScore) : 0;
+
   $('app').innerHTML=`
   <div id="screen-vouchers" style="flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;animation:fadeIn .25s ease;">
 
-    <!-- Header -->
-    <div style="flex:0 0 auto;padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,22px);display:flex;align-items:center;gap:12px;background:#ff9900;">
-      <button onclick="goTo(renderLobby)" style="width:clamp(36px,9vw,42px);height:clamp(36px,9vw,42px);border-radius:50%;background:rgba(255,255,255,.08);border:none;cursor:pointer;color:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div>
-        <div style="font-size:clamp(18px,5vw,24px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;">MES BONS</div>
-        <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.65);font-family:var(--H2);margin-top:2px;">${earnedVouchers.length} bon${earnedVouchers.length>1?'s':''} gagné${earnedVouchers.length>1?'s':''}</div>
+    <!-- Orange header -->
+    <div style="flex:0 0 auto;background:#ff9900;padding:clamp(16px,4vw,22px) clamp(16px,4vw,22px) clamp(18px,4.5vw,24px);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:clamp(14px,3.5vw,18px);">
+        <button onclick="goTo(renderLobby)" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div>
+          <div style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;">MES BONS</div>
+          <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:2px;">Tes réductions Jumia</div>
+        </div>
+      </div>
+
+      <!-- Progress strip: 4 tier dots -->
+      <div style="display:flex;gap:6px;align-items:center;">
+        ${TIERS.map(function(t,i){
+          var unlocked=!!earned[t.code];
+          return '<div style="flex:1;height:5px;border-radius:3px;background:'+(unlocked?'#ffffff':'rgba(255,255,255,.25)')+';transition:background .3s;"></div>';
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:5px;">
+        ${TIERS.map(function(t){
+          var unlocked=!!earned[t.code];
+          return '<div style="flex:1;text-align:center;font-size:clamp(8px,2vw,9px);font-weight:700;color:'+(unlocked?'rgba(255,255,255,.9)':'rgba(255,255,255,.4)')+';font-family:var(--H2);">'+t.disc+'</div>';
+        }).join('')}
       </div>
     </div>
 
-    <!-- List -->
+    <!-- Tier cards -->
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(14px,3.5vw,18px) clamp(16px,4vw,22px);">
-      ${earnedVouchers.length===0
-        ?`<div style="text-align:center;padding:clamp(40px,10vw,60px) 20px;">
-            <div style="font-size:48px;margin-bottom:16px;">⚽</div>
-            <div style="font-size:clamp(16px,4.5vw,20px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;">Aucun bon encore</div>
-            <div style="font-size:clamp(12px,3vw,14px);color:#8A8A9A;font-family:var(--H2);margin-top:8px;">Joue une partie pour gagner ton premier bon !</div>
-          </div>`
-        :earnedVouchers.slice().reverse().map(function(v,i){
-            var isBest=best&&v.score===best.score&&i===0;
-            return `<div style="background:#ffffff;border:1px solid ${isBest?'#ff9900':'#E4E4E6'};border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:10px;position:relative;overflow:hidden;">
-              ${isBest?'<div style="position:absolute;top:10px;right:10px;background:#1E293B;color:#ff9900;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">MEILLEUR</div>':''}
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-                <div style="flex:1;">
-                  <div style="font-size:clamp(28px,8vw,38px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;letter-spacing:-.01em;">${v.disc} OFF</div>
-                  <div style="font-size:clamp(11px,2.8vw,13px);font-weight:700;color:#8A8A9A;font-family:var(--H2);margin-top:3px;">${v.label}${v.min>0?' · min. '+v.min+' MAD':''}</div>
-                </div>
-                <div style="text-align:right;flex-shrink:0;">
-                  <div style="font-size:clamp(13px,3.5vw,16px);font-weight:900;color:#1E293B;font-family:var(--H1);">${Number(v.score).toLocaleString('fr-FR')} pts</div>
-                  <div style="font-size:clamp(9px,2.3vw,10px);color:#8A8A9A;font-family:var(--H2);margin-top:2px;">${v.date}</div>
-                </div>
-              </div>
-              <!-- Code row -->
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(10px,2.5vw,13px) 12px;font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.18em;text-align:center;">${v.code}</div>
-                <button id="copy-btn-${i}" onclick="copyCode('${v.code}',document.getElementById('copy-btn-${i}'))" style="flex-shrink:0;background:${isBest?'var(--dark)':'var(--orange)'};color:${isBest?'var(--orange)':'var(--dark)'};border:none;border-radius:8px;padding:clamp(10px,2.5vw,13px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>
-              </div>
-            </div>`;
-          }).join('')}
+
+      ${hasBest
+        ?'<!-- Already at 20% — show top-3 leaderboard nudge -->'+
+          '<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:14px;text-align:center;">'+
+            '<div style="font-size:22px;margin-bottom:8px;">🏆</div>'+
+            '<div style="font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;margin-bottom:4px;">Tu as le meilleur bon !</div>'+
+            '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.5;">Vise maintenant le <b style="color:#1E293B;">Top 3</b><br>pour gagner un <b style="color:#ff9900;">cadeau physique</b> — Maillot, Polo ou Ballon.</div>'+
+          '</div>'
+        :(ptsToNext>0
+          ?'<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.35);border-radius:12px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);margin-bottom:14px;display:flex;align-items:center;gap:12px;">'+
+              '<div style="font-size:24px;flex-shrink:0;">⚡</div>'+
+              '<div>'+
+                '<div style="font-size:clamp(12px,3.2vw,14px);font-weight:900;color:#1E293B;font-family:var(--H1);">'+
+                  'Encore <span style="color:#ff9900;">'+Number(ptsToNext).toLocaleString('fr-FR')+' pts</span> pour débloquer '+nextLockedTier.disc+' !'+
+                '</div>'+
+                '<div style="font-size:clamp(10px,2.5vw,11px);color:#8A8A9A;font-family:var(--H2);margin-top:2px;">'+
+                  nextLockedTier.label+(nextLockedTier.min>0?' · min. '+nextLockedTier.min+' MAD':'')+
+                '</div>'+
+              '</div>'+
+            '</div>'
+          :'')}
+
+      <!-- The 4 tiers — always shown -->
+      ${TIERS.map(function(t,i){
+        var v=earned[t.code];
+        var unlocked=!!v;
+        return '<div style="background:#ffffff;border:1.5px solid '+(unlocked?'#ff9900':'#E4E4E6')+';border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:10px;opacity:'+(unlocked?'1':'0.55')+';">'+
+
+          // Top row: tier info
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:'+(unlocked?'12px':'0')+';">'+
+            '<div style="flex:1;">'+
+              '<div style="display:flex;align-items:baseline;gap:8px;">'+
+                '<div style="font-size:clamp(30px,8.5vw,40px);font-weight:900;color:'+(unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);line-height:1;letter-spacing:-.01em;">'+t.disc+' OFF</div>'+
+                (unlocked?'<div style="background:#ff9900;color:#ffffff;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">DÉBLOQUÉ</div>':'<div style="background:#E4E4E6;color:#8A8A9A;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">'+( t.pts>0?(Number(t.pts).toLocaleString('fr-FR')+' pts'):'Gratuit')+'</div>')+
+              '</div>'+
+              '<div style="font-size:clamp(10px,2.5vw,12px);color:#8A8A9A;font-family:var(--H2);margin-top:3px;">'+t.label+(t.min>0?' · min. '+t.min+' MAD':' · Sans minimum')+'</div>'+
+            '</div>'+
+          '</div>'+
+
+          // Code row — only when unlocked
+          (unlocked?
+            '<div style="display:flex;align-items:center;gap:8px;">'+
+              '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(10px,2.5vw,12px) 10px;font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.18em;text-align:center;">'+t.code+'</div>'+
+              '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
+            '</div>'
+          :'')+ // locked: no code box
+
+        '</div>';
+      }).join('')}
+
     </div>
 
     <!-- Footer -->
-    <div style="flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(20px,5vw,28px);">
+    <div style="flex:0 0 auto;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(20px,5vw,28px);background:#F1F1F2;">
       <button onclick="goTo(renderLobby)" style="display:block;width:100%;background:#ffffff;color:#1E293B;border:1px solid #E4E4E6;border-radius:8px;padding:clamp(12px,3vw,15px);font-size:clamp(12px,3vw,14px);font-weight:700;cursor:pointer;font-family:var(--H1);text-transform:uppercase;letter-spacing:.04em;">← RETOUR</button>
     </div>
 
   </div>`;
 }
+
 
 // ── PRELOADER ─────────────────────────────────────────────────
 function preloadAssets(){
