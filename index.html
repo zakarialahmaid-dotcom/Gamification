@@ -381,25 +381,37 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   line-height:1.5;
 }
 
-.lb-divider{
-  height:1px;
-  background:#E4E4E6;
-  margin:clamp(16px,4vw,22px) clamp(20px,5vw,28px) 0;
-}
-.lb-footer{
-  padding:clamp(14px,3.5vw,18px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);
-  display:flex;align-items:center;justify-content:center;gap:10px;
-}
-.lb-footer-dot{width:3px;height:3px;border-radius:50%;background:#D0D0D6;}
-.lb-footer-link{
-  font-size:clamp(12px,3vw,14px);
-  color:#8A8A9A;
-  font-family:var(--H2);
-  font-weight:600;
-  cursor:pointer;
-  letter-spacing:.01em;
-}
 .lb-footer-link:active{color:#1E293B;}
+
+/* ── Lobby action cards (Classement + Mes bons) ── */
+.lb-action-cards{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:clamp(14px,3.5vw,18px) clamp(20px,5vw,28px) clamp(20px,5vw,28px);
+}
+.lb-action-card{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:#ffffff;
+  border:1.5px solid #E4E4E6;
+  border-radius:14px;
+  padding:clamp(14px,3.5vw,18px) clamp(16px,4vw,20px);
+  cursor:pointer;
+  transition:border-color .15s,box-shadow .15s,transform .1s;
+  -webkit-tap-highlight-color:transparent;
+}
+.lb-action-card:active{transform:scale(.98);box-shadow:none;}
+.lb-action-card--leaderboard:active{border-color:#1E293B;}
+.lb-action-card--voucher{border-color:rgba(255,153,0,.4);background:#fff8ee;}
+.lb-action-card--voucher:active{border-color:#ff9900;}
+.lb-action-card__icon{font-size:clamp(24px,6vw,30px);flex-shrink:0;line-height:1;}
+.lb-action-card__body{flex:1;min-width:0;}
+.lb-action-card__title{font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;letter-spacing:.02em;line-height:1;margin-bottom:3px;}
+.lb-action-card__sub{font-size:clamp(10px,2.6vw,12px);color:#8A8A9A;font-family:var(--H2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-action-card--voucher .lb-action-card__sub{color:#e68800;font-weight:700;}
+.lb-action-card__arrow{font-size:clamp(20px,5vw,24px);font-weight:900;color:#8A8A9A;font-family:var(--H1);flex-shrink:0;line-height:1;}
 
 </style>
 </head>
@@ -605,15 +617,40 @@ function renderLeaderboard(){
     }).join('');
     card.innerHTML=rows;
     if(hasPlayedOnce&&myEmail&&myIdx>=0){
-      const above=players[myIdx-1];
-      const gap=above?above.score-players[myIdx].score:null;
-      if(gap>0){
+      const myScore = players[myIdx].score;
+      const p3score = players[2] ? players[2].score : null; // 3rd place score (idx 2)
+      let proximityHTML = '';
+
+      if(myIdx===0){
+        // #1 — show gap to 2nd to feel competitive
+        const p2=players[1];
+        const gap2=p2?myScore-p2.score:null;
+        proximityHTML=`<div class="lbd-proximity">🥇 TU ES EN TÊTE !<span>${gap2>0?'Tu mènes de '+Number(gap2).toLocaleString('fr-FR')+' pts sur le 2ème — reste devant !':'Garde ta 1ère place !'}</span></div>`;
+      } else if(myIdx===1){
+        // #2 — show gap to 1st AND gap from 3rd
+        const gapUp=players[0].score-myScore;
+        const gapDown=players[2]?myScore-players[2].score:null;
+        const downPart=gapDown>0?' · '+Number(gapDown).toLocaleString('fr-FR')+' pts d\'avance sur le 3ème':'';
+        proximityHTML=`<div class="lbd-proximity">🥈 À <b>${Number(gapUp).toLocaleString('fr-FR')} pts</b> de la 1ère place !<span>Tu es 2ème${downPart} — rejoue !</span></div>`;
+      } else if(myIdx===2){
+        // #3 — show gap to 2nd
+        const gapUp=players[1].score-myScore;
+        proximityHTML=`<div class="lbd-proximity">🥉 TU ES 3ème !<span>À ${Number(gapUp).toLocaleString('fr-FR')} pts de la 2ème place — rejoue !</span></div>`;
+      } else {
+        // Outside top 3 — always anchor to 3rd place specifically
+        const gap3 = p3score!=null ? p3score - myScore : null;
+        const above=players[myIdx-1];
+        const gapAbove=above?above.score-myScore:null;
+        if(gap3!=null&&gap3>0){
+          proximityHTML=`<div class="lbd-proximity">À <b>${Number(gap3).toLocaleString('fr-FR')} pts</b> de la 3ème place 🥉<span>${gapAbove>0?'Passe d\'abord le '+myIdx+'ème (+'+Number(gapAbove).toLocaleString('fr-FR')+' pts)':'Rejoue pour entrer dans le Top 3 !'}</span></div>`;
+        } else if(gap3===0){
+          proximityHTML=`<div class="lbd-proximity">Tu es à égalité avec le 3ème !<span>Un point de plus et tu es dans le Top 3 🥉</span></div>`;
+        }
+      }
+
+      if(proximityHTML){
         const d=document.createElement('div');
-        d.innerHTML=`<div class="lbd-proximity">À <b>${Number(gap).toLocaleString('fr-FR')} pts</b> de la ${myIdx}ème place !<span>Rejoue pour grimper</span></div>`;
-        card.insertBefore(d.firstChild,card.firstChild);
-      } else if(myIdx===0){
-        const d=document.createElement('div');
-        d.innerHTML='<div class="lbd-proximity">TU ES EN TÊTE ! 🏆<span>Maintiens ta position</span></div>';
+        d.innerHTML=proximityHTML;
         card.insertBefore(d.firstChild,card.firstChild);
       }
       setTimeout(()=>{const r=document.getElementById('lbd-row-'+myIdx);if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},300);
@@ -657,11 +694,29 @@ function renderLobby(){
            <div class="lb-cta-hint">${att} essai${att>1?'s':''} restant${att>1?'s':''}</div>
            <button class="btn-kickoff" id="btn-start">⚽  Jouer maintenant</button>
          </div>`}
-    <div class="lb-divider"></div>
-    <div class="lb-footer">
-      <span class="lb-footer-link" onclick="goTo(renderLeaderboard)">Classement</span>
-      <div class="lb-footer-dot"></div>
-      <span class="lb-footer-link" onclick="${earnedVouchers.length>0?'goTo(renderMyVouchers)':''}">Mes bons</span>
+    <!-- ── Prominent action cards ── -->
+    <div class="lb-action-cards">
+
+      <!-- Leaderboard card — social proof -->
+      <div class="lb-action-card lb-action-card--leaderboard" onclick="goTo(renderLeaderboard)">
+        <div class="lb-action-card__icon">🏆</div>
+        <div class="lb-action-card__body">
+          <div class="lb-action-card__title">CLASSEMENT</div>
+          <div class="lb-action-card__sub">Vois qui mène la partie</div>
+        </div>
+        <div class="lb-action-card__arrow">›</div>
+      </div>
+
+      <!-- Mes bons card — conversion driver -->
+      <div class="lb-action-card lb-action-card--voucher" onclick="goTo(renderMyVouchers)">
+        <div class="lb-action-card__icon">🎟️</div>
+        <div class="lb-action-card__body">
+          <div class="lb-action-card__title">MES BONS</div>
+          <div class="lb-action-card__sub">${bestScore>=5000?'20% OFF débloqué — utilise-le !':bestScore>=2000?'15% OFF débloqué — utilise-le !':bestScore>=750?'10% OFF débloqué — utilise-le !':bestScore>0?'5% OFF débloqué — utilise-le !':'Jusqu\'à 20% de réduction'}</div>
+        </div>
+        <div class="lb-action-card__arrow" style="color:#ff9900;">›</div>
+      </div>
+
     </div>
   </div>`;
 
@@ -1155,13 +1210,14 @@ function renderResult(){
     ${isLow
       ?`<div class="rs-low"><div class="rs-low-title">SCORE TROP BAS</div><div class="rs-low-sub">Atteins <b>750 pts</b> pour ton bon.<br>Attrape plus de ballons !</div></div>`
       :`<div class="rs-voucher"><div class="rs-voucher-pct">${v.disc} OFF</div><div class="rs-voucher-label">${v.label}${v.min>0?' · min. '+v.min+' MAD':''}</div><div class="rs-voucher-code">${v.code}</div></div>`}
+    <div id="rs-rank-nudge"></div>
     <div style="flex:1;min-height:clamp(12px,3vw,20px);"></div>
     <div class="rs-actions">
       ${attLeft>0
         ?`<button class="rs-cta-primary" id="btn-replay">⚽ REJOUER</button>`
         :`<div style="text-align:center;padding:8px 0;font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.4);font-family:var(--H2);">Reviens demain pour rejouer !</div>`}
       ${!isLow?`<button class="rs-cta-secondary" id="btn-copy-code">COPIER MON CODE — ${v.code}</button>`:''}
-      <button class="rs-cta-secondary" onclick="goTo(renderLeaderboard)">CLASSEMENT</button>
+      <button class="rs-cta-secondary" id="btn-go-lbd">🏆 VOIR LE CLASSEMENT</button>
     </div>
   </div>`;
 
@@ -1173,27 +1229,85 @@ function renderResult(){
 
   const rep=$('btn-replay');
   if(rep)rep.addEventListener('click',()=>goTo(startGame));
+
+  const lbdBtn=$('btn-go-lbd');
+  if(lbdBtn)lbdBtn.addEventListener('click',()=>goTo(renderLeaderboard));
+
+  // Fetch leaderboard to show gap to 3rd place
+  fetchLeaderboard().then(function(players){
+    const nudge=$('rs-rank-nudge');
+    if(!nudge||!players||players.length<1)return;
+    const myScore=s;
+    const p3=players[2]; // 3rd place (0-indexed)
+    const myRank=players.findIndex(function(p){return p.score<=myScore;})+1||players.length+1;
+
+    let html='';
+    if(myRank===1){
+      html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">🥇 TU ES EN TÊTE DU CLASSEMENT !</div>';
+    } else if(myRank===2){
+      const gap=players[0].score-myScore;
+      html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">🥈 TU ES 2ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:3px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> de la 1ère place — rejoue !</div></div>';
+    } else if(myRank===3){
+      const gap=players[1].score-myScore;
+      html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">🥉 TU ES 3ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:3px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> de la 2ème place !</div></div>';
+    } else if(p3){
+      const gap3=p3.score-myScore;
+      if(gap3>0){
+        html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">À <b style="color:#ff9900;">'+Number(gap3).toLocaleString('fr-FR')+' pts</b> de la 3ème place 🥉</div><div style="font-size:clamp(10px,2.5vw,11px);color:#8A8A9A;font-family:var(--H2);font-weight:700;margin-top:3px;">Rejoue pour entrer dans le Top 3 !</div></div>';
+      }
+    }
+    if(html)nudge.innerHTML=html;
+
+    // Update leaderboard button with live rank context
+    if(lbdBtn){
+      if(myRank<=3){lbdBtn.textContent='🏆 MON CLASSEMENT — #'+myRank;}
+      else if(p3){lbdBtn.textContent='🏆 CLASSEMENT — TOP 3 À '+(p3.score-myScore>0?Number(p3.score-myScore).toLocaleString('fr-FR')+' pts':'0 pt');}
+    }
+  }).catch(function(){});
 }
 
 function renderMyVouchers(){
   // ── TIERS with ×2.5 pts thresholds ─────────────────────────
   var TIERS=[
-    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',    min:400, pts:5000, color:'#ff9900'},
-    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',   min:250, pts:2000, color:'#ff9900'},
-    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150, pts:750,  color:'#ff9900'},
-    {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',   min:0,   pts:0,    color:'#ff9900'},
+    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',    min:400, pts:5000},
+    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',   min:250, pts:2000},
+    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150, pts:750 },
+    {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',   min:0,   pts:0   },
   ];
 
+  // ── CASCADE RULE ────────────────────────────────────────────
+  // Find the highest tier the player has earned. Every tier below
+  // it (lower %) is also unlocked with NO minimum spend.
   var earned={};
   earnedVouchers.forEach(function(v){earned[v.code]=v;});
 
+  // bestTierIdx = index of the highest tier earned (0 = 20%, 3 = 5%)
   var bestTierIdx=-1;
   TIERS.forEach(function(t,i){if(earned[t.code]&&bestTierIdx===-1)bestTierIdx=i;});
-  var hasBest = bestTierIdx===0;
 
-  var nextLockedTier=null;
+  // Mark all tiers at or below bestTierIdx as unlocked (cascade)
+  // For cascaded tiers (not directly earned), min becomes 0
+  var tierDisplay = TIERS.map(function(t, i){
+    var directlyEarned = !!earned[t.code];
+    var cascaded = !directlyEarned && bestTierIdx !== -1 && i > bestTierIdx;
+    var unlocked = directlyEarned || cascaded;
+    return {
+      disc:    t.disc,
+      code:    t.code,
+      label:   t.label,
+      pts:     t.pts,
+      min:     cascaded ? 0 : t.min,   // ← no minimum for cascaded
+      unlocked: unlocked,
+      cascaded: cascaded,
+      directlyEarned: directlyEarned,
+    };
+  });
+
+  var hasBest = bestTierIdx === 0; // player earned the 20% tier
+
+  var nextLockedTier = null;
   for(var ni=0;ni<TIERS.length;ni++){
-    if(!earned[TIERS[ni].code]){nextLockedTier=TIERS[ni];break;}
+    if(!tierDisplay[ni].unlocked){nextLockedTier=TIERS[ni];break;}
   }
   var ptsToNext = nextLockedTier ? Math.max(0, nextLockedTier.pts - bestScore) : 0;
 
@@ -1210,16 +1324,15 @@ function renderMyVouchers(){
           <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:2px;">Tes réductions Jumia</div>
         </div>
       </div>
+      <!-- Progress bar — all unlocked (incl. cascaded) segments are white -->
       <div style="display:flex;gap:6px;align-items:center;">
-        ${TIERS.map(function(t,i){
-          var unlocked=!!earned[t.code];
-          return '<div style="flex:1;height:5px;border-radius:3px;background:'+(unlocked?'#ffffff':'rgba(255,255,255,.25)')+';transition:background .3s;"></div>';
+        ${tierDisplay.map(function(t){
+          return '<div style="flex:1;height:5px;border-radius:3px;background:'+(t.unlocked?'#ffffff':'rgba(255,255,255,.25)')+';transition:background .3s;"></div>';
         }).join('')}
       </div>
       <div style="display:flex;gap:6px;margin-top:5px;">
-        ${TIERS.map(function(t){
-          var unlocked=!!earned[t.code];
-          return '<div style="flex:1;text-align:center;font-size:clamp(8px,2vw,9px);font-weight:700;color:'+(unlocked?'rgba(255,255,255,.9)':'rgba(255,255,255,.4)')+';font-family:var(--H2);">'+t.disc+'</div>';
+        ${tierDisplay.map(function(t){
+          return '<div style="flex:1;text-align:center;font-size:clamp(8px,2vw,9px);font-weight:700;color:'+(t.unlocked?'rgba(255,255,255,.9)':'rgba(255,255,255,.4)')+';font-family:var(--H2);">'+t.disc+'</div>';
         }).join('')}
       </div>
     </div>
@@ -1230,36 +1343,64 @@ function renderMyVouchers(){
         ?'<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:14px;text-align:center;">'+
             '<div style="font-size:22px;margin-bottom:8px;">🏆</div>'+
             '<div style="font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;margin-bottom:4px;">Tu as le meilleur bon !</div>'+
-            '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.5;">Vise maintenant le <b style="color:#1E293B;">Top 3</b><br>pour gagner un <b style="color:#ff9900;">cadeau physique</b> — Maillot, Polo ou Ballon.</div>'+
+            '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.5;">Tous tes bons sont actifs — <b style="color:#ff9900;">sans minimum d\'achat</b>.<br>Vise le <b style="color:#1E293B;">Top 3</b> pour un cadeau physique !</div>'+
           '</div>'
-        :(ptsToNext>0
-          ?'<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.35);border-radius:12px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);margin-bottom:14px;display:flex;align-items:center;gap:12px;">'+
-              '<div style="font-size:24px;flex-shrink:0;">⚡</div>'+
+        : bestTierIdx > -1
+          // Has some tier — show "all lower codes now free" banner
+          ?'<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.5);border-radius:12px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);margin-bottom:14px;display:flex;align-items:center;gap:12px;">'+
+              '<div style="font-size:26px;flex-shrink:0;">🎁</div>'+
               '<div>'+
                 '<div style="font-size:clamp(12px,3.2vw,14px);font-weight:900;color:#1E293B;font-family:var(--H1);">'+
-                  'Encore <span style="color:#ff9900;">'+Number(ptsToNext).toLocaleString('fr-FR')+' pts</span> pour débloquer '+nextLockedTier.disc+' !'+
+                  'Tous tes bons sont <span style="color:#ff9900;">actifs</span> !'+
                 '</div>'+
                 '<div style="font-size:clamp(10px,2.5vw,11px);color:#8A8A9A;font-family:var(--H2);margin-top:2px;">'+
-                  nextLockedTier.label+(nextLockedTier.min>0?' · min. '+nextLockedTier.min+' MAD':'')+
+                  'Gagne '+tierDisplay[bestTierIdx].disc+' → les réductions inférieures sont débloquées sans minimum.'+
                 '</div>'+
               '</div>'+
             '</div>'
-          :'')}
+          // No tier yet — show pts to unlock nudge
+          :(ptsToNext>0
+            ?'<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.35);border-radius:12px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);margin-bottom:14px;display:flex;align-items:center;gap:12px;">'+
+                '<div style="font-size:24px;flex-shrink:0;">⚡</div>'+
+                '<div>'+
+                  '<div style="font-size:clamp(12px,3.2vw,14px);font-weight:900;color:#1E293B;font-family:var(--H1);">'+
+                    'Encore <span style="color:#ff9900;">'+Number(ptsToNext).toLocaleString('fr-FR')+' pts</span> pour débloquer '+nextLockedTier.disc+' !'+
+                  '</div>'+
+                  '<div style="font-size:clamp(10px,2.5vw,11px);color:#8A8A9A;font-family:var(--H2);margin-top:2px;">'+
+                    'Débloque un niveau → les bons inférieurs s\'activent aussi !'+
+                  '</div>'+
+                '</div>'+
+              '</div>'
+            :'')}
 
-      ${TIERS.map(function(t,i){
-        var v=earned[t.code];
-        var unlocked=!!v;
-        return '<div style="background:#ffffff;border:1.5px solid '+(unlocked?'#ff9900':'#E4E4E6')+';border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:10px;opacity:'+(unlocked?'1':'0.55')+';">'+
-          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:'+(unlocked?'12px':'0')+';">'+
+      ${tierDisplay.map(function(t,i){
+        var isBest = (i === bestTierIdx);  // the tier they actually earned
+        var bg     = t.unlocked ? (isBest ? '#ffffff' : '#fafafa') : '#ffffff';
+        var border = t.unlocked ? (isBest ? '#ff9900' : 'rgba(255,153,0,.35)') : '#E4E4E6';
+        var opacity= t.unlocked ? '1' : '0.45';
+
+        // Badge text
+        var badge;
+        if(isBest)        badge='<div style="background:#ff9900;color:#fff;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">DÉBLOQUÉ</div>';
+        else if(t.cascaded)badge='<div style="background:rgba(255,153,0,.15);color:#e68800;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">INCLUS</div>';
+        else               badge='<div style="background:#E4E4E6;color:#8A8A9A;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">'+(t.pts>0?(Number(t.pts).toLocaleString('fr-FR')+' pts'):'Gratuit')+'</div>';
+
+        // Min spend label
+        var minLabel = t.unlocked
+          ? (t.min === 0 ? '<span style="color:#27ae60;font-weight:700;">Sans minimum d\'achat</span>' : 'min. '+t.min+' MAD')
+          : (t.min > 0 ? 'min. '+t.min+' MAD' : 'Sans minimum');
+
+        return '<div style="background:'+bg+';border:1.5px solid '+border+';border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:10px;opacity:'+opacity+';">'+
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:'+(t.unlocked?'12px':'0')+';">'+
             '<div style="flex:1;">'+
               '<div style="display:flex;align-items:baseline;gap:8px;">'+
-                '<div style="font-size:clamp(30px,8.5vw,40px);font-weight:900;color:'+(unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);line-height:1;letter-spacing:-.01em;">'+t.disc+' OFF</div>'+
-                (unlocked?'<div style="background:#ff9900;color:#ffffff;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">DÉBLOQUÉ</div>':'<div style="background:#E4E4E6;color:#8A8A9A;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">'+( t.pts>0?(Number(t.pts).toLocaleString('fr-FR')+' pts'):'Gratuit')+'</div>')+
+                '<div style="font-size:clamp(30px,8.5vw,40px);font-weight:900;color:'+(t.unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);line-height:1;letter-spacing:-.01em;">'+t.disc+' OFF</div>'+
+                badge+
               '</div>'+
-              '<div style="font-size:clamp(10px,2.5vw,12px);color:#8A8A9A;font-family:var(--H2);margin-top:3px;">'+t.label+(t.min>0?' · min. '+t.min+' MAD':' · Sans minimum')+'</div>'+
+              '<div style="font-size:clamp(10px,2.5vw,12px);color:#8A8A9A;font-family:var(--H2);margin-top:3px;">'+t.label+' · '+minLabel+'</div>'+
             '</div>'+
           '</div>'+
-          (unlocked?
+          (t.unlocked?
             '<div style="display:flex;align-items:center;gap:8px;">'+
               '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(10px,2.5vw,12px) 10px;font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.18em;text-align:center;">'+t.code+'</div>'+
               '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
