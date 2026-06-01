@@ -539,12 +539,23 @@ const SHEET_GID='0';
 function $(id){return document.getElementById(id);}
 
 function spawnItem(speed){
-  const r=Math.random();let type,w,h;
-  if(r<0.08){type='golden';w=BALL_SIZE;h=BALL_SIZE;}
-  else if(r<0.50){type='ball';w=BALL_SIZE;h=BALL_SIZE;}
+  var r=Math.random();var type,w,h;
+  // Difficulty-aware spawn ratios:
+  //   0-30s:  8% golden, 55% ball, 37% red  (gentle)
+  //   30-60s: 8% golden, 45% ball, 47% red  (building)
+  //   60-90s: 6% golden, 38% ball, 56% red  (hard)
+  //   90s+:   5% golden, 30% ball, 65% red  (adrenaline)
+  var goldenChance, ballChance;
+  if(elapsedSec<30){      goldenChance=0.08; ballChance=0.63;}
+  else if(elapsedSec<60){ goldenChance=0.08; ballChance=0.53;}
+  else if(elapsedSec<90){ goldenChance=0.06; ballChance=0.44;}
+  else{                   goldenChance=0.05; ballChance=0.35;}
+
+  if(r<goldenChance){type='golden';w=BALL_SIZE;h=BALL_SIZE;}
+  else if(r<goldenChance+ballChance){type='ball';w=BALL_SIZE;h=BALL_SIZE;}
   else{type='redcard';w=CARD_W;h=CARD_H;}
-  const fw=getFW();
-  return{id:wid++,type,x:Math.random()*Math.max(8,fw-w-14)+4,y:-h-4,speed,width:w,height:h};
+  var fw=getFW();
+  return{id:wid++,type,x:Math.random()*Math.max(8,fw-w-14)+4,y:-h-4,speed:speed,width:w,height:h};
 }
 
 function copyCode(text,btn){
@@ -780,8 +791,8 @@ function showTutorialScreen(){
       <div class="tuto-rule">
         <div class="tuto-rule-icon catch"><img src="${IMG_SOCCER}" alt="" draggable="false"></div>
         <div class="tuto-rule-text">
-          <div class="tuto-rule-title">TOUCHE GAUCHE / DROITE</div>
-          <div class="tuto-rule-sub">Appuie sur la moitié gauche ou droite de l'écran pour déplacer les gants.</div>
+          <div class="tuto-rule-title">GLISSE GAUCHE / DROITE</div>
+          <div class="tuto-rule-sub">Fais glisser ton doigt à gauche ou à droite pour déplacer les gants.</div>
         </div>
         <div class="tuto-rule-badge orange">+POINTS</div>
       </div>
@@ -805,7 +816,7 @@ function showTutorialScreen(){
           <rect x="9" y="28" width="36" height="26" rx="8" fill="#1E293B"/>
           <circle cx="23" cy="7" r="5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.2s ease-in-out infinite;"/>
         </svg>
-        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">GAUCHE</div>
+        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">◄ GLISSE</div>
       </div>
       <svg viewBox="0 0 32 24" width="32" height="24" fill="none">
         <polyline points="10,4 3,12 10,20" stroke="rgba(255,255,255,.25)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -820,7 +831,7 @@ function showTutorialScreen(){
           <rect x="9" y="28" width="36" height="26" rx="8" fill="#1E293B"/>
           <circle cx="31" cy="7" r="5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.2s ease-in-out infinite;animation-delay:.15s;"/>
         </svg>
-        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">DROITE</div>
+        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">GLISSE ►</div>
       </div>
     </div>
     <button class="tuto-screen-btn" id="tuto-start-btn">C'EST PARTI !</button>`;
@@ -857,8 +868,8 @@ function renderGame(){
             <rect x="7" y="26" width="36" height="24" rx="7" fill="#1E293B"/>
             <circle cx="21" cy="6" r="4.5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.1s ease-in-out infinite;"/>
           </svg>
-          <div class="touch-zone-label">◄ GAUCHE</div>
-          <div class="touch-zone-sub">Appuie ici</div>
+          <div class="touch-zone-label">◄ GLISSE</div>
+          <div class="touch-zone-sub">Swipe gauche</div>
         </div>
         <div style="width:1px;background:rgba(255,255,255,.1);align-self:stretch;margin:24px 0;"></div>
         <div class="touch-zone touch-zone-right">
@@ -870,8 +881,8 @@ function renderGame(){
             <rect x="7" y="26" width="36" height="24" rx="7" fill="#1E293B"/>
             <circle cx="29" cy="6" r="4.5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.1s ease-in-out infinite;animation-delay:.15s;"/>
           </svg>
-          <div class="touch-zone-label">DROITE ►</div>
-          <div class="touch-zone-sub">Appuie ici</div>
+          <div class="touch-zone-label">GLISSE ►</div>
+          <div class="touch-zone-sub">Swipe droite</div>
         </div>
       </div>
       <div id="touch-flash-left"></div>
@@ -885,43 +896,101 @@ function renderGame(){
   const ge=$('glove-el');
   if(ge){ge.style.left='0px';ge.style.top=CATCH_Y(getFH())+'px';ge.style.transform=`translateX(${gloveX-GW/2}px)`;}
 
-  // TOUCH CONTROLS
+  // ── SWIPE CONTROLS ────────────────────────────────────────
+  // Swipe = finger drag translated directly into glove velocity.
+  // No tap zones — the direction and speed of the swipe moves the glove.
+  // Holding the swipe keeps the glove moving at the last velocity.
   const field=$('game-field');
   const flashL=$('touch-flash-left'),flashR=$('touch-flash-right'),hint=$('touch-hint');
-  let activeTouches={};
+
+  // swipeVel: pixels/frame the glove should move, derived from touch delta
+  // Decays to 0 when finger lifts (momentum feel)
+  window._swipeVel = 0;   // exposed on window so tick() can read it cross-closure
+  window._swipeActive = false;
 
   function dismissHint(){
     if(touchHintDismissed)return;touchHintDismissed=true;
-    if(hint){hint.classList.add('hidden');setTimeout(()=>{if(hint)hint.style.display='none';},600);}
+    if(hint){hint.classList.add('hidden');setTimeout(function(){if(hint)hint.style.display='none';},600);}
   }
-  function updateDir(){
-    const dirs=Object.values(activeTouches);
-    if(!dirs.length){pressDir=null;flashL&&flashL.classList.remove('active');flashR&&flashR.classList.remove('active');return;}
-    const last=dirs[dirs.length-1];pressDir=last;
-    flashL&&flashL.classList.toggle('active',last==='l');
-    flashR&&flashR.classList.toggle('active',last==='r');
-  }
-  field.addEventListener('touchstart',e=>{
-    e.preventDefault();dismissHint();lastPressTime=Date.now();
-    for(const t of e.changedTouches)activeTouches[t.identifier]=t.clientX<getFW()/2?'l':'r';
-    updateDir();
-  },{passive:false});
-  field.addEventListener('touchmove',e=>{
+
+  // Per-touch tracking: store last X for delta calc
+  var _touchOrigins = {};   // id → {x, t}
+  var _touchLast    = {};   // id → {x, t}
+
+  field.addEventListener('touchstart',function(e){
     e.preventDefault();
-    for(const t of e.changedTouches)activeTouches[t.identifier]=t.clientX<getFW()/2?'l':'r';
-    updateDir();
+    dismissHint();
+    lastPressTime=Date.now();
+    for(var i=0;i<e.changedTouches.length;i++){
+      var t=e.changedTouches[i];
+      _touchOrigins[t.identifier]={x:t.clientX,t:Date.now()};
+      _touchLast[t.identifier]   ={x:t.clientX,t:Date.now()};
+    }
+    window._swipeActive=true;
   },{passive:false});
-  field.addEventListener('touchend',e=>{
+
+  field.addEventListener('touchmove',function(e){
     e.preventDefault();
-    for(const t of e.changedTouches)delete activeTouches[t.identifier];
-    updateDir();
-    if(!Object.keys(activeTouches).length){pressDir=null;flashL&&flashL.classList.remove('active');flashR&&flashR.classList.remove('active');}
+    for(var i=0;i<e.changedTouches.length;i++){
+      var t=e.changedTouches[i];
+      var last=_touchLast[t.identifier];
+      if(!last)continue;
+      var now=Date.now();
+      var dtMs=Math.max(1,now-last.t);
+      var dx=t.clientX-last.x;
+      // velocity in px/frame (assuming 60fps → 16ms/frame)
+      var vel=(dx/dtMs)*16;
+      // Cap to reasonable range, amplify slightly for responsiveness
+      vel=Math.max(-28,Math.min(28,vel*1.4));
+      window._swipeVel=vel;
+      _touchLast[t.identifier]={x:t.clientX,t:now};
+      // Flash feedback based on direction
+      if(dx<-2){flashL&&flashL.classList.add('active');flashR&&flashR.classList.remove('active');}
+      else if(dx>2){flashR&&flashR.classList.add('active');flashL&&flashL.classList.remove('active');}
+    }
   },{passive:false});
-  field.addEventListener('touchcancel',()=>{activeTouches={};pressDir=null;flashL&&flashL.classList.remove('active');flashR&&flashR.classList.remove('active');},{passive:false});
-  // Mouse fallback
-  field.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;dismissHint();lastPressTime=Date.now();pressDir=e.clientX<getFW()/2?'l':'r';flashL&&flashL.classList.toggle('active',pressDir==='l');flashR&&flashR.classList.toggle('active',pressDir==='r');});
-  field.addEventListener('pointerup',e=>{if(e.pointerType==='touch')return;pressDir=null;flashL&&flashL.classList.remove('active');flashR&&flashR.classList.remove('active');});
-  field.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||!pressDir)return;pressDir=e.clientX<getFW()/2?'l':'r';flashL&&flashL.classList.toggle('active',pressDir==='l');flashR&&flashR.classList.toggle('active',pressDir==='r');});
+
+  field.addEventListener('touchend',function(e){
+    e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){
+      var id=e.changedTouches[i].identifier;
+      delete _touchOrigins[id];
+      delete _touchLast[id];
+    }
+    if(Object.keys(_touchOrigins).length===0){
+      window._swipeActive=false;
+      // Momentum: let velocity decay naturally in tick(), don't zero it here
+      flashL&&flashL.classList.remove('active');
+      flashR&&flashR.classList.remove('active');
+    }
+  },{passive:false});
+
+  field.addEventListener('touchcancel',function(){
+    _touchOrigins={};_touchLast={};
+    window._swipeActive=false;window._swipeVel=0;
+    flashL&&flashL.classList.remove('active');flashR&&flashR.classList.remove('active');
+  },{passive:false});
+
+  // Mouse/pointer fallback (desktop testing) — drag to move
+  var _mouseDown=false,_mouseLastX=0;
+  field.addEventListener('pointerdown',function(e){
+    if(e.pointerType==='touch')return;
+    _mouseDown=true;_mouseLastX=e.clientX;
+    dismissHint();lastPressTime=Date.now();window._swipeActive=true;
+  });
+  field.addEventListener('pointermove',function(e){
+    if(e.pointerType==='touch'||!_mouseDown)return;
+    var dx=e.clientX-_mouseLastX;
+    window._swipeVel=Math.max(-28,Math.min(28,dx*1.4));
+    _mouseLastX=e.clientX;
+    if(dx<0){flashL&&flashL.classList.add('active');flashR&&flashR.classList.remove('active');}
+    else if(dx>0){flashR&&flashR.classList.add('active');flashL&&flashL.classList.remove('active');}
+  });
+  field.addEventListener('pointerup',function(e){
+    if(e.pointerType==='touch')return;
+    _mouseDown=false;window._swipeActive=false;
+    flashL&&flashL.classList.remove('active');flashR&&flashR.classList.remove('active');
+  });
 
   // Cash-out
   const co=$('btn-cashout');
@@ -939,6 +1008,9 @@ function startGame(){
   done=false;wid=0;itemsArr=[];
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
   lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;touchHintDismissed=false;
+  window._swipeVel=0;window._swipeActive=false;
+  // Adrenaline state
+  window._adrenaline=false;window._adrenalineShown=false;
   renderGame();
   gloveX=getFW()/2;
   updateLivesDisplay();
@@ -959,16 +1031,69 @@ function tick(ts){
   const dt=Math.min((ts-lastT)/16,3);lastT=ts;
   const fw=getFW(),fh=getFH(),cy=CATCH_Y(fh);
   elapsedSec+=dt/60;
-  speedVal=Math.min(4.0,1.1+elapsedSec*.03);
-  spawnInt=Math.max(800,2200-elapsedSec*20);
-  const spd=7+elapsedSec*.08;
-  if(pressDir==='l')gloveX=Math.max(GW/2,gloveX-spd*dt);
-  if(pressDir==='r')gloveX=Math.min(fw-GW/2,gloveX+spd*dt);
+
+  // ── ADRENALINE MODE (90s+) ────────────────────────────────
+  var isAdrenaline = elapsedSec >= 90;
+  if(isAdrenaline && !window._adrenalineShown){
+    window._adrenalineShown=true;
+    window._adrenaline=true;
+    // Show adrenaline flash
+    showTierUp('ADRENALINE !','⚡');
+    // HUD glow pulse — orange ring pulses red
+    var hud=$('screen-game');
+    if(hud)hud.style.animation='adrenalinePulse 1.2s ease-in-out infinite';
+  }
+
+  // ── SPEED & SPAWN CURVE ───────────────────────────────────
+  // Phase 1 (0-30s):  gentle warm-up
+  // Phase 2 (30-60s): steady ramp
+  // Phase 3 (60-90s): hard
+  // Phase 4 (90s+):   adrenaline — much faster, never slows
+  var speedCap = isAdrenaline ? 7.0 : 4.0;
+  var speedBase = isAdrenaline
+    ? Math.min(7.0, 3.0 + (elapsedSec-90)*0.06)
+    : Math.min(4.0, 1.1 + elapsedSec*0.03);
+  speedVal = speedBase;
+
+  // Spawn interval: starts slow, tightens hard in adrenaline
+  var spawnFloor = isAdrenaline ? 380 : 750;
+  var spawnBase  = isAdrenaline
+    ? Math.max(380, 900 - (elapsedSec-90)*8)
+    : Math.max(750, 2200 - elapsedSec*22);
+  spawnInt = spawnBase;
+
+  // ── GLOVE MOVEMENT — swipe velocity ──────────────────────
+  // Apply swipe velocity directly; decay when finger lifts
+  var sv = window._swipeVel || 0;
+  gloveX = Math.max(GW/2, Math.min(fw-GW/2, gloveX + sv*dt));
+  // Friction decay: fast when active, slow coast when lifted
+  if(window._swipeActive){
+    // Finger on screen: light friction so it feels responsive
+    window._swipeVel = sv * 0.75;
+  } else {
+    // Finger lifted: momentum coast then stop
+    window._swipeVel = sv * 0.55;
+    if(Math.abs(window._swipeVel)<0.3) window._swipeVel=0;
+  }
+
   const ge=$('glove-el');
   if(ge)ge.style.transform=`translateX(${gloveX-GW/2}px)`;
+
+  // ── SPAWN LOGIC ───────────────────────────────────────────
   if(ts-lastSpawn>spawnInt){
     const item=spawnItem(speedVal);itemsArr.push(item);lastSpawn=ts;addItemEl(item);
-    if(elapsedSec>45&&Math.random()<.3){setTimeout(()=>{if(done)return;const i2=spawnItem(speedVal*.85);itemsArr.push(i2);addItemEl(i2);},350);}
+
+    // Double spawn: starts at 45s, becomes triple in adrenaline
+    if(elapsedSec>45){
+      var extraChance = isAdrenaline ? 0.70 : 0.35;
+      if(Math.random()<extraChance){
+        setTimeout(function(){if(done)return;var i2=spawnItem(speedVal*0.88);itemsArr.push(i2);addItemEl(i2);},280);
+      }
+      // Triple spawn in adrenaline
+      if(isAdrenaline && Math.random()<0.40){
+        setTimeout(function(){if(done)return;var i3=spawnItem(speedVal*0.78);itemsArr.push(i3);addItemEl(i3);},520);
+      }
+    }
   }
   let livesLost=0,ptsGained=0,newCombo=comboVal,closestRed=9999;
   itemsArr=itemsArr.filter(item=>{
