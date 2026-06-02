@@ -811,10 +811,10 @@ async function fetchLeaderboard(){
         }
       });
 
-    // Leaderboard display: deduplicate by name, keep top 50
+    // Leaderboard display: deduplicate by email (best score per player), keep top 50
+    // Using _playerIndex which already holds best score per email
     var result = Object.values(_playerIndex)
       .sort(function(a,b){return b.score-a.score;})
-      .filter(function(p,i,arr){return arr.findIndex(function(x){return x.name===p.name && x.name;})===i;})
       .slice(0,50);
 
     _lbdCache=result;_lbdCacheTs=Date.now();
@@ -838,40 +838,43 @@ function renderLeaderboard(){
   fetchLeaderboard().then(players=>{
     const card=$('lbd-card');if(!card)return;
     if(!players.length){card.innerHTML='<div class="lbd-empty">Sois le premier à entrer dans la légende — le terrain t\'attend !</div>';return;}
+
     const myEmail=playerEmail?playerEmail.toLowerCase().trim():'';
+    const myName=(playerName+' '+playerLastName).trim().toLowerCase();
     let myIdx=-1;
+
     let rows=players.map((p,i)=>{
       const rank=i+1;
       const mc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
-      const isMe=hasPlayedOnce&&myEmail&&(p.email||'')===myEmail;
-      if(isMe)myIdx=i;
+      // Match by email first, fall back to full name match
+      const emailMatch = myEmail && (p.email||'').toLowerCase().trim()===myEmail;
+      const nameMatch  = !myEmail && myName && (p.name||'').toLowerCase().trim()===myName;
+      const isMe = (emailMatch||nameMatch) && (hasPlayedOnce||myEmail);
+      if(isMe && myIdx===-1) myIdx=i;
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const you=isMe?'<span class="lbd-you-badge">TOI</span>':'';
       return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${p.name}${you}</div><div class="lbd-score">${pts}</div></div>`;
     }).join('');
     card.innerHTML=rows;
-    if(hasPlayedOnce&&myEmail&&myIdx>=0){
+
+    if(myIdx>=0){
       const myScore = players[myIdx].score;
-      const p3score = players[2] ? players[2].score : null; // 3rd place score (idx 2)
+      const p3score = players[2] ? players[2].score : null;
       let proximityHTML = '';
 
       if(myIdx===0){
-        // #1 — show gap to 2nd to feel competitive
         const p2=players[1];
         const gap2=p2?myScore-p2.score:null;
         proximityHTML=`<div class="lbd-proximity">🥇 TU ES EN TÊTE !<span>${gap2>0?'Tu mènes de '+Number(gap2).toLocaleString('fr-FR')+' pts sur le 2ème — reste devant !':'Profite — mais ils arrivent !'}</span></div>`;
       } else if(myIdx===1){
-        // #2 — show gap to 1st AND gap from 3rd
         const gapUp=players[0].score-myScore;
         const gapDown=players[2]?myScore-players[2].score:null;
         const downPart=gapDown>0?' · '+Number(gapDown).toLocaleString('fr-FR')+' pts d\'avance sur le 3ème':'';
         proximityHTML=`<div class="lbd-proximity">🥈 À <b>${Number(gapUp).toLocaleString('fr-FR')} pts</b> de la 1ère place !<span>Tu es 2ème${downPart} — rejoue !</span></div>`;
       } else if(myIdx===2){
-        // #3 — show gap to 2nd
         const gapUp=players[1].score-myScore;
         proximityHTML=`<div class="lbd-proximity">🥉 TU ES 3ème !<span>À ${Number(gapUp).toLocaleString('fr-FR')} pts de la 2ème place — rejoue !</span></div>`;
       } else {
-        // Outside top 3 — always anchor to 3rd place specifically
         const gap3 = p3score!=null ? p3score - myScore : null;
         const above=players[myIdx-1];
         const gapAbove=above?above.score-myScore:null;
@@ -887,7 +890,19 @@ function renderLeaderboard(){
         d.innerHTML=proximityHTML;
         card.insertBefore(d.firstChild,card.firstChild);
       }
-      setTimeout(()=>{const r=document.getElementById('lbd-row-'+myIdx);if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},300);
+
+      // Scroll the overflow container to center the player's row
+      // scrollIntoView doesn't work reliably inside overflow:auto containers on mobile
+      setTimeout(function(){
+        var row=document.getElementById('lbd-row-'+myIdx);
+        var container=document.querySelector('.lbd-scroll');
+        if(!row||!container)return;
+        var containerRect=container.getBoundingClientRect();
+        var rowRect=row.getBoundingClientRect();
+        // Current scroll + row's offset from container top − half container height + half row height
+        var target = container.scrollTop + (rowRect.top - containerRect.top) - (containerRect.height/2) + (rowRect.height/2);
+        container.scrollTo({top:Math.max(0,target), behavior:'smooth'});
+      },350);
     }
   }).catch(()=>{const c=$('lbd-card');if(c)c.innerHTML='<div class="lbd-empty">Classement hors ligne — réessaie dans un instant.</div>';});
 }
@@ -1468,6 +1483,16 @@ function endGame(final){
   }
   hasPlayedOnce=true;
   saveSession(); // always persist attempts count (works for anonymous players too)
+  // Bust leaderboard cache so next open shows fresh data with this score
+  _lbdCache=null;_lbdCacheTs=0;
+  // Inject player into _playerIndex immediately so they appear in leaderboard
+  // even before the sheet has processed the submission
+  if(playerEmail){
+    var _myEmail=playerEmail.toLowerCase().trim();
+    if(!_playerIndex[_myEmail]||final>(_playerIndex[_myEmail].score||0)){
+      _playerIndex[_myEmail]={name:playerName||'Joueur',lastName:playerLastName||'',email:_myEmail,score:final};
+    }
+  }
   if(SHEET_URL.startsWith('https://')&&playerName){
     const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+(playerLastName?' '+playerLastName:''),email:playerEmail,city:playerCity,score:final,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(final).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
@@ -1520,6 +1545,12 @@ function submitForm(){
   if(!valid)return;
   playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
   saveSession();
+  // Bust cache + inject player so leaderboard shows them immediately
+  _lbdCache=null;_lbdCacheTs=0;
+  var _fEmail=email.toLowerCase().trim();
+  if(!_playerIndex[_fEmail]||scoreVal>(_playerIndex[_fEmail].score||0)){
+    _playerIndex[_fEmail]={name:name,lastName:lastname,email:_fEmail,score:scoreVal};
+  }
   if(SHEET_URL.startsWith('https://')){
     const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
