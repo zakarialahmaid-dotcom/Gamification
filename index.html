@@ -424,12 +424,12 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   </svg>
   <img id="loading-gloves" class="loading-gloves" src="" alt="" draggable="false">
   <div class="loading-logo">GARDIEN<br><span style="color:var(--orange)">DE BUT</span></div>
-  <div class="loading-sub">Chargement en cours...</div>
+  <div class="loading-sub">Mise en place du terrain...</div>
   <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
 </div>
 <div id="rotate-screen">
   <div class="rotate-msg" style="color:var(--orange);">TOURNE TON TÉLÉPHONE</div>
-  <div style="font-size:clamp(11px,3vw,13px);color:rgba(255,255,255,.45);font-family:'HelveticaText',Arial,sans-serif;text-align:center;">Le jeu est optimisé en mode portrait</div>
+  <div style="font-size:clamp(11px,3vw,13px);color:rgba(255,255,255,.45);font-family:'HelveticaText',Arial,sans-serif;text-align:center;">Le jeu se joue en mode portrait</div>
 </div>
 
 <script>
@@ -469,6 +469,198 @@ const SHEET_URL="https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4m
 const SHEET_ID='1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
 const SHEET_GID='0';
 
+// ── SESSION PERSISTENCE ──────────────────────────────────────
+// Saves: email, name, bestScore, earnedVouchers → localStorage
+const SESSION_KEY='jg_session_v2';
+
+function saveSession(){
+  try{
+    localStorage.setItem(SESSION_KEY,JSON.stringify({
+      email:playerEmail,
+      name:playerName,
+      lastName:playerLastName,
+      city:playerCity,
+      bestScore:bestScore,
+      earnedVouchers:earnedVouchers,
+      savedAt:Date.now(),
+    }));
+  }catch(e){}
+}
+
+function loadSession(){
+  try{
+    const raw=localStorage.getItem(SESSION_KEY);
+    if(!raw)return null;
+    return JSON.parse(raw);
+  }catch(e){return null;}
+}
+
+function clearSession(){
+  try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  playerName='';playerLastName='';playerEmail='';playerCity='';
+  bestScore=0;earnedVouchers=[];hasPlayedOnce=false;attempts=4;
+}
+
+// Rebuild earnedVouchers from a best score (used when restoring from sheet)
+function vouchersFromScore(score){
+  var result=[];
+  var TIERS=[
+    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',min:400,pts:5000},
+    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',min:250,pts:2000},
+    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150,pts:750},
+    {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',min:0,pts:0},
+  ];
+  for(var i=0;i<TIERS.length;i++){
+    if(score>=TIERS[i].pts){
+      result.push({score:score,disc:TIERS[i].disc,code:TIERS[i].code,label:TIERS[i].label,min:TIERS[i].min});
+      break;
+    }
+  }
+  return result;
+}
+
+// Fetch this player's name + best score from the sheet by email
+async function fetchPlayerScore(email){
+  const tq=encodeURIComponent('SELECT B,C,E WHERE C="'+email.toLowerCase().trim()+'" ORDER BY E DESC LIMIT 1');
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
+  try{
+    const res=await fetch(url);
+    const text=await res.text();
+    const json=JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
+    if(!json.table||!json.table.rows||!json.table.rows.length)return null;
+    const row=json.table.rows[0];
+    // cols: B=name(0), C=email(1), E=score(2)
+    const fullName=String((row.c[0]&&row.c[0].v)||'').trim();
+    const parts=fullName.split(' ');
+    return{
+      name:parts[0]||'',
+      lastName:parts.slice(1).join(' ')||'',
+      email:String((row.c[1]&&row.c[1].v)||'').toLowerCase().trim(),
+      score:Number(String((row.c[2]&&row.c[2].v)||0).replace(/[\s,]/g,''))||0,
+    };
+  }catch(e){return null;}
+}
+
+// ── LOGIN SCREEN ─────────────────────────────────────────────
+function renderLogin(){
+  $('app').innerHTML=`
+  <div id="screen-login" style="flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:fadeIn .25s ease;">
+
+    <!-- Orange header -->
+    <div style="flex:0 0 auto;background:#ff9900;padding:clamp(36px,9vw,52px) clamp(20px,5vw,28px) clamp(28px,7vw,36px);text-align:center;">
+      <div style="font-size:clamp(9px,2.3vw,10px);font-weight:700;letter-spacing:.2em;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;margin-bottom:8px;">JUMIA · ÉDITION SPÉCIALE</div>
+      <div style="font-size:clamp(38px,11vw,52px);font-weight:900;color:#ffffff;line-height:.88;font-family:var(--H1);letter-spacing:-.02em;text-transform:uppercase;">GARDIEN<br><span style="font-size:.58em;color:rgba(255,255,255,.55);">DE BUT</span></div>
+    </div>
+
+    <!-- Card -->
+    <div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:14px;margin:clamp(20px,5vw,28px) clamp(16px,4vw,22px) 0;padding:clamp(20px,5vw,26px);">
+
+      <div style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;margin-bottom:4px;">Retrouve tes bons 🎟️</div>
+      <div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);margin-bottom:clamp(18px,4.5vw,22px);line-height:1.5;">Entre ton adresse e-mail pour récupérer<br>tous tes bons de réduction Jumia.</div>
+
+      <label style="display:block;font-size:clamp(10px,2.6vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Adresse e-mail</label>
+      <input id="login-email" type="email" placeholder="yasmine@email.com" autocomplete="email"
+        style="width:100%;border:1.5px solid #E4E4E6;border-radius:8px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);font-size:16px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;-webkit-appearance:none;transition:border-color .2s,box-shadow .2s;margin-bottom:6px;">
+      <div id="login-error" style="font-size:clamp(10px,2.5vw,11px);color:#ec2326;font-family:var(--H2);font-weight:700;min-height:16px;margin-bottom:10px;display:none;"></div>
+
+      <button id="login-btn"
+        style="width:100%;background:#ff9900;color:#ffffff;border:none;border-radius:10px;padding:clamp(15px,4vw,18px);font-size:clamp(15px,4.2vw,18px);font-weight:900;cursor:pointer;box-shadow:0 4px 0 #e68800;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <span id="login-btn-label">RÉCUPÉRER MES BONS</span>
+        <div id="login-spinner" style="width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;"></div>
+      </button>
+    </div>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:10px;padding:clamp(16px,4vw,20px) clamp(16px,4vw,22px);">
+      <div style="flex:1;height:1px;background:#E4E4E6;"></div>
+      <div style="font-size:clamp(10px,2.5vw,11px);color:#8A8A9A;font-family:var(--H2);font-weight:600;white-space:nowrap;">Première fois ?</div>
+      <div style="flex:1;height:1px;background:#E4E4E6;"></div>
+    </div>
+
+    <!-- New player CTA -->
+    <div style="padding:0 clamp(16px,4vw,22px) clamp(28px,7vw,36px);">
+      <button id="login-new-btn"
+        style="width:100%;background:#ffffff;color:#1E293B;border:1.5px solid #E4E4E6;border-radius:10px;padding:clamp(14px,3.8vw,17px);font-size:clamp(13px,3.5vw,15px);font-weight:700;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;transition:background .15s;">
+        ⚽ JOUER SANS COMPTE
+      </button>
+      <div style="font-size:clamp(9px,2.3vw,10px);color:#8A8A9A;font-family:var(--H2);text-align:center;margin-top:8px;line-height:1.5;">Tu pourras sauvegarder tes bons après la partie.</div>
+    </div>
+
+  </div>`;
+
+  // Focus email
+  const inp=$('login-email');
+  if(inp){
+    inp.addEventListener('focus',function(){inp.style.borderColor='#ff9900';inp.style.boxShadow='0 0 0 3px rgba(255,153,0,.12)';});
+    inp.addEventListener('blur',function(){inp.style.borderColor='#E4E4E6';inp.style.boxShadow='none';});
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+    setTimeout(()=>inp.focus(),400);
+  }
+
+  // Login button
+  const btn=$('login-btn');
+  if(btn)btn.addEventListener('pointerdown',doLogin);
+
+  // New player — skip login, go straight to lobby
+  const nb=$('login-new-btn');
+  if(nb)nb.addEventListener('pointerdown',function(){goTo(renderLobby);});
+}
+
+async function doLogin(){
+  const inp=$('login-email');
+  const errEl=$('login-error');
+  const btn=$('login-btn');
+  const lbl=$('login-btn-label');
+  const spn=$('login-spinner');
+  if(!inp)return;
+
+  const email=inp.value.trim().toLowerCase();
+  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Clear error
+  if(errEl){errEl.style.display='none';errEl.textContent='';}
+  inp.style.borderColor='#E4E4E6';
+
+  if(!emailRe.test(email)){
+    inp.style.borderColor='#ec2326';
+    if(errEl){errEl.textContent='Entre une adresse e-mail valide.';errEl.style.display='block';}
+    return;
+  }
+
+  // Show spinner
+  if(btn)btn.disabled=true;
+  if(lbl)lbl.style.display='none';
+  if(spn)spn.style.display='block';
+
+  // Look up score from sheet
+  const result=await fetchPlayerScore(email);
+
+  if(result&&result.score>0){
+    // Known player — restore their session
+    playerEmail=email;
+    playerName=result.name||'';
+    playerLastName=result.lastName||'';
+    bestScore=result.score;
+    earnedVouchers=vouchersFromScore(result.score);
+    hasPlayedOnce=true;
+    saveSession();
+    goTo(function(){renderMyVouchers(false);});
+  } else {
+    // Email not found — treat as new player, pre-fill email for the form
+    playerEmail=email;
+    if(btn)btn.disabled=false;
+    if(lbl)lbl.style.display='block';
+    if(spn)spn.style.display='none';
+    if(errEl){
+      errEl.style.display='block';
+      errEl.style.color='#e68800';
+      errEl.textContent='Aucun bon trouvé pour cet e-mail. Joue pour en gagner !';
+    }
+    // After 1.8s auto-redirect to lobby
+    setTimeout(()=>goTo(renderLobby),1800);
+  }
+}
+
 function $(id){return document.getElementById(id);}
 
 function spawnItem(speed){
@@ -487,7 +679,11 @@ function spawnItem(speed){
 }
 
 function copyCode(text,btn){
-  const ok=()=>{btn.textContent='✓ COPIÉ';btn.disabled=true;btn.style.opacity='.7';};
+  const originalText=btn.textContent;
+  const ok=()=>{
+    btn.textContent='✓ COPIÉ';btn.disabled=true;btn.style.opacity='.7';
+    setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;btn.style.opacity='1';},2000);
+  };
   if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(ok).catch(fb);}else{fb();}
   function fb(){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');ok();}catch(e){btn.textContent='Code: '+text;}document.body.removeChild(ta);}
 }
@@ -559,7 +755,7 @@ function showTierUp(label,disc){
   const old=document.getElementById('tier-up-overlay');if(old)old.remove();
   const el=document.createElement('div');
   el.id='tier-up-overlay';
-  el.innerHTML=`<div style="background:#ffffff;border:2px solid #E4E4E6;border-radius:16px;padding:clamp(20px,5vw,28px) clamp(28px,7vw,40px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);"><div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">NOUVEAU NIVEAU</div><div style="font-size:clamp(32px,9vw,44px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;margin-bottom:4px;">${disc} OFF</div><div style="font-size:clamp(14px,3.8vw,18px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;">${label}</div></div>`;
+  el.innerHTML=`<div style="background:#ffffff;border:2px solid #E4E4E6;border-radius:16px;padding:clamp(20px,5vw,28px) clamp(28px,7vw,40px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);"><div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">BON DÉBLOQUÉ</div><div style="font-size:clamp(32px,9vw,44px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;margin-bottom:4px;">${disc} OFF</div><div style="font-size:clamp(14px,3.8vw,18px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;">${label}</div></div>`;
   document.body.appendChild(el);
   sfxTierUp();
   setTimeout(()=>{el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>el.remove(),420);},1800);
@@ -603,7 +799,7 @@ function renderLeaderboard(){
   </div>`;
   fetchLeaderboard().then(players=>{
     const card=$('lbd-card');if(!card)return;
-    if(!players.length){card.innerHTML='<div class="lbd-empty">Sois le premier à jouer !</div>';return;}
+    if(!players.length){card.innerHTML='<div class="lbd-empty">Sois le premier à entrer dans la légende — le terrain t\'attend !</div>';return;}
     const myEmail=playerEmail?playerEmail.toLowerCase().trim():'';
     let myIdx=-1;
     let rows=players.map((p,i)=>{
@@ -625,7 +821,7 @@ function renderLeaderboard(){
         // #1 — show gap to 2nd to feel competitive
         const p2=players[1];
         const gap2=p2?myScore-p2.score:null;
-        proximityHTML=`<div class="lbd-proximity">🥇 TU ES EN TÊTE !<span>${gap2>0?'Tu mènes de '+Number(gap2).toLocaleString('fr-FR')+' pts sur le 2ème — reste devant !':'Garde ta 1ère place !'}</span></div>`;
+        proximityHTML=`<div class="lbd-proximity">🥇 TU ES EN TÊTE !<span>${gap2>0?'Tu mènes de '+Number(gap2).toLocaleString('fr-FR')+' pts sur le 2ème — reste devant !':'Profite — mais ils arrivent !'}</span></div>`;
       } else if(myIdx===1){
         // #2 — show gap to 1st AND gap from 3rd
         const gapUp=players[0].score-myScore;
@@ -642,7 +838,7 @@ function renderLeaderboard(){
         const above=players[myIdx-1];
         const gapAbove=above?above.score-myScore:null;
         if(gap3!=null&&gap3>0){
-          proximityHTML=`<div class="lbd-proximity">À <b>${Number(gap3).toLocaleString('fr-FR')} pts</b> de la 3ème place 🥉<span>${gapAbove>0?'Passe d\'abord le '+myIdx+'ème (+'+Number(gapAbove).toLocaleString('fr-FR')+' pts)':'Rejoue pour entrer dans le Top 3 !'}</span></div>`;
+          proximityHTML=`<div class="lbd-proximity">À <b>${Number(gap3).toLocaleString('fr-FR')} pts</b> de la 3ème place 🥉<span>${gapAbove>0?'Passe d\'abord le '+myIdx+'ème (+'+Number(gapAbove).toLocaleString('fr-FR')+' pts)':'Rejoue — le podium est à portée !'}</span></div>`;
         } else if(gap3===0){
           proximityHTML=`<div class="lbd-proximity">Tu es à égalité avec le 3ème !<span>Un point de plus et tu es dans le Top 3 🥉</span></div>`;
         }
@@ -655,7 +851,7 @@ function renderLeaderboard(){
       }
       setTimeout(()=>{const r=document.getElementById('lbd-row-'+myIdx);if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},300);
     }
-  }).catch(()=>{const c=$('lbd-card');if(c)c.innerHTML='<div class="lbd-empty">Classement temporairement indisponible.</div>';});
+  }).catch(()=>{const c=$('lbd-card');if(c)c.innerHTML='<div class="lbd-empty">Classement hors ligne — réessaie dans un instant.</div>';});
 }
 
 function renderLobby(){
@@ -663,7 +859,7 @@ function renderLobby(){
   $('app').innerHTML=`
   <div id="screen-lobby">
     <div class="lb-header-bar">
-      <div class="lb-eyebrow">JUMIA · ÉDITION FANS</div>
+      <div class="lb-eyebrow">JUMIA · ÉDITION SPÉCIALE</div>
       <div class="lb-title">
         GARDIEN
         <em>DE BUT</em>
@@ -687,12 +883,12 @@ function renderLobby(){
     </div>
     ${att===0
       ? `<div class="lb-no-attempts">
-           <div class="lb-no-attempts-title">Reviens demain !</div>
-           <div class="lb-no-attempts-sub">Tes essais se renouvellent à minuit.</div>
+           <div class="lb-no-attempts-title">TEMPS MORT !</div>
+           <div class="lb-no-attempts-sub">Tes essais reviennent à minuit. En attendant, utilise tes bons sur Jumia !</div>
          </div>`
       : `<div class="lb-cta">
            <div class="lb-cta-hint">${att} essai${att>1?'s':''} restant${att>1?'s':''}</div>
-           <button class="btn-kickoff" id="btn-start">⚽  Jouer maintenant</button>
+           <button class="btn-kickoff" id="btn-start">⚽  LANCER LA PARTIE</button>
          </div>`}
     <!-- ── Prominent action cards ── -->
     <div class="lb-action-cards">
@@ -702,7 +898,7 @@ function renderLobby(){
         <div class="lb-action-card__icon">🏆</div>
         <div class="lb-action-card__body">
           <div class="lb-action-card__title">CLASSEMENT</div>
-          <div class="lb-action-card__sub">Vois qui mène la partie</div>
+          <div class="lb-action-card__sub">Vois qui domine le terrain</div>
         </div>
         <div class="lb-action-card__arrow">›</div>
       </div>
@@ -712,12 +908,42 @@ function renderLobby(){
         <div class="lb-action-card__icon">🎟️</div>
         <div class="lb-action-card__body">
           <div class="lb-action-card__title">MES BONS</div>
-          <div class="lb-action-card__sub">${bestScore>=5000?'20% OFF débloqué — utilise-le !':bestScore>=2000?'15% OFF débloqué — utilise-le !':bestScore>=750?'10% OFF débloqué — utilise-le !':bestScore>0?'5% OFF débloqué — utilise-le !':'Jusqu\'à 20% de réduction'}</div>
+          <div class="lb-action-card__sub">${bestScore>=5000?'20% OFF débloqué — utilise-le !':bestScore>=2000?'15% OFF débloqué — utilise-le !':bestScore>=750?'10% OFF débloqué — utilise-le !':bestScore>0?'5% OFF débloqué — utilise-le !':'Jusqu\'à 20% OFF — joue pour plus !'}</div>
         </div>
         <div class="lb-action-card__arrow" style="color:#ff9900;">›</div>
       </div>
 
     </div>
+
+    <!-- ── Inline login / session strip ── -->
+    <div style="padding:0 clamp(20px,5vw,28px) clamp(24px,6vw,30px);">
+      ${playerName
+        /* ── Has name: logged in via form — just show greeting + logout ── */
+        ? `<div style="display:flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #E4E4E6;border-radius:10px;padding:10px 14px;">
+             <div style="width:28px;height:28px;border-radius:50%;background:#fff8ee;border:1.5px solid rgba(255,153,0,.3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">👋</div>
+             <div style="flex:1;min-width:0;">
+               <div style="font-size:clamp(10px,2.6vw,12px);font-weight:900;color:#1E293B;font-family:var(--H1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;">${playerName}${playerLastName?' '+playerLastName:''}</div>
+               <div style="font-size:clamp(8px,2vw,10px);color:#8A8A9A;font-family:var(--H2);margin-top:1px;">Tes bons sont sauvegardés</div>
+             </div>
+             <button onclick="doLogout()" style="flex-shrink:0;background:none;border:1px solid #E4E4E6;border-radius:6px;padding:5px 10px;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">Déconnexion</button>
+           </div>`
+        /* ── No name yet: show email input to recover vouchers ── */
+        : `<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:10px;padding:12px 14px;">
+             <div style="font-size:clamp(10px,2.6vw,12px);font-weight:700;color:#1E293B;font-family:var(--H2);margin-bottom:8px;">🔐 Retrouve tes bons</div>
+             <div style="display:flex;gap:8px;align-items:center;">
+               <input id="lobby-login-email" type="email" placeholder="ton@email.com" autocomplete="email"
+                 style="flex:1;border:1.5px solid #E4E4E6;border-radius:7px;padding:9px 12px;font-size:15px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;-webkit-appearance:none;min-width:0;transition:border-color .2s;">
+               <button id="lobby-login-btn"
+                 style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:7px;padding:9px 14px;font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:6px;">
+                 <span id="lobby-login-label">OK</span>
+                 <div id="lobby-login-spinner" style="width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0;"></div>
+               </button>
+             </div>
+             <div id="lobby-login-msg" style="font-size:clamp(9px,2.3vw,11px);font-family:var(--H2);font-weight:600;margin-top:6px;min-height:14px;"></div>
+           </div>`
+      }
+    </div>
+
   </div>`;
 
   var bs=$('btn-start');
@@ -730,28 +956,38 @@ function renderLobby(){
     bs.addEventListener('touchstart',_startHandler,{passive:false});
     bs.addEventListener('pointerdown',function(e){if(e.pointerType!=='touch')_startHandler(e);});
   }
+
+  // ── Inline login wiring (only rendered when not logged in) ──
+  var loginInp=document.getElementById('lobby-login-email');
+  var loginBtn=document.getElementById('lobby-login-btn');
+  if(loginInp&&loginBtn){
+    loginInp.addEventListener('focus',function(){loginInp.style.borderColor='#ff9900';});
+    loginInp.addEventListener('blur',function(){loginInp.style.borderColor='#E4E4E6';});
+    loginInp.addEventListener('keydown',function(e){if(e.key==='Enter')doLobbyLogin();});
+    loginBtn.addEventListener('pointerdown',doLobbyLogin);
+  }
 }
 
 function showTutorialScreen(){
   const old=$('screen-tutorial');if(old)old.remove();
   const el=document.createElement('div');el.id='screen-tutorial';
   el.innerHTML=`
-    <div class="tuto-title">COMMENT<br><span>JOUER</span></div>
-    <div class="tuto-sub">Touche l'écran pour déplacer les gants</div>
+    <div class="tuto-title">PRÊT À<br><span>GARDER ?</span></div>
+    <div class="tuto-sub">Glisse ton doigt — les gants suivent</div>
     <div class="tuto-rules">
       <div class="tuto-rule">
         <div class="tuto-rule-icon catch"><img src="${IMG_SOCCER}" alt="" draggable="false"></div>
         <div class="tuto-rule-text">
-          <div class="tuto-rule-title">GLISSE GAUCHE / DROITE</div>
-          <div class="tuto-rule-sub">Fais glisser ton doigt à gauche ou à droite pour déplacer les gants.</div>
+          <div class="tuto-rule-title">SUIS LE BALLON</div>
+          <div class="tuto-rule-sub">Glisse à gauche ou à droite pour positionner tes gants et bloquer les tirs.</div>
         </div>
         <div class="tuto-rule-badge orange">+POINTS</div>
       </div>
       <div class="tuto-rule">
         <div class="tuto-rule-icon dodge"><img src="${IMG_REDCARD}" alt="" draggable="false"></div>
         <div class="tuto-rule-text">
-          <div class="tuto-rule-title">ESQUIVE LES CARTONS</div>
-          <div class="tuto-rule-sub">Chaque carton rouge attrapé te coûte une vie.</div>
+          <div class="tuto-rule-title">FUIS LE CARTON ROUGE</div>
+          <div class="tuto-rule-sub">Un carton attrapé = une vie perdue. Esquive à tout prix.</div>
         </div>
         <div class="tuto-rule-badge red">DANGER</div>
       </div>
@@ -766,7 +1002,7 @@ function showTutorialScreen(){
           <rect x="9" y="28" width="36" height="26" rx="8" fill="#1E293B"/>
           <circle cx="23" cy="7" r="5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.2s ease-in-out infinite;"/>
         </svg>
-        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">◄ GLISSE</div>
+        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">◄ BLOQUE</div>
       </div>
       <svg viewBox="0 0 32 24" width="32" height="24" fill="none">
         <polyline points="10,4 3,12 10,20" stroke="rgba(255,255,255,.25)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -781,10 +1017,10 @@ function showTutorialScreen(){
           <rect x="9" y="28" width="36" height="26" rx="8" fill="#1E293B"/>
           <circle cx="31" cy="7" r="5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.2s ease-in-out infinite;animation-delay:.15s;"/>
         </svg>
-        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">GLISSE ►</div>
+        <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.7);font-family:var(--H1);text-transform:uppercase;letter-spacing:.08em;">BLOQUE ►</div>
       </div>
     </div>
-    <button class="tuto-screen-btn" id="tuto-start-btn">C'EST PARTI !</button>`;
+    <button class="tuto-screen-btn" id="tuto-start-btn">EN AVANT !</button>`;
   document.body.appendChild(el);
   var _tsb=document.getElementById('tuto-start-btn');if(_tsb){_tsb.addEventListener('pointerdown',function(){el.style.transition='opacity .2s';el.style.opacity='0';setTimeout(function(){el.remove();touchHintDismissed=false;startGame();},220);});}
 }
@@ -801,7 +1037,7 @@ function renderGame(){
       <div id="glove-el"><img src="${IMG_GLOVES}" alt="gloves"></div>
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
-      <div id="dodge-hint">ESQUIVE !</div>
+      <div id="dodge-hint">DANGER !</div>
       <div id="game-overlay">
         <div class="score-circle"><div class="score-num" id="score-disp">0</div><div class="score-lbl">POINTS</div></div>
         <div id="lives-counter"><img src="${IMG_HEART}" alt="lives" id="lives-heart-img"><div id="lives-count">3</div></div>
@@ -817,7 +1053,7 @@ function renderGame(){
             <circle cx="21" cy="6" r="4.5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.1s ease-in-out infinite;"/>
           </svg>
           <div class="touch-zone-label">◄ GLISSE</div>
-          <div class="touch-zone-sub">Swipe gauche</div>
+          <div class="touch-zone-sub">Glisse à gauche</div>
         </div>
         <div style="width:1px;background:rgba(255,255,255,.1);align-self:stretch;margin:24px 0;"></div>
         <div class="touch-zone touch-zone-right">
@@ -830,12 +1066,12 @@ function renderGame(){
             <circle cx="29" cy="6" r="4.5" fill="rgba(255,153,0,.9)" style="animation:tapRing 1.1s ease-in-out infinite;animation-delay:.15s;"/>
           </svg>
           <div class="touch-zone-label">GLISSE ►</div>
-          <div class="touch-zone-sub">Swipe droite</div>
+          <div class="touch-zone-sub">Glisse à droite</div>
         </div>
       </div>
       <div id="touch-flash-left"></div>
       <div id="touch-flash-right"></div>
-      <button id="btn-cashout"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser</button>
+      <button id="btn-cashout"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Sauvegarder</button>
       <button id="btn-mute">${iconVol()}</button>
     </div>
   </div>`;
@@ -949,7 +1185,7 @@ function renderGame(){
   if(co){
     let armed=false,timer=null;
     co.addEventListener('pointerdown',()=>{
-      if(!armed){armed=true;co.textContent='Confirmer ?';co.classList.add('confirm-mode');timer=setTimeout(()=>{armed=false;co.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser';co.classList.remove('confirm-mode');},2500);}
+      if(!armed){armed=true;co.textContent='Sûr(e) ?';co.classList.add('confirm-mode');timer=setTimeout(()=>{armed=false;co.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="1.5" x2="5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="5" x2="7.5" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Encaisser';co.classList.remove('confirm-mode');},2500);}
       else{clearTimeout(timer);endGame(scoreVal);}
     });
   }
@@ -989,7 +1225,7 @@ function tick(ts){
   if(isAdrenaline && !window._adrenalineShown){
     window._adrenalineShown=true;
     window._adrenaline=true;
-    showTierUp('ADRENALINE !','⚡');
+    showTierUp('VITESSE MAX !','⚡');
     var hud=$('screen-game');
     if(hud)hud.style.animation='adrenalinePulse 1.2s ease-in-out infinite';
   }
@@ -1047,7 +1283,7 @@ function tick(ts){
       if(inGlove){
         if(item.type==='ball'){
           newCombo++;const pts=Math.round((25+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
-          showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' GOAL!',true);sfxCatch();triggerRing(gloveX,cy);
+          showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' ARRÊT !',true);sfxCatch();triggerRing(gloveX,cy);
           if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
         }else if(item.type==='golden'){
           newCombo++;const pts=Math.round((75+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
@@ -1056,7 +1292,7 @@ function tick(ts){
         }else{
           if(Date.now()-lastPressTime<180){if(el)el.remove();return false;}
           newCombo=0;livesLost++;
-          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'CARTON !',false);sfxRedCard();
+          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'ROUGE !',false);sfxRedCard();
           const sg=$('screen-game');if(sg){sg.classList.add('hit-flash');setTimeout(()=>sg&&sg.classList.remove('hit-flash'),400);}
           if(ge){ge.classList.remove('big-shake');void ge.offsetWidth;ge.classList.add('big-shake');setTimeout(()=>ge&&ge.classList.remove('big-shake'),500);}
         }
@@ -1132,6 +1368,7 @@ function endGame(final){
     earnedVouchers.push({score:final,disc:ev.disc,code:ev.code,label:ev.label,min:ev.min,date:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})});
   }
   hasPlayedOnce=true;
+  if(playerName)saveSession();
   if(SHEET_URL.startsWith('https://')&&playerName){
     const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+(playerLastName?' '+playerLastName:''),email:playerEmail,city:playerCity,score:final,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(final).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
@@ -1145,8 +1382,8 @@ function renderFormPost(){
   <div id="screen-form">
     <div class="fm-top">
       <div class="fm-icon">⚽</div>
-      <div class="fm-title">BIEN JOUÉ !</div>
-      <div class="fm-sub">Saisis tes infos pour recevoir<br><b>ton bon de réduction Jumia</b></div>
+      <div class="fm-title">BEAU MATCH !</div>
+      <div class="fm-sub">Laisse tes coordonnées et reçois<br><b>tous tes bons de réduction Jumia.</b></div>
     </div>
     <div class="fm-card">
       <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" placeholder="Yasmine" autocomplete="given-name"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
@@ -1156,9 +1393,9 @@ function renderFormPost(){
     </div>
     <div class="fm-spacer"></div>
     <div style="padding:0 clamp(16px,4vw,22px);">
-      <button class="btn-submit" id="btn-submit"><span id="submit-label">VOIR MON BON</span><div class="spinner" id="submit-spinner"></div></button>
+      <button class="btn-submit" id="btn-submit"><span id="submit-label">RÉCUPÉRER MES BONS</span><div class="spinner" id="submit-spinner"></div></button>
     </div>
-    <div class="fm-legal">En soumettant, tu acceptes d'être contacté(e) par Jumia.</div>
+    <div class="fm-legal">En continuant, tu acceptes d'être contacté(e) par Jumia pour recevoir tes offres.</div>
   </div>`;
   $('btn-submit').addEventListener('click',submitForm);
   ['inp-name','inp-lastname','inp-email','inp-city'].forEach(function(id){var el=$(id);if(el)el.addEventListener('focus',function(){setTimeout(function(){$(id)&&$(id).scrollIntoView({behavior:'smooth',block:'center'});},300);});});
@@ -1183,6 +1420,7 @@ function submitForm(){
   fields.forEach(function(_f){var id=_f[0],eid=_f[1],fail=_f[2],msg=_f[3];var _fe=$(id);if(_fe)_fe.classList.toggle('error',fail);const em=$(eid);if(em){em.textContent=msg;em.classList.toggle('visible',fail);}if(fail)valid=false;});
   if(!valid)return;
   playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
+  saveSession();
   if(SHEET_URL.startsWith('https://')){
     const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
@@ -1200,7 +1438,7 @@ function renderResult(){
   <div id="screen-result">
     <div class="rs-top">
       <div class="rs-eyebrow">JUMIA ÉDITION FANS</div>
-      <div class="rs-title">${isLow?'PRESQUE !':s>=800?'EXCELLENT !':s>=300?'BIEN JOUÉ !':'CONTINUE !'}</div>
+      <div class="rs-title">${isLow?'PRESQUE !':s>=800?'QUEL MATCH !':s>=300?'BELLE PARADE !':'ENCORE UN EFFORT !'}</div>
     </div>
     <div class="rs-scores">
       <div class="rs-score-card"><div class="rs-score-val orange" id="rs-pts">0</div><div class="rs-score-lbl">POINTS</div></div>
@@ -1208,7 +1446,7 @@ function renderResult(){
       <div class="rs-score-card"><div class="rs-score-val">${Math.floor(elapsedSec)}s</div><div class="rs-score-lbl">SURVIE</div></div>
     </div>
     ${isLow
-      ?`<div class="rs-low"><div class="rs-low-title">SCORE TROP BAS</div><div class="rs-low-sub">Atteins <b>750 pts</b> pour ton bon.<br>Attrape plus de ballons !</div></div>`
+      ?`<div class="rs-low"><div class="rs-low-title">PAS ENCORE !</div><div class="rs-low-sub">Atteins <b>750 pts</b> pour ton bon.<br>Attrape plus de ballons !</div></div>`
       :`<div class="rs-voucher"><div class="rs-voucher-pct">${v.disc} OFF</div><div class="rs-voucher-label">${v.label}${v.min>0?' · min. '+v.min+' MAD':''}</div><div class="rs-voucher-code">${v.code}</div></div>`}
     <div id="rs-rank-nudge"></div>
     <div style="flex:1;min-height:clamp(12px,3vw,20px);"></div>
@@ -1217,7 +1455,7 @@ function renderResult(){
         ?`<button class="rs-cta-primary" id="btn-replay">⚽ REJOUER</button>`
         :`<div style="text-align:center;padding:8px 0;font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.4);font-family:var(--H2);">Reviens demain pour rejouer !</div>`}
       ${!isLow?`<button class="rs-cta-secondary" id="btn-copy-code">COPIER MON CODE — ${v.code}</button>`:''}
-      <button class="rs-cta-secondary" id="btn-go-lbd">🏆 VOIR LE CLASSEMENT</button>
+      <button class="rs-cta-secondary" id="btn-go-lbd">🏆 VOIR MA POSITION</button>
     </div>
   </div>`;
 
@@ -1243,7 +1481,7 @@ function renderResult(){
 
     let html='';
     if(myRank===1){
-      html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">🥇 TU ES EN TÊTE DU CLASSEMENT !</div>';
+      html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">🥇 🔥 TU DOMINES LE CLASSEMENT !</div>';
     } else if(myRank===2){
       const gap=players[0].score-myScore;
       html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.4);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin:0 0 clamp(12px,3vw,16px);text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#1E293B;font-family:var(--H1);">🥈 TU ES 2ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:3px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> de la 1ère place — rejoue !</div></div>';
@@ -1303,7 +1541,7 @@ function renderMyVouchers(fromGame){
   var s = scoreVal;
   var isLow = s < 200;
   var attLeft = attempts;
-  var resultLabel = s>=5000?'LÉGENDE !':s>=2000?'EXCELLENT !':s>=750?'BIEN JOUÉ !':s>=200?'CONTINUE !':'PRESQUE !';
+  var resultLabel = s>=5000?'LÉGENDE DU TERRAIN !':s>=2000?'MATCH DE FOLIE !':s>=750?'BELLE PARADE !':s>=200?'T\'ES CHAUD !':'ENCORE UN EFFORT !';
 
   // ── Score summary bar HTML ─────────────────────────────────
   var scoreBannerHTML = '';
@@ -1338,7 +1576,7 @@ function renderMyVouchers(fromGame){
         </button>
         <div style="flex:1;">
           <div style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;">${(fromGame||hasPlayedOnce)?resultLabel:'MES BONS'}</div>
-          <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:2px;">${(fromGame||hasPlayedOnce)?'Tes bons Jumia sont prêts':'Tes réductions Jumia'}</div>
+          <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:2px;">${(fromGame||hasPlayedOnce)?'Utilise-les dès maintenant sur Jumia':'Tes réductions sont actives'}</div>
         </div>
         ${attLeft>0?`<button id="mv-btn-replay" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#ffffff;border-radius:10px;padding:8px 14px;font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">⚽ REJOUER</button>`:''}
       </div>
@@ -1369,25 +1607,25 @@ function renderMyVouchers(fromGame){
       ${hasBest
         ?'<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);margin-bottom:12px;display:flex;align-items:center;gap:12px;">'+
             '<div style="font-size:22px;flex-shrink:0;">🏆</div>'+
-            '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.4;">Tous tes bons sont actifs — <b style="color:#ff9900;">sans minimum d\'achat</b>. Vise le <b style="color:#1E293B;">Top 3</b> pour un cadeau physique !</div>'+
+            '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.4;">Tous tes bons sont actifs, <b style="color:#ff9900;">sans minimum d\'achat</b>. Vise le <b style="color:#1E293B;">Top 3</b> et gagne un cadeau physique 🎁</div>'+
           '</div>'
         : bestTierIdx > -1
           ?'<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.5);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin-bottom:12px;display:flex;align-items:center;gap:12px;">'+
               '<div style="font-size:22px;flex-shrink:0;">🎁</div>'+
               '<div style="font-size:clamp(11px,2.8vw,13px);color:#1E293B;font-family:var(--H2);line-height:1.4;">'+
-                'Ton bon <b style="color:#ff9900;">'+tierDisplay[bestTierIdx].disc+'</b> débloque automatiquement les réductions inférieures — <b>sans minimum d\'achat</b>.'+
+                'Ton <b style="color:#ff9900;">'+tierDisplay[bestTierIdx].disc+'</b> débloque tous les bons en dessous — <b>zéro minimum d\'achat</b>. Utilise-les tous.'+
               '</div>'+
             '</div>'
           :(isLow
             ?'<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(12px,3vw,15px);margin-bottom:12px;text-align:center;">'+
                 '<div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:#ec2326;font-family:var(--H1);margin-bottom:4px;">SCORE TROP BAS</div>'+
-                '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.4;">Atteins <b>750 pts</b> pour débloquer ton premier bon !<br>Rejoue et attrape plus de ballons.</div>'+
+                '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.4;">Il te faut <b>750 pts</b> pour ton premier bon.<br>Attrape plus de ballons, esquive les cartons — et reviens !</div>'+
               '</div>'
             :(ptsToNext>0
               ?'<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.35);border-radius:12px;padding:clamp(12px,3vw,14px) clamp(14px,3.5vw,18px);margin-bottom:12px;display:flex;align-items:center;gap:12px;">'+
                   '<div style="font-size:20px;flex-shrink:0;">⚡</div>'+
                   '<div style="font-size:clamp(11px,2.8vw,13px);font-family:var(--H2);color:#1E293B;line-height:1.4;">'+
-                    'Encore <b style="color:#ff9900;">'+Number(ptsToNext).toLocaleString('fr-FR')+' pts</b> pour débloquer '+nextLockedTier.disc+' — et tous les bons inférieurs s\'activent aussi !'+
+                    'Plus que <b style="color:#ff9900;">'+Number(ptsToNext).toLocaleString('fr-FR')+' pts</b> pour débloquer '+nextLockedTier.disc+' — et tous les bons en dessous s\'activent d\'un coup !'+
                   '</div>'+
                 '</div>'
               :''))}
@@ -1480,6 +1718,58 @@ function renderMyVouchers(fromGame){
 
 
 
+async function doLobbyLogin(){
+  var inp=document.getElementById('lobby-login-email');
+  var btn=document.getElementById('lobby-login-btn');
+  var lbl=document.getElementById('lobby-login-label');
+  var spn=document.getElementById('lobby-login-spinner');
+  var msg=document.getElementById('lobby-login-msg');
+  if(!inp)return;
+
+  var email=inp.value.trim().toLowerCase();
+  var emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if(!emailRe.test(email)){
+    inp.style.borderColor='#ec2326';
+    if(msg){msg.style.color='#ec2326';msg.textContent='Adresse e-mail invalide.';}
+    return;
+  }
+
+  // Show spinner
+  if(btn)btn.disabled=true;
+  if(lbl)lbl.style.display='none';
+  if(spn)spn.style.display='block';
+  if(msg){msg.style.color='#8A8A9A';msg.textContent='Recherche en cours...';}
+
+  var result=await fetchPlayerScore(email);
+
+  if(result&&result.score>0){
+    // Found — restore name + session, re-render lobby showing the greeting
+    playerEmail=email;
+    playerName=result.name||'';
+    playerLastName=result.lastName||'';
+    bestScore=result.score;
+    earnedVouchers=vouchersFromScore(result.score);
+    hasPlayedOnce=true;
+    saveSession();
+    // Flash success then go to vouchers
+    if(msg){msg.style.color='#27ae60';msg.textContent='✓ Bons retrouvés — chargement...';}
+    setTimeout(function(){goTo(function(){renderMyVouchers(false);});},700);
+  } else {
+    // Not found — friendly message, pre-fill email, re-enable
+    playerEmail=email;
+    if(btn)btn.disabled=false;
+    if(lbl)lbl.style.display='block';
+    if(spn)spn.style.display='none';
+    if(msg){msg.style.color='#e68800';msg.textContent='Aucun bon trouvé — joue pour en gagner !';}
+  }
+}
+
+function doLogout(){
+  clearSession();
+  goTo(renderLobby);
+}
+
 function preloadAssets(){
   const images=[IMG_GLOVES,IMG_SOCCER,IMG_GOLDEN,IMG_REDCARD,
     "https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
@@ -1493,7 +1783,22 @@ function preloadAssets(){
   }
   function finish(){
     finished=true;if(bar)bar.style.width='100%';
-    setTimeout(()=>{requestAnimationFrame(()=>{const s=$('loading-screen');if(s)s.classList.add('fade-out');setTimeout(()=>{const s2=$('loading-screen');if(s2)s2.remove();renderLobby();},420);});},350);
+    setTimeout(()=>{requestAnimationFrame(()=>{const s=$('loading-screen');if(s)s.classList.add('fade-out');setTimeout(()=>{
+      const s2=$('loading-screen');if(s2)s2.remove();
+      // ── SESSION RESTORE ──────────────────────────────────────
+      const saved=loadSession();
+      if(saved&&saved.email){
+        playerEmail=saved.email||'';
+        playerName=saved.name||'';
+        playerLastName=saved.lastName||'';
+        playerCity=saved.city||'';
+        bestScore=saved.bestScore||0;
+        earnedVouchers=saved.earnedVouchers||[];
+        if(bestScore>0)hasPlayedOnce=true;
+      }
+      // Always land on lobby — login is inline
+      renderLobby();
+    },420);});},350);
   }
   images.forEach(src=>{const i=new Image();i.onload=tickLoad;i.onerror=tickLoad;i.src=src;});
   music.addEventListener('canplaythrough',tickLoad,{once:true});
