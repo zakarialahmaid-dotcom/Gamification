@@ -482,6 +482,8 @@ function saveSession(){
       city:playerCity,
       bestScore:bestScore,
       earnedVouchers:earnedVouchers,
+      attempts:attempts,
+      attemptsDate:new Date().toISOString().slice(0,10), // "YYYY-MM-DD"
       savedAt:Date.now(),
     }));
   }catch(e){}
@@ -1465,7 +1467,7 @@ function endGame(final){
     earnedVouchers.push({score:final,disc:ev.disc,code:ev.code,label:ev.label,min:ev.min,date:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})});
   }
   hasPlayedOnce=true;
-  if(playerName)saveSession();
+  saveSession(); // always persist attempts count (works for anonymous players too)
   if(SHEET_URL.startsWith('https://')&&playerName){
     const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+(playerLastName?' '+playerLastName:''),email:playerEmail,city:playerCity,score:final,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(final).code,source:'JumiaGardienDeBut'});
     fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
@@ -1883,6 +1885,7 @@ function preloadAssets(){
       const s2=$('loading-screen');if(s2)s2.remove();
       // ── SESSION RESTORE ──────────────────────────────────────
       const saved=loadSession();
+      const todayStr=new Date().toISOString().slice(0,10);
       if(saved&&saved.email){
         playerEmail=saved.email||'';
         playerName=saved.name||'';
@@ -1891,6 +1894,16 @@ function preloadAssets(){
         bestScore=saved.bestScore||0;
         earnedVouchers=saved.earnedVouchers||[];
         if(bestScore>0)hasPlayedOnce=true;
+        // Restore attempts only if saved today — otherwise reset to 4 (new day)
+        if(saved.attemptsDate===todayStr && typeof saved.attempts==='number'){
+          attempts=saved.attempts;
+        } else {
+          attempts=4;
+          saveSession(); // persist the reset
+        }
+      } else {
+        // No session — check if there's a legacy attempts store
+        attempts=4;
       }
       // Always land on lobby — login is inline
       renderLobby();
