@@ -117,9 +117,10 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .item-redcard.danger-close{filter:drop-shadow(0 0 12px rgba(255,0,0,1)) drop-shadow(0 0 22px rgba(255,0,0,.6));animation:dangerPulse .35s ease infinite;}
 
 #glove-el{position:absolute;z-index:6;left:0;width:90px;display:flex;align-items:center;justify-content:center;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);contain:layout style;}
+#glove-shake{display:flex;align-items:center;justify-content:center;width:90px;}
 #glove-el img{display:block;height:clamp(62px,16vw,82px);width:90px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,153,0,.5)) drop-shadow(0 6px 12px rgba(0,0,0,.5));-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:filter;}
 #glove-el.catching img{filter:drop-shadow(0 0 16px rgba(255,255,255,.9)) drop-shadow(0 0 28px rgba(255,200,0,.7));}
-#glove-el.big-shake{-webkit-animation:bigShake .5s ease;animation:bigShake .5s ease;}
+#glove-shake.big-shake{-webkit-animation:bigShake .5s ease;animation:bigShake .5s ease;}
 
 #catch-ring{position:absolute;border-radius:50%;border:3px solid rgba(255,255,255,.8);opacity:0;pointer-events:none;z-index:7;transform:scale(0);transition:transform .3s,opacity .3s;}
 #catch-ring.pop{opacity:1;-webkit-transform:scale(1.6);transform:scale(1.6);}
@@ -1074,7 +1075,7 @@ function renderGame(){
     </div>
     <div id="game-field">
       <div id="goal-zone"><div id="goal-posts"><div class="goal-post"></div><div class="goal-post"></div></div></div>
-      <div id="glove-el"><img src="${IMG_GLOVES}" alt="gloves"></div>
+      <div id="glove-el"><div id="glove-shake"><img src="${IMG_GLOVES}" alt="gloves"></div></div>
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
       <div id="dodge-hint">DANGER !</div>
@@ -1133,16 +1134,16 @@ function renderGame(){
     if(hint){hint.classList.add('hidden');setTimeout(function(){if(hint)hint.style.display='none';},600);}
   }
 
-  function _applyGlovePos(fingerX){
+  function _applyGloveDelta(dx){
     var fw=getFW();
-    gloveX=Math.max(GW/2,Math.min(fw-GW/2,fingerX));
+    gloveX=Math.max(GW/2,Math.min(fw-GW/2, gloveX+dx));
     var ge=document.getElementById('glove-el');
     if(ge){
       var tx=Math.round(gloveX-GW/2);
       ge.style.webkitTransform='translate3d('+tx+'px,0,0)';
       ge.style.transform      ='translate3d('+tx+'px,0,0)';
     }
-    window._swipeDir = fingerX < (getFW()/2) ? 'l' : 'r';
+    window._swipeDir = dx < 0 ? 'l' : dx > 0 ? 'r' : window._swipeDir;
   }
 
   field.addEventListener('touchstart',function(e){
@@ -1151,10 +1152,10 @@ function renderGame(){
     lastPressTime=Date.now();
     for(var i=0;i<e.changedTouches.length;i++){
       var t=e.changedTouches[i];
+      // Record start position — don't snap, just anchor for delta tracking
       _touchAnchor[t.identifier]={lastX:t.clientX,startGloveX:gloveX};
       if(_primaryId===-1){
         _primaryId=t.identifier;
-        _applyGlovePos(t.clientX);
       }
     }
     window._swipeActive=true;
@@ -1168,9 +1169,10 @@ function renderGame(){
       if(t.identifier!==_primaryId)continue;
       var anchor=_touchAnchor[t.identifier];
       if(!anchor)continue;
-      window._swipeVel=t.clientX-anchor.lastX;
+      var dx=t.clientX-anchor.lastX;
+      window._swipeVel=dx;
       anchor.lastX=t.clientX;
-      _applyGlovePos(t.clientX);
+      _applyGloveDelta(dx);
     }
   },{passive:false});
 
@@ -1204,7 +1206,7 @@ function renderGame(){
     if(e.pointerType==='touch'||!_mDown)return;
     var dx=e.clientX-_mLast;_mLast=e.clientX;
     window._swipeVel=dx;
-    _applyGlovePos(e.clientX);
+    _applyGloveDelta(dx);
   });
   field.addEventListener('pointerup',function(e){
     if(e.pointerType==='touch')return;
@@ -1250,7 +1252,7 @@ function startGame(){
   renderGame();
   gloveX=getFW()/2;
   // Pre-cache all game DOM refs immediately after render
-  _dom('glove-el');_dom('score-disp');_dom('combo-badge');
+  _dom('glove-el');_dom('glove-shake');_dom('score-disp');_dom('combo-badge');
   _dom('danger-bar');_dom('dodge-hint');_dom('screen-game');
   _dom('lives-count');_dom('lives-heart-img');_dom('catch-ring');
   _dom('game-field');
@@ -1296,7 +1298,8 @@ function tick(ts){
   if(!window._swipeActive && window._swipeVel){
     var coastDelta = window._swipeVel * 0.45;
     if(Math.abs(coastDelta) > 0.5){
-      gloveX = Math.max(GW/2, Math.min(fw-GW/2, gloveX + coastDelta));
+      var fw2=fw; // use already-computed fw
+      gloveX = Math.max(GW/2, Math.min(fw2-GW/2, gloveX + coastDelta));
       window._swipeVel = coastDelta;
       var ge2=_dom('glove-el');
       if(ge2){
@@ -1364,7 +1367,7 @@ function tick(ts){
             newCombo=0;livesLost++;
             showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'ROUGE !',false);sfxRedCard();
             var sg=_dom('screen-game');if(sg){sg.classList.add('hit-flash');setTimeout(function(){var s=_dom('screen-game');if(s)s.classList.remove('hit-flash');},400);}
-            if(ge){ge.classList.remove('big-shake');void ge.offsetWidth;ge.classList.add('big-shake');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('big-shake');},500);}
+            var gs=_dom('glove-shake');if(gs){gs.classList.remove('big-shake');void gs.offsetWidth;gs.classList.add('big-shake');setTimeout(function(){var s=_dom('glove-shake');if(s)s.classList.remove('big-shake');},500);}
           }
         }
         remove=true;
