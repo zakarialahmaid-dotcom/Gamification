@@ -851,9 +851,10 @@ function renderLeaderboard(){
       const nameMatch  = !myEmail && myName && (p.name||'').toLowerCase().trim()===myName;
       const isMe = (emailMatch||nameMatch) && (hasPlayedOnce||myEmail);
       if(isMe && myIdx===-1) myIdx=i;
+      const fullName = [p.name, p.lastName].filter(Boolean).join(' ') || 'Joueur';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const you=isMe?'<span class="lbd-you-badge">TOI</span>':'';
-      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${p.name}${you}</div><div class="lbd-score">${pts}</div></div>`;
+      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}</div><div class="lbd-score">${pts}</div></div>`;
     }).join('');
     card.innerHTML=rows;
 
