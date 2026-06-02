@@ -521,24 +521,20 @@ function vouchersFromScore(score){
 
 // Fetch this player's name + best score from the sheet by email
 async function fetchPlayerScore(email){
-  const tq=encodeURIComponent('SELECT B,C,E WHERE C="'+email.toLowerCase().trim()+'" ORDER BY E DESC LIMIT 1');
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
+  var normalised = email.toLowerCase().trim();
   try{
-    const res=await fetch(url);
-    const text=await res.text();
-    const json=JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
-    if(!json.table||!json.table.rows||!json.table.rows.length)return null;
-    const row=json.table.rows[0];
-    // cols: B=name(0), C=email(1), E=score(2)
-    const fullName=String((row.c[0]&&row.c[0].v)||'').trim();
-    const parts=fullName.split(' ');
-    return{
-      name:parts[0]||'',
-      lastName:parts.slice(1).join(' ')||'',
-      email:String((row.c[1]&&row.c[1].v)||'').toLowerCase().trim(),
-      score:Number(String((row.c[2]&&row.c[2].v)||0).replace(/[\s,]/g,''))||0,
+    // Ensure leaderboard is fetched — this populates _playerIndex
+    await fetchLeaderboard();
+    // Direct O(1) lookup by email
+    var match = _playerIndex[normalised];
+    if(!match||!match.score) return null;
+    return {
+      name:     match.name     || '',
+      lastName: match.lastName || '',
+      email:    match.email    || normalised,
+      score:    match.score,
     };
-  }catch(e){return null;}
+  }catch(e){ return null; }
 }
 
 // ── LOGIN SCREEN ─────────────────────────────────────────────
@@ -706,24 +702,41 @@ window.addEventListener('orientationchange',checkOrientation);
 checkOrientation();
 
 const MUSIC_URL="https://raw.githubusercontent.com/zakarialahmaid-dotcom/Gamification/main/Football_game.mp3";
-const music=new Audio(MUSIC_URL);
-music.loop=true;music.volume=0;
+// ── Lazy music — only create Audio on first startMusic() call ──
+let music=null;
 let musicOn=true,musicStarted=false;
-function musicFade(tv,d=600){const s=music.volume,df=tv-s,st=30,iv=d/st;let i=0;const t=setInterval(()=>{i++;music.volume=Math.min(1,Math.max(0,s+df*(i/st)));if(i>=st)clearInterval(t);},iv);}
-function startMusic(){if(!musicOn)return;if(!musicStarted){music.play().catch(()=>{});musicStarted=true;}musicFade(0.18);}
-function stopMusic(){musicFade(0,600);setTimeout(()=>{music.pause();music.currentTime=0;},650);}
+function _ensureMusic(){
+  if(!music){
+    music=new Audio(MUSIC_URL);
+    music.loop=true;music.volume=0;
+  }
+  return music;
+}
+function musicFade(tv,d=600){
+  var m=_ensureMusic();
+  const s=m.volume,df=tv-s,st=30,iv=d/st;let i=0;
+  const t=setInterval(()=>{i++;m.volume=Math.min(1,Math.max(0,s+df*(i/st)));if(i>=st)clearInterval(t);},iv);
+}
+function startMusic(){
+  if(!musicOn)return;
+  var m=_ensureMusic();
+  if(!musicStarted){m.play().catch(()=>{});musicStarted=true;}
+  musicFade(0.18);
+}
+function stopMusic(){musicFade(0,600);setTimeout(()=>{if(music){music.pause();music.currentTime=0;}},650);}
 function toggleMusic(btn){
   musicOn=!musicOn;
-  if(musicOn){music.play().catch(()=>{});musicFade(0.18);btn.innerHTML=iconVol();}
-  else{musicFade(0,400);setTimeout(()=>music.pause(),450);btn.innerHTML=iconMute();}
+  var m=_ensureMusic();
+  if(musicOn){m.play().catch(()=>{});musicFade(0.18);btn.innerHTML=iconVol();}
+  else{musicFade(0,400);setTimeout(()=>{if(music)music.pause();},450);btn.innerHTML=iconMute();}
 }
 function iconVol(){return'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';}
 function iconMute(){return'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';}
 
 (function(){
   let was=false;
-  function hide(){was=musicOn&&musicStarted&&!music.paused;if(was){musicFade(0,200);setTimeout(()=>music.pause(),220);}}
-  function show(){if(was&&musicOn){music.play().catch(()=>{});musicFade(0.18,400);}was=false;}
+  function hide(){var m=music;was=musicOn&&musicStarted&&m&&!m.paused;if(was){musicFade(0,200);setTimeout(()=>{if(music)music.pause();},220);}}
+  function show(){if(was&&musicOn&&music){music.play().catch(()=>{});musicFade(0.18,400);}was=false;}
   document.addEventListener('visibilitychange',()=>document.hidden?hide():show());
   window.addEventListener('pagehide',hide);
   window.addEventListener('pageshow',e=>{if(e.persisted)show();});
@@ -769,19 +782,44 @@ function goTo(fn){
   setTimeout(()=>{fn();setTimeout(()=>{t.style.transition='opacity .25s';t.style.opacity='0';setTimeout(()=>{t.classList.remove('go');t.style.animation='none';t.style.transform='scaleY(0)';t.style.opacity='1';t.style.transition='';},260);},60);},440);
 }
 
+// ── Leaderboard cache — 30s TTL to avoid hammering the sheet ──
+var _lbdCache = null, _lbdCacheTs = 0;
+var _playerIndex = {}; // email → {name,lastName,score} — full lookup table
+
 async function fetchLeaderboard(){
-  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 50');
+  if(_lbdCache && (Date.now()-_lbdCacheTs)<30000) return _lbdCache;
+  // Fetch more rows so fetchPlayerScore can find anyone, not just top 50
+  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 500');
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
   try{
     const res=await fetch(url);const text=await res.text();
     const json=JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
-    if(!json.table||!json.table.rows)return[];
-    return json.table.rows.filter(function(r){return r.c&&r.c[2]&&r.c[2].v!=null;})
-      .map(function(r){return{name:String((r.c[0]&&r.c[0].v)||'Joueur'),email:String((r.c[1]&&r.c[1].v)||'').toLowerCase().trim(),score:Number(String((r.c[2]&&r.c[2].v)||0).replace(/[\s,]/g,''))||0};})
-      .sort((a,b)=>b.score-a.score)
-      .filter((p,i,arr)=>arr.findIndex(x=>x.name===p.name)===i)
+    if(!json.table||!json.table.rows){_lbdCache=[];_lbdCacheTs=Date.now();return[];}
+
+    // Build full player index keyed by email (best score per email)
+    _playerIndex = {};
+    json.table.rows
+      .filter(function(r){return r.c&&r.c[2]&&r.c[2].v!=null;})
+      .forEach(function(r){
+        var name  = String((r.c[0]&&r.c[0].v)||'').trim();
+        var email = String((r.c[1]&&r.c[1].v)||'').toLowerCase().trim();
+        var score = Number(String((r.c[2]&&r.c[2].v)||0).replace(/[\s,]/g,''))||0;
+        if(!email) return;
+        if(!_playerIndex[email] || score > _playerIndex[email].score){
+          var parts = name.split(' ');
+          _playerIndex[email] = {name:parts[0]||'', lastName:parts.slice(1).join(' ')||'', email:email, score:score};
+        }
+      });
+
+    // Leaderboard display: deduplicate by name, keep top 50
+    var result = Object.values(_playerIndex)
+      .sort(function(a,b){return b.score-a.score;})
+      .filter(function(p,i,arr){return arr.findIndex(function(x){return x.name===p.name && x.name;})===i;})
       .slice(0,50);
-  }catch(e){return[];}
+
+    _lbdCache=result;_lbdCacheTs=Date.now();
+    return result;
+  }catch(e){return _lbdCache||[];}
 }
 
 function renderLeaderboard(){
@@ -1194,6 +1232,11 @@ function renderGame(){
   if(mb)mb.addEventListener('pointerdown',()=>toggleMusic(mb));
 }
 
+// ── CACHED DOM REFS (populated once per game, cleared on end) ──
+var _domCache = {};
+function _dom(id){ return _domCache[id] || (_domCache[id] = document.getElementById(id)); }
+function _clearDomCache(){ _domCache = {}; }
+
 function startGame(){
   startMusic();
   done=false;wid=0;itemsArr=[];
@@ -1201,16 +1244,22 @@ function startGame(){
   lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;touchHintDismissed=false;
   window._swipeVel=0;window._swipeActive=false;
   window._adrenaline=false;window._adrenalineShown=false;
+  _clearDomCache();
   renderGame();
   gloveX=getFW()/2;
+  // Pre-cache all game DOM refs immediately after render
+  _dom('glove-el');_dom('score-disp');_dom('combo-badge');
+  _dom('danger-bar');_dom('dodge-hint');_dom('screen-game');
+  _dom('lives-count');_dom('lives-heart-img');_dom('catch-ring');
+  _dom('game-field');
   updateLivesDisplay();
   animId=requestAnimationFrame(tick);
 }
 
 function updateLivesDisplay(){
-  const b=$('lives-count'),h=$('lives-heart-img');
+  var b=_dom('lives-count'),h=_dom('lives-heart-img');
   if(b)b.textContent=livesVal;
-  if(h){h.style.transform='scale(1.4)';setTimeout(()=>{if(h)h.style.transform='scale(1)';},200);
+  if(h){h.style.transform='scale(1.4)';setTimeout(function(){var img=_dom('lives-heart-img');if(img)img.style.transform='scale(1)';},200);
     h.style.filter=livesVal===1?'drop-shadow(0 0 8px rgba(236,35,38,.9))':'drop-shadow(0 3px 10px rgba(0,0,0,.5))';}
 }
 
@@ -1218,6 +1267,7 @@ function tick(ts){
   if(done)return;
   if(!lastT)lastT=ts;
   const dt=Math.min((ts-lastT)/16,3);lastT=ts;
+  // Cache fw/fh once per frame — not recalculated inside loop
   const fw=getFW(),fh=getFH(),cy=CATCH_Y(fh);
   elapsedSec+=dt/60;
 
@@ -1226,7 +1276,7 @@ function tick(ts){
     window._adrenalineShown=true;
     window._adrenaline=true;
     showTierUp('VITESSE MAX !','⚡');
-    var hud=$('screen-game');
+    var hud=_dom('screen-game');
     if(hud)hud.style.animation='adrenalinePulse 1.2s ease-in-out infinite';
   }
 
@@ -1235,115 +1285,162 @@ function tick(ts){
     : Math.min(4.0, 1.1 + elapsedSec*0.03);
   speedVal = speedBase;
 
-  var spawnBase  = isAdrenaline
+  var spawnBase = isAdrenaline
     ? Math.max(380, 900 - (elapsedSec-90)*8)
     : Math.max(750, 2200 - elapsedSec*22);
   spawnInt = spawnBase;
 
+  // ── COAST MOMENTUM ───────────────────────────────────────
   if(!window._swipeActive && window._swipeVel){
     var coastDelta = window._swipeVel * 0.45;
     if(Math.abs(coastDelta) > 0.5){
       gloveX = Math.max(GW/2, Math.min(fw-GW/2, gloveX + coastDelta));
       window._swipeVel = coastDelta;
-      var ge2=document.getElementById('glove-el');
+      var ge2=_dom('glove-el');
       if(ge2){
         var tx2=Math.round(gloveX-GW/2);
         ge2.style.webkitTransform='translate3d('+tx2+'px,0,0)';
         ge2.style.transform      ='translate3d('+tx2+'px,0,0)';
       }
-    } else {
-      window._swipeVel=0;
-    }
+    } else { window._swipeVel=0; }
   }
   if(window._flushFlash) window._flushFlash();
 
-  const ge=$('glove-el');
+  // Use cached glove ref
+  const ge=_dom('glove-el');
 
-  if(ts-lastSpawn>spawnInt){
+  // ── SPAWN ────────────────────────────────────────────────
+  // Cap max items on screen to prevent GC thrash on low-RAM
+  const MAX_ITEMS = 8;
+  if(ts-lastSpawn>spawnInt && itemsArr.length<MAX_ITEMS){
     const item=spawnItem(speedVal);itemsArr.push(item);lastSpawn=ts;addItemEl(item);
-
-    if(elapsedSec>45){
+    if(elapsedSec>45 && itemsArr.length<MAX_ITEMS-1){
       var extraChance = isAdrenaline ? 0.70 : 0.35;
       if(Math.random()<extraChance){
-        setTimeout(function(){if(done)return;var i2=spawnItem(speedVal*0.88);itemsArr.push(i2);addItemEl(i2);},280);
+        setTimeout(function(){if(done||itemsArr.length>=MAX_ITEMS)return;var i2=spawnItem(speedVal*0.88);itemsArr.push(i2);addItemEl(i2);},280);
       }
-      if(isAdrenaline && Math.random()<0.40){
-        setTimeout(function(){if(done)return;var i3=spawnItem(speedVal*0.78);itemsArr.push(i3);addItemEl(i3);},520);
+      if(isAdrenaline && Math.random()<0.40 && itemsArr.length<MAX_ITEMS-1){
+        setTimeout(function(){if(done||itemsArr.length>=MAX_ITEMS)return;var i3=spawnItem(speedVal*0.78);itemsArr.push(i3);addItemEl(i3);},520);
       }
     }
   }
+
+  // ── ITEM LOOP — index-based to avoid .filter() GC alloc ──
   let livesLost=0,ptsGained=0,newCombo=comboVal,closestRed=9999;
-  itemsArr=itemsArr.filter(item=>{
+  var writeIdx=0;
+  for(var ri=0;ri<itemsArr.length;ri++){
+    var item=itemsArr[ri];
     item.y+=item.speed*dt;
-    const el=$('w-'+item.id);
-    if(el)el.style.top=item.y+'px';
-    const cx=item.x+item.width/2,inGlove=cx>=gloveX-GW/2&&cx<=gloveX+GW/2;
-    if(item.type==='redcard'){const d=cy-item.y;if(d>0&&d<closestRed)closestRed=d;if(d<100&&el)el.classList.add('danger-close');else if(el)el.classList.remove('danger-close');}
-    if(item.y+item.height*.5>=cy&&item.y<cy+GH){
+    var el=document.getElementById('w-'+item.id);
+    // ── Use transform instead of style.top (no layout trigger) ──
+    if(el) el.style.transform='translateY('+Math.round(item.y)+'px)';
+    var cx=item.x+item.width/2, inGlove=cx>=gloveX-GW/2&&cx<=gloveX+GW/2;
+
+    // Danger proximity for red cards
+    if(item.type==='redcard'){
+      var d=cy-item.y;
+      if(d>0&&d<closestRed)closestRed=d;
+      if(el){if(d<100)el.classList.add('danger-close');else el.classList.remove('danger-close');}
+    }
+
+    var caught=false, remove=false;
+    if(item.y+item.height*.5>=cy && item.y<cy+GH){
       if(inGlove){
+        caught=true;
         if(item.type==='ball'){
-          newCombo++;const pts=Math.round((25+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
+          newCombo++;var pts=Math.round((25+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
           showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' ARRÊT !',true);sfxCatch();triggerRing(gloveX,cy);
-          if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
+          if(ge){ge.classList.add('catching');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('catching');},300);}
         }else if(item.type==='golden'){
-          newCombo++;const pts=Math.round((75+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
+          newCombo++;var pts=Math.round((75+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
           showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'BONUS +'+pts,true);sfxGolden();triggerRing(gloveX,cy);
-          if(ge){ge.classList.add('catching');setTimeout(()=>ge&&ge.classList.remove('catching'),300);}
+          if(ge){ge.classList.add('catching');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('catching');},300);}
         }else{
-          if(Date.now()-lastPressTime<180){if(el)el.remove();return false;}
-          newCombo=0;livesLost++;
-          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'ROUGE !',false);sfxRedCard();
-          const sg=$('screen-game');if(sg){sg.classList.add('hit-flash');setTimeout(()=>sg&&sg.classList.remove('hit-flash'),400);}
-          if(ge){ge.classList.remove('big-shake');void ge.offsetWidth;ge.classList.add('big-shake');setTimeout(()=>ge&&ge.classList.remove('big-shake'),500);}
+          // Red card — check swipe dodge
+          if(Date.now()-lastPressTime<180){caught=false;remove=true;}
+          else{
+            newCombo=0;livesLost++;
+            showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'ROUGE !',false);sfxRedCard();
+            var sg=_dom('screen-game');if(sg){sg.classList.add('hit-flash');setTimeout(function(){var s=_dom('screen-game');if(s)s.classList.remove('hit-flash');},400);}
+            if(ge){ge.classList.remove('big-shake');void ge.offsetWidth;ge.classList.add('big-shake');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('big-shake');},500);}
+          }
         }
-        if(el)el.remove();return false;
+        remove=true;
       }
     }
-    if(item.y>fh+10){
-      if(item.type==='ball'||item.type==='golden'){comboVal=0;const cb=$('combo-badge');if(cb)cb.style.display='none';}
-      if(el)el.remove();return false;
+    if(!remove && item.y>fh+10){
+      if(item.type==='ball'||item.type==='golden'){
+        newCombo=0;
+        var cb=_dom('combo-badge');if(cb)cb.style.display='none';
+      }
+      remove=true;
     }
-    return true;
-  });
-  const db=$('danger-bar'),dh=$('dodge-hint');
-  if(db){if(closestRed<120){const i=Math.max(0,(120-closestRed)/120);db.style.height=(i*8)+'px';db.style.opacity=i;if(dh){dh.style.top=(cy-48-(i*12))+'px';dh.style.opacity=closestRed<60?'1':'0';}}else{db.style.height='0';db.style.opacity='0';if(dh)dh.style.opacity='0';}}
+    if(remove){
+      if(el)el.remove();
+    } else {
+      itemsArr[writeIdx++]=item;
+    }
+  }
+  itemsArr.length=writeIdx; // truncate in-place — no GC alloc
+
+  // ── DANGER BAR ───────────────────────────────────────────
+  var db=_dom('danger-bar'),dh=_dom('dodge-hint');
+  if(db){
+    if(closestRed<120){
+      var di=Math.max(0,(120-closestRed)/120);
+      db.style.height=(di*8)+'px';db.style.opacity=di;
+      if(dh){dh.style.top=(cy-48-(di*12))+'px';dh.style.opacity=closestRed<60?'1':'0';}
+    }else{
+      db.style.height='0';db.style.opacity='0';
+      if(dh)dh.style.opacity='0';
+    }
+  }
+
   comboVal=newCombo;if(newCombo>maxComboVal)maxComboVal=newCombo;
+
   if(ptsGained){
     scoreVal+=ptsGained;
-    const sd=$('score-disp');if(sd)sd.textContent=scoreVal;
-    // ── Tier-up toasts at ×2.5 thresholds ──────────────────────────
+    var sd=_dom('score-disp');if(sd)sd.textContent=scoreVal;
+    // Tier-up toasts
     const tiers=[{t:5000,l:'LÉGENDE',d:'20%'},{t:2000,l:'CHAMPION',d:'15%'},{t:750,l:'MATCH READY',d:'10%'}];
-    for(const tier of tiers){if(scoreVal>=tier.t&&lastTierReached<tier.t){lastTierReached=tier.t;showTierUp(tier.l,tier.d);break;}}
-    const circle=document.querySelector('.score-circle');
+    for(var ti=0;ti<tiers.length;ti++){
+      if(scoreVal>=tiers[ti].t&&lastTierReached<tiers[ti].t){lastTierReached=tiers[ti].t;showTierUp(tiers[ti].l,tiers[ti].d);break;}
+    }
+    // Score circle ring — cached via querySelector (called once on first pts gain)
+    if(!_domCache['_circle'])_domCache['_circle']=document.querySelector('.score-circle');
+    var circle=_domCache['_circle'];
     if(circle){
-      let ring;
-      if(scoreVal>=5000)ring='0 0 0 3px rgba(255,230,80,1),0 4px 20px rgba(0,0,0,.5)';
-      else if(scoreVal>=2000)ring='0 0 0 3px rgba(255,186,0,1),0 4px 20px rgba(0,0,0,.5)';
-      else if(scoreVal>=750)ring='0 0 0 3px var(--orange),0 4px 20px rgba(0,0,0,.5)';
-      else ring='0 0 0 3px var(--orange),0 4px 20px rgba(0,0,0,.5)';
+      var ring = scoreVal>=5000?'0 0 0 3px rgba(255,230,80,1),0 4px 20px rgba(0,0,0,.5)':
+                 scoreVal>=2000?'0 0 0 3px rgba(255,186,0,1),0 4px 20px rgba(0,0,0,.5)':
+                                '0 0 0 3px var(--orange),0 4px 20px rgba(0,0,0,.5)';
       circle.style.boxShadow=ring;
     }
   }
-  const cb=$('combo-badge');if(cb){cb.style.display=newCombo>1?'inline-block':'none';cb.textContent='×'+Math.min(newCombo,3)+' COMBO';}
+
+  var cb=_dom('combo-badge');
+  if(cb){cb.style.display=newCombo>1?'inline-block':'none';cb.textContent='×'+Math.min(newCombo,3)+' COMBO';}
+
   if(livesLost){livesVal=Math.max(0,livesVal-livesLost);updateLivesDisplay();if(livesVal<=0){endGame(scoreVal);return;}}
   animId=requestAnimationFrame(tick);
 }
 
 function addItemEl(item){
-  const field=$('game-field');if(!field)return;
-  const el=document.createElement('div');
-  el.id='w-'+item.id;el.style.left=item.x+'px';el.style.top=item.y+'px';
-  if(item.type==='ball'){el.className='falling-item item-ball';el.innerHTML=`<img src="${IMG_SOCCER}" alt="" draggable="false">`;}
-  else if(item.type==='golden'){el.className='falling-item item-golden';el.innerHTML=`<img src="${IMG_GOLDEN}" alt="" draggable="false">`;}
-  else{el.className='falling-item item-redcard';el.style.width=item.width+'px';el.style.height=item.height+'px';el.innerHTML=`<img src="${IMG_REDCARD}" alt="" draggable="false">`;}
+  var field=_dom('game-field');if(!field)return;
+  var el=document.createElement('div');
+  el.id='w-'+item.id;
+  // Use transform:translateY instead of top — GPU composited, no layout trigger per frame
+  el.style.cssText='position:absolute;left:'+item.x+'px;top:0;will-change:transform;transform:translateY('+Math.round(item.y)+'px);';
+  if(item.type==='ball'){el.className='falling-item item-ball';el.innerHTML='<img src="'+IMG_SOCCER+'" alt="" draggable="false">';}
+  else if(item.type==='golden'){el.className='falling-item item-golden';el.innerHTML='<img src="'+IMG_GOLDEN+'" alt="" draggable="false">';}
+  else{el.className='falling-item item-redcard';el.style.width=item.width+'px';el.style.height=item.height+'px';el.innerHTML='<img src="'+IMG_REDCARD+'" alt="" draggable="false">';}
   field.appendChild(el);
 }
 
 function triggerRing(x,y){
-  const r=$('catch-ring');if(!r)return;
+  var r=_dom('catch-ring');if(!r)return;
   r.style.left=(x-30)+'px';r.style.top=(y-30)+'px';r.style.width='60px';r.style.height='60px';
   r.classList.remove('pop');void r.offsetWidth;r.classList.add('pop');
-  setTimeout(()=>r&&r.classList.remove('pop'),320);
+  setTimeout(function(){var ring=_dom('catch-ring');if(ring)ring.classList.remove('pop');},320);
 }
 
 function showFlash(x,y,text,good){
@@ -1744,7 +1841,7 @@ async function doLobbyLogin(){
   var result=await fetchPlayerScore(email);
 
   if(result&&result.score>0){
-    // Found — restore name + session, re-render lobby showing the greeting
+    // Found — restore session and go straight to vouchers
     playerEmail=email;
     playerName=result.name||'';
     playerLastName=result.lastName||'';
@@ -1752,16 +1849,15 @@ async function doLobbyLogin(){
     earnedVouchers=vouchersFromScore(result.score);
     hasPlayedOnce=true;
     saveSession();
-    // Flash success then go to vouchers
-    if(msg){msg.style.color='#27ae60';msg.textContent='✓ Bons retrouvés — chargement...';}
-    setTimeout(function(){goTo(function(){renderMyVouchers(false);});},700);
+    goTo(function(){renderMyVouchers(false);});
   } else {
-    // Not found — friendly message, pre-fill email, re-enable
+    // Not found — pre-fill email, show message, auto-redirect to lobby to play
     playerEmail=email;
     if(btn)btn.disabled=false;
     if(lbl)lbl.style.display='block';
     if(spn)spn.style.display='none';
     if(msg){msg.style.color='#e68800';msg.textContent='Aucun bon trouvé — joue pour en gagner !';}
+    setTimeout(function(){goTo(renderLobby);},1500);
   }
 }
 
@@ -1775,7 +1871,7 @@ function preloadAssets(){
     "https://raw.githubusercontent.com/Madzack69/Icons/main/Stadium.webp"];
   const bar=$('loading-bar'),gl=$('loading-gloves');
   if(gl)gl.src=IMG_GLOVES;
-  const total=images.length+1;let loaded=0,finished=false;
+  const total=images.length;let loaded=0,finished=false;
   function tickLoad(){
     loaded++;
     if(bar)bar.style.width=Math.round((loaded/total)*100)+'%';
@@ -1801,10 +1897,9 @@ function preloadAssets(){
     },420);});},350);
   }
   images.forEach(src=>{const i=new Image();i.onload=tickLoad;i.onerror=tickLoad;i.src=src;});
-  music.addEventListener('canplaythrough',tickLoad,{once:true});
-  music.addEventListener('error',tickLoad,{once:true});
-  music.load();
-  setTimeout(()=>{if(!finished)finish();},7000);
+  // Music is lazy — don't load at startup, saves memory on low-RAM devices
+  // Tick load count accounts for this
+  setTimeout(()=>{if(!finished)finish();},5000);
 }
 
 preloadAssets();
