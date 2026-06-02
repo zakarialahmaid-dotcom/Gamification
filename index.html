@@ -1147,16 +1147,16 @@ function renderGame(){
     if(hint){hint.classList.add('hidden');setTimeout(function(){if(hint)hint.style.display='none';},600);}
   }
 
-  function _applyGloveDelta(dx){
+  function _applyGlovePos(fingerX){
     var fw=getFW();
-    gloveX=Math.max(GW/2,Math.min(fw-GW/2, gloveX+dx));
+    gloveX=Math.max(GW/2,Math.min(fw-GW/2,fingerX));
     var ge=document.getElementById('glove-el');
     if(ge){
       var tx=Math.round(gloveX-GW/2);
       ge.style.webkitTransform='translate3d('+tx+'px,0,0)';
       ge.style.transform      ='translate3d('+tx+'px,0,0)';
     }
-    window._swipeDir = dx < 0 ? 'l' : dx > 0 ? 'r' : window._swipeDir;
+    window._swipeDir = fingerX < (getFW()/2) ? 'l' : 'r';
   }
 
   field.addEventListener('touchstart',function(e){
@@ -1165,10 +1165,10 @@ function renderGame(){
     lastPressTime=Date.now();
     for(var i=0;i<e.changedTouches.length;i++){
       var t=e.changedTouches[i];
-      // Record start position — don't snap, just anchor for delta tracking
       _touchAnchor[t.identifier]={lastX:t.clientX,startGloveX:gloveX};
       if(_primaryId===-1){
         _primaryId=t.identifier;
+        _applyGlovePos(t.clientX);
       }
     }
     window._swipeActive=true;
@@ -1182,10 +1182,9 @@ function renderGame(){
       if(t.identifier!==_primaryId)continue;
       var anchor=_touchAnchor[t.identifier];
       if(!anchor)continue;
-      var dx=t.clientX-anchor.lastX;
-      window._swipeVel=dx;
+      window._swipeVel=t.clientX-anchor.lastX;
       anchor.lastX=t.clientX;
-      _applyGloveDelta(dx);
+      _applyGlovePos(t.clientX);
     }
   },{passive:false});
 
@@ -1214,12 +1213,13 @@ function renderGame(){
     if(e.pointerType==='touch')return;
     _mDown=true;_mLast=e.clientX;
     dismissHint();lastPressTime=Date.now();window._swipeActive=true;window._swipeVel=0;
+    _applyGlovePos(e.clientX);
   });
   field.addEventListener('pointermove',function(e){
     if(e.pointerType==='touch'||!_mDown)return;
     var dx=e.clientX-_mLast;_mLast=e.clientX;
     window._swipeVel=dx;
-    _applyGloveDelta(dx);
+    _applyGlovePos(e.clientX);
   });
   field.addEventListener('pointerup',function(e){
     if(e.pointerType==='touch')return;
@@ -1311,8 +1311,7 @@ function tick(ts){
   if(!window._swipeActive && window._swipeVel){
     var coastDelta = window._swipeVel * 0.45;
     if(Math.abs(coastDelta) > 0.5){
-      var fw2=fw; // use already-computed fw
-      gloveX = Math.max(GW/2, Math.min(fw2-GW/2, gloveX + coastDelta));
+      gloveX = Math.max(GW/2, Math.min(fw-GW/2, gloveX + coastDelta));
       window._swipeVel = coastDelta;
       var ge2=_dom('glove-el');
       if(ge2){
@@ -1350,8 +1349,7 @@ function tick(ts){
     var item=itemsArr[ri];
     item.y+=item.speed*dt;
     var el=document.getElementById('w-'+item.id);
-    // ── Use transform instead of style.top (no layout trigger) ──
-    if(el) el.style.transform='translateY('+Math.round(item.y)+'px)';
+    if(el) el.style.top=Math.round(item.y)+'px';
     var cx=item.x+item.width/2, inGlove=cx>=gloveX-GW/2&&cx<=gloveX+GW/2;
 
     // Danger proximity for red cards
@@ -1446,8 +1444,8 @@ function addItemEl(item){
   var field=_dom('game-field');if(!field)return;
   var el=document.createElement('div');
   el.id='w-'+item.id;
-  // Use transform:translateY instead of top — GPU composited, no layout trigger per frame
-  el.style.cssText='position:absolute;left:'+item.x+'px;top:0;will-change:transform;transform:translateY('+Math.round(item.y)+'px);';
+  el.style.left=item.x+'px';
+  el.style.top=item.y+'px';
   if(item.type==='ball'){el.className='falling-item item-ball';el.innerHTML='<img src="'+IMG_SOCCER+'" alt="" draggable="false">';}
   else if(item.type==='golden'){el.className='falling-item item-golden';el.innerHTML='<img src="'+IMG_GOLDEN+'" alt="" draggable="false">';}
   else{el.className='falling-item item-redcard';el.style.width=item.width+'px';el.style.height=item.height+'px';el.innerHTML='<img src="'+IMG_REDCARD+'" alt="" draggable="false">';}
