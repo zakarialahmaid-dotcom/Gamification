@@ -1511,7 +1511,7 @@ function renderFormPost(){
     <div class="fm-card">
       <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" placeholder="Yasmine" autocomplete="given-name"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
       <div class="fm-field"><label class="fm-label" for="inp-lastname">Nom</label><input class="fm-input" id="inp-lastname" type="text" placeholder="Alaoui" autocomplete="family-name"><div class="fm-error-msg" id="err-lastname">Nom requis</div></div>
-      <div class="fm-field"><label class="fm-label" for="inp-email">E-mail</label><input class="fm-input" id="inp-email" type="email" placeholder="yasmine@email.com" autocomplete="email"><div class="fm-error-msg" id="err-email">E-mail valide requis</div></div>
+      <div class="fm-field"><label class="fm-label" for="inp-email">E-mail</label><input class="fm-input" id="inp-email" type="email" placeholder="yasmine@email.com" autocomplete="email" value="${playerEmail||''}"><div class="fm-error-msg" id="err-email">E-mail valide requis</div></div>
       <div class="fm-field" style="margin-bottom:0"><label class="fm-label" for="inp-city">Ville</label><input class="fm-input" id="inp-city" type="text" placeholder="Casablanca" autocomplete="address-level2"><div class="fm-error-msg" id="err-city">Ville requise</div></div>
     </div>
     <div class="fm-spacer"></div>
@@ -1542,21 +1542,62 @@ function submitForm(){
   ];
   fields.forEach(function(_f){var id=_f[0],eid=_f[1],fail=_f[2],msg=_f[3];var _fe=$(id);if(_fe)_fe.classList.toggle('error',fail);const em=$(eid);if(em){em.textContent=msg;em.classList.toggle('visible',fail);}if(fail)valid=false;});
   if(!valid)return;
-  playerName=name;playerLastName=lastname;playerEmail=email;playerCity=city;
-  saveSession();
-  // Bust cache + inject player so leaderboard shows them immediately
-  _lbdCache=null;_lbdCacheTs=0;
-  var _fEmail=email.toLowerCase().trim();
-  if(!_playerIndex[_fEmail]||scoreVal>(_playerIndex[_fEmail].score||0)){
-    _playerIndex[_fEmail]={name:name,lastName:lastname,email:_fEmail,score:scoreVal};
-  }
-  if(SHEET_URL.startsWith('https://')){
-    const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
-    fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
-  }
+
+  // Show spinner while we check
   const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
   if(btn)btn.disabled=true;if(lbl)lbl.style.display='none';if(spn)spn.style.display='block';
-  goTo(function(){renderMyVouchers(true)});
+
+  var normEmail=email.toLowerCase().trim();
+
+  // ── Check if this email already exists in the sheet ──────────
+  fetchPlayerScore(normEmail).then(function(existing){
+
+    if(existing && existing.score > 0){
+      // ── RETURNING PLAYER ─────────────────────────────────────
+      // Restore their best score (keep whichever is higher)
+      playerName     = existing.name     || name;
+      playerLastName = existing.lastName || lastname;
+      playerEmail    = normEmail;
+      playerCity     = city || playerCity;
+      // Keep the higher of existing best or current game score
+      bestScore      = Math.max(existing.score, scoreVal, bestScore);
+      earnedVouchers = vouchersFromScore(bestScore);
+      hasPlayedOnce  = true;
+      saveSession();
+      // Still submit this game's score to sheet (new row = new attempt logged)
+      if(SHEET_URL.startsWith('https://')){
+        const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+        fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+      }
+      _lbdCache=null;_lbdCacheTs=0;
+      _playerIndex[normEmail]={name:playerName,lastName:playerLastName,email:normEmail,score:bestScore};
+      goTo(function(){renderMyVouchers(true)});
+
+    } else {
+      // ── NEW PLAYER ───────────────────────────────────────────
+      playerName=name;playerLastName=lastname;playerEmail=normEmail;playerCity=city;
+      saveSession();
+      _lbdCache=null;_lbdCacheTs=0;
+      _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
+      if(SHEET_URL.startsWith('https://')){
+        const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+        fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+      }
+      goTo(function(){renderMyVouchers(true)});
+    }
+
+  }).catch(function(){
+    // Network error — proceed as new player, don't block
+    playerName=name;playerLastName=lastname;playerEmail=normEmail;playerCity=city;
+    saveSession();
+    _lbdCache=null;_lbdCacheTs=0;
+    _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
+    if(SHEET_URL.startsWith('https://')){
+      const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+      fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+    }
+    goTo(function(){renderMyVouchers(true)});
+  });
 }
 
 function renderResult(){
