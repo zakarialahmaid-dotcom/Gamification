@@ -394,10 +394,10 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 
 .lb-footer-link:active{color:#1E293B;}
 
-/* ── Sponsor strip — auto-scroll marquee ── */
+/* ── Sponsor strip — infinite marquee + swipeable ── */
 .lb-sponsors{
   flex:0 0 auto;
-  padding:clamp(14px,3.5vw,18px) 0 0;
+  padding:clamp(14px,3.5vw,18px) clamp(20px,5vw,28px) 0;
 }
 .lb-sponsors-title{
   font-size:clamp(8px,2vw,10px);
@@ -407,73 +407,68 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   text-transform:uppercase;
   letter-spacing:.12em;
   margin-bottom:10px;
-  padding:0 clamp(20px,5vw,28px);
 }
-/* Outer mask — fades edges */
+/* Outer container — clips overflow, edge fade */
 .lb-sponsors-track{
-  overflow:hidden;
   position:relative;
+  overflow:hidden;
   width:100%;
+  cursor:grab;
 }
+.lb-sponsors-track:active{cursor:grabbing;}
 .lb-sponsors-track::before,
 .lb-sponsors-track::after{
   content:'';
   position:absolute;
-  top:0;bottom:0;
-  width:32px;
-  z-index:2;
-  pointer-events:none;
+  top:0;bottom:0;width:28px;z-index:2;pointer-events:none;
 }
-.lb-sponsors-track::before{left:0; background:linear-gradient(90deg,#F1F1F2,transparent);}
+.lb-sponsors-track::before{left:0;background:linear-gradient(90deg,#F1F1F2,transparent);}
 .lb-sponsors-track::after{right:0;background:linear-gradient(270deg,#F1F1F2,transparent);}
 
-/* Inner ticker — duplicated for seamless loop */
+/* Inner marquee row — duplicated for seamless loop */
 .lb-sponsors-inner{
   display:flex;
-  gap:8px;
+  gap:10px;
   width:max-content;
-  animation:sponsorScroll 28s linear infinite;
+  animation:sponsorMarquee 22s linear infinite;
   will-change:transform;
 }
-.lb-sponsors-inner:hover{animation-play-state:paused;}
+.lb-sponsors-inner.paused{animation-play-state:paused;}
 
-@keyframes sponsorScroll{
+@keyframes sponsorMarquee{
   0%  {transform:translateX(0);}
   100%{transform:translateX(-50%);}
 }
 
-.lb-sponsor-chip{
-  flex:0 0 auto;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:5px;
+/* Individual logo tile */
+.lb-sponsor-tile{
+  flex:0 0 clamp(72px,18vw,88px);
+  height:clamp(72px,18vw,88px);
   background:#ffffff;
   border:1px solid #E4E4E6;
-  border-radius:10px;
-  padding:8px 10px;
-  min-width:64px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px;
+  overflow:hidden;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
-  transition:border-color .15s;
+  transition:border-color .15s,transform .1s;
 }
-.lb-sponsor-chip:active{border-color:#ff9900;}
-.lb-sponsor-chip-disc{
-  font-size:clamp(9px,2.3vw,10px);
-  font-weight:900;
-  color:#ff9900;
+.lb-sponsor-tile:active{border-color:#ff9900;transform:scale(.95);}
+.lb-sponsor-tile img{
+  width:100%;height:100%;
+  object-fit:contain;
+  border-radius:6px;
+}
+.lb-sponsor-tile-placeholder{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(14px,4vw,18px);
+  font-weight:900;color:#1E293B;
   font-family:var(--H1);
-  line-height:1;
-}
-.lb-sponsor-chip-name{
-  font-size:clamp(8px,2vw,9px);
-  color:#8A8A9A;
-  font-family:var(--H2);
-  font-weight:600;
-  white-space:nowrap;
-  max-width:60px;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  background:#F1F1F2;border-radius:6px;
 }
 
 /* ── Prize banner ── */
@@ -584,7 +579,6 @@ const SHEET_GID='0';
 // Replace SHOP_URL with real Jumia boutique URLs
 const SPONSORS = [
   {name:'Adidas',            discount:'-70%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_adidas.png',              shop:'https://www.jumia.ma/adidas/'},
-  {name:'Flormar',           discount:'-40%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_flormar.webp',             shop:'https://www.jumia.ma/flormar/'},
   {name:'Taurus',            discount:'-70%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_taurus.png',               shop:'https://www.jumia.ma/taurus/'},
   {name:'Garnier',           discount:'-35%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_garnier.png',              shop:'https://www.jumia.ma/garnier/'},
   {name:'DeFacto',           discount:'-80%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_defacto.png',              shop:'https://www.jumia.ma/defacto/'},
@@ -1118,15 +1112,14 @@ function renderLobby(){
     <!-- ── Sponsor strip ── -->
     <div class="lb-sponsors">
       <div class="lb-sponsors-title">Boutiques partenaires</div>
-      <div class="lb-sponsors-track">
-        <div class="lb-sponsors-inner">
+      <div class="lb-sponsors-track" id="lb-sponsors-track">
+        <div class="lb-sponsors-inner" id="lb-sponsors-inner">
           ${(SPONSORS.concat(SPONSORS)).map(function(sp,si){
             var realIdx = si % SPONSORS.length;
-            return '<div class="lb-sponsor-chip" onclick="_track(\'sponsor_click\',{brand:SPONSORS['+realIdx+'].name,screen:\'lobby\'});var s=SPONSORS['+realIdx+'];if(s&&s.shop)window.open(s.shop,\'_blank\')">'+
-              sponsorLogoHTML(sp,36)+
-              '<div class="lb-sponsor-chip-disc">'+sp.discount+'</div>'+
-              '<div class="lb-sponsor-chip-name">'+sp.name+'</div>'+
-            '</div>';
+            var logoInner = sp.logo
+              ? '<img src="'+sp.logo+'" alt="'+sp.name+'" draggable="false" loading="lazy">'
+              : '<div class="lb-sponsor-tile-placeholder">'+sp.name.slice(0,2).toUpperCase()+'</div>';
+            return '<div class="lb-sponsor-tile" onclick="_track(\'sponsor_click\',{brand:SPONSORS['+realIdx+'].name,screen:\'lobby\'});var s=SPONSORS['+realIdx+'];if(s&&s.shop)window.open(s.shop,\'_blank\')">'+logoInner+'</div>';
           }).join('')}
         </div>
       </div>
@@ -1210,6 +1203,19 @@ function renderLobby(){
   }
   // Start countdown if no attempts left
   if(att===0) startAttemptsCountdown();
+
+  // ── Sponsor marquee: pause on touch/drag, resume on release ──
+  (function(){
+    var inner=document.getElementById('lb-sponsors-inner');
+    var track=document.getElementById('lb-sponsors-track');
+    if(!inner||!track)return;
+    // Pause on touch
+    track.addEventListener('touchstart',function(){inner.classList.add('paused');},{passive:true});
+    track.addEventListener('touchend',function(){setTimeout(function(){inner.classList.remove('paused');},600);},{passive:true});
+    // Pause on mouse drag (desktop)
+    track.addEventListener('mouseenter',function(){inner.classList.add('paused');});
+    track.addEventListener('mouseleave',function(){inner.classList.remove('paused');});
+  })();
 }
 
 function showTutorialScreen(){
@@ -1970,19 +1976,18 @@ function renderMyVouchers(fromGame){
       <div id="mv-rank-nudge"></div>
 
       <!-- Sponsor strip -->
-      <div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(10px,2.5vw,13px) 0 clamp(10px,2.5vw,13px);margin-bottom:10px;overflow:hidden;">
+      <div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(10px,2.5vw,13px) 0 clamp(10px,2.5vw,13px);margin-bottom:10px;">
         <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px;padding:0 clamp(12px,3vw,15px);">Boutiques partenaires</div>
         <div style="position:relative;overflow:hidden;">
           <div style="position:absolute;top:0;left:0;bottom:0;width:24px;background:linear-gradient(90deg,#fff,transparent);z-index:2;pointer-events:none;"></div>
           <div style="position:absolute;top:0;right:0;bottom:0;width:24px;background:linear-gradient(270deg,#fff,transparent);z-index:2;pointer-events:none;"></div>
-          <div style="display:flex;gap:7px;width:max-content;animation:sponsorScroll 28s linear infinite;">
+          <div id="mv-sponsors-inner" style="display:flex;gap:10px;width:max-content;animation:sponsorMarquee 22s linear infinite;padding:0 4px;">
             ${(SPONSORS.concat(SPONSORS)).map(function(sp,si){
-              var realIdx = si % SPONSORS.length;
-              return '<div onclick="_track(\'sponsor_click\',{brand:\''+SPONSORS[realIdx].name+'\',screen:\'vouchers\'});var s=SPONSORS['+realIdx+'];if(s&&s.shop)window.open(s.shop,\'_blank\')" style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;background:#F8F8F8;border:1px solid #E4E4E6;border-radius:8px;padding:7px 8px;min-width:56px;cursor:pointer;-webkit-tap-highlight-color:transparent;">'+
-                sponsorLogoHTML(sp,30)+
-                '<div style="font-size:clamp(8px,2vw,9px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;">'+sp.discount+'</div>'+
-                '<div style="font-size:clamp(7px,1.8vw,8px);color:#8A8A9A;font-family:var(--H2);font-weight:600;white-space:nowrap;max-width:52px;overflow:hidden;text-overflow:ellipsis;text-align:center;">'+sp.name+'</div>'+
-              '</div>';
+              var realIdx=si%SPONSORS.length;
+              var logoInner=sp.logo
+                ?'<img src="'+sp.logo+'" alt="'+sp.name+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" draggable="false" loading="lazy">'
+                :'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#1E293B;font-family:var(--H1);background:#F1F1F2;border-radius:6px;">'+sp.name.slice(0,2).toUpperCase()+'</div>';
+              return '<div onclick="_track(\'sponsor_click\',{brand:SPONSORS['+realIdx+'].name,screen:\'vouchers\'});var s=SPONSORS['+realIdx+'];if(s&&s.shop)window.open(s.shop,\'_blank\')" style="flex:0 0 clamp(72px,18vw,88px);height:clamp(72px,18vw,88px);background:#F8F8F8;border:1px solid #E4E4E6;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;">'+logoInner+'</div>';
             }).join('')}
           </div>
         </div>
