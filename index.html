@@ -505,41 +505,76 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 #vkb{
   position:fixed;bottom:0;left:0;right:0;z-index:9999;
   background:#d1d5db;
-  padding:6px 3px 10px;
+  padding:clamp(4px,1.2vw,8px) clamp(2px,0.8vw,6px) clamp(8px,2.5vw,16px);
   transform:translateY(100%);
   transition:transform .2s ease;
   touch-action:manipulation;
   user-select:none;-webkit-user-select:none;
+  /* Safe area for iPhone home bar */
+  padding-bottom:calc(clamp(8px,2.5vw,16px) + env(safe-area-inset-bottom, 0px));
+  width:100%;
+  box-sizing:border-box;
 }
 #vkb.vkb-show{transform:translateY(0);}
+
+/* Preview bar - shows what's being typed */
 .vkb-preview{
   background:#1e293b;color:#fff;
-  font-size:15px;font-family:system-ui,sans-serif;
-  padding:6px 12px;border-radius:6px;
-  margin:0 4px 6px;min-height:32px;
+  font-size:clamp(12px,3.5vw,15px);
+  font-family:system-ui,-apple-system,sans-serif;
+  padding:clamp(5px,1.5vw,8px) clamp(8px,2.5vw,12px);
+  border-radius:6px;
+  margin:0 clamp(2px,0.8vw,4px) clamp(4px,1.2vw,6px);
+  min-height:clamp(28px,8vw,34px);
   display:flex;align-items:center;
   overflow:hidden;
 }
 .vkb-preview span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.vkb-caret{width:2px;height:16px;background:#ff9900;margin-left:2px;flex-shrink:0;animation:vkbBlink .8s step-end infinite;}
+.vkb-caret{
+  width:2px;height:clamp(12px,3.5vw,16px);
+  background:#ff9900;margin-left:2px;flex-shrink:0;
+  animation:vkbBlink .8s step-end infinite;
+}
 @keyframes vkbBlink{0%,100%{opacity:1}50%{opacity:0}}
-.vkb-row{display:flex;justify-content:center;gap:4px;margin-bottom:4px;}
+
+/* Key rows */
+.vkb-row{
+  display:flex;
+  justify-content:center;
+  gap:clamp(3px,0.8vw,5px);
+  margin-bottom:clamp(3px,0.8vw,5px);
+}
+
+/* Individual keys — scale with viewport width */
 .vkb-k{
-  height:42px;min-width:30px;flex:1;max-width:38px;
-  background:#fff;border:none;border-radius:5px;
+  height:clamp(36px,10.5vw,46px);
+  min-width:0;
+  flex:1;
+  max-width:clamp(28px,9vw,42px);
+  background:#fff;
+  border:none;
+  border-radius:5px;
   box-shadow:0 1px 0 0 #8a8e97;
-  font-size:16px;font-weight:500;color:#111;
-  font-family:system-ui,sans-serif;
+  font-size:clamp(13px,4vw,17px);
+  font-weight:500;color:#111;
+  font-family:system-ui,-apple-system,sans-serif;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:background .08s;
+  cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   flex-shrink:0;
+  transition:background .06s;
+  box-sizing:border-box;
 }
 .vkb-k:active{background:#bbc0c9;}
-.vkb-k.dark{background:#adb5bd;font-size:13px;max-width:46px;}
-.vkb-k.wide{max-width:60px;}
-.vkb-k.space{flex:3;max-width:180px;font-size:13px;color:#555;}
-.vkb-k.done{background:#ff9900;color:#fff;font-weight:700;font-size:13px;max-width:76px;}
+.vkb-k.dark{background:#adb5bd;font-size:clamp(11px,3.2vw,14px);max-width:clamp(34px,10vw,52px);}
+.vkb-k.wide{max-width:clamp(38px,11vw,56px);}
+.vkb-k.space{flex:4;max-width:none;font-size:clamp(11px,3vw,13px);color:#555;}
+.vkb-k.done{
+  background:#ff9900;color:#fff;font-weight:700;
+  font-size:clamp(11px,3vw,13px);
+  max-width:clamp(56px,17vw,84px);
+  flex-shrink:0;
+}
 .vkb-k.done:active{background:#e68800;}
 
 </style>
@@ -931,10 +966,6 @@ function $(id){return document.getElementById(id);}
     vkb.classList.remove('vkb-show');
     vkbOvl.style.display='none';
     if(activeInput){
-      // Restore to normal so native keyboard can try again next tap
-      activeInput.removeAttribute('readonly');
-      activeInput.removeAttribute('inputmode');
-      activeInput.style.caretColor='';
       try{activeInput.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
       activeInput=null;
     }
@@ -944,56 +975,47 @@ function $(id){return document.getElementById(id);}
   vkbOvl.addEventListener('touchend',function(e){e.preventDefault();vkbClose();},{passive:false});
   vkbOvl.addEventListener('click',function(){vkbClose();});
 
-  // Detect if we're on Android
+  // Detect platform
   var isAndroid = /Android/i.test(navigator.userAgent);
+  // In an iframe, window.innerHeight never shrinks when the host app keyboard opens,
+  // so we cannot detect native keyboard via viewport resize.
+  // Strategy: on Android always use VKB (native KB can't be reliably triggered in WebView iframe).
+  // On iOS the native keyboard works fine — leave inputs untouched.
+  var inIframe = (function(){ try{ return window.self !== window.top; }catch(e){ return true; } })();
+  var useVKB = isAndroid; // use VKB on all Android regardless of iframe
 
   function wireInput(inp){
     if(inp._vkbWired)return;
     inp._vkbWired=true;
 
-    if(!isAndroid){
-      // iOS / desktop — native keyboard works fine, do nothing
+    if(!useVKB){
+      // iOS / desktop — native keyboard works, do nothing
       return;
     }
 
-    // ── Android only ──────────────────────────────────────
-    // Strategy: let the native keyboard try first.
-    // If viewport height doesn't shrink within 600ms, native KB failed → open VKB.
+    // ── Android (including iframe) ─────────────────────────
+    // Lock the input so no native keyboard fires, use VKB instead
+    inp.setAttribute('readonly','readonly');
+    inp.setAttribute('inputmode','none');
+    inp.style.caretColor='transparent';
 
-    inp.addEventListener('touchend',function(e){
-      // Don't preventDefault — let native focus happen naturally
-      var heightBefore = window.innerHeight;
-
-      // Temporarily allow focus
-      inp.removeAttribute('readonly');
-      inp.removeAttribute('inputmode');
-      inp.focus();
-
-      // Wait to see if native keyboard opens (shrinks the viewport)
-      setTimeout(function(){
-        var heightAfter = window.innerHeight;
-        var nativeKbOpened = (heightBefore - heightAfter) > 100;
-
-        if(nativeKbOpened){
-          // Native keyboard opened — let it handle input, don't show VKB
-          // Keep input writable
-        } else {
-          // Native keyboard did NOT open — restore restrictions and show VKB
-          inp.setAttribute('readonly','readonly');
-          inp.setAttribute('inputmode','none');
-          inp.blur();
-          inp.style.caretColor='transparent';
-          vkbOpen(inp);
-        }
-      }, 600);
-    },{passive:true});
-
-    // Close VKB when input loses focus to native
-    inp.addEventListener('blur',function(){
-      if(activeInput===inp && !vkb.classList.contains('vkb-show')){
-        // Native keyboard took over — keep it
-      }
+    // Tap catcher — a plain div over the input, no touch restrictions
+    var catcher=document.createElement('div');
+    catcher.style.cssText='position:absolute;top:0;left:0;right:0;bottom:0;z-index:10;cursor:text;-webkit-tap-highlight-color:transparent;';
+    catcher.addEventListener('touchend',function(e){
+      e.preventDefault();e.stopPropagation();
+      vkbOpen(inp);
+    },{passive:false});
+    catcher.addEventListener('click',function(e){
+      e.preventDefault();vkbOpen(inp);
     });
+
+    var parent=inp.parentNode;
+    if(parent){
+      var cs=window.getComputedStyle(parent);
+      if(cs.position==='static')parent.style.position='relative';
+      parent.appendChild(catcher);
+    }
   }
 
   function wireAll(){
