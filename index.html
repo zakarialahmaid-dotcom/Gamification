@@ -48,6 +48,8 @@
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#F1F1F2;overscroll-behavior:none;touch-action:none;-webkit-overflow-scrolling:touch;}
+/* Allow WebView keyboard to open on input focus */
+input,textarea,select{touch-action:auto;-webkit-user-select:text;user-select:text;}
 body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select:none;user-select:none;background:#F1F1F2;}
 #app{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
 
@@ -666,7 +668,7 @@ function renderLogin(){
       <div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);margin-bottom:clamp(18px,4.5vw,22px);line-height:1.5;">Entre ton adresse e-mail pour récupérer<br>tous tes bons de réduction Jumia.</div>
 
       <label style="display:block;font-size:clamp(10px,2.6vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Adresse e-mail</label>
-      <input id="login-email" type="email" placeholder="yasmine@email.com" autocomplete="email"
+      <input id="login-email" type="email" inputmode="email" placeholder="yasmine@email.com" autocomplete="email"
         style="width:100%;border:1.5px solid #E4E4E6;border-radius:8px;padding:clamp(12px,3vw,15px) clamp(14px,3.5vw,18px);font-size:16px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;-webkit-appearance:none;transition:border-color .2s,box-shadow .2s;margin-bottom:6px;">
       <div id="login-error" style="font-size:clamp(10px,2.5vw,11px);color:#ec2326;font-family:var(--H2);font-weight:700;min-height:16px;margin-bottom:10px;display:none;"></div>
 
@@ -781,23 +783,41 @@ function _track(event, params){
 function $(id){return document.getElementById(id);}
 
 // ── ANDROID WEBVIEW KEYBOARD FIX ─────────────────────────────
+// touch-action:none on body blocks keyboard in Jumia WebView.
+// Override: set input attributes + readOnly trick on every tap.
 (function(){
   function forceKeyboard(input){
     if(!input) return;
-    input.setAttribute('inputmode', input.type === 'email' ? 'email' : 'text');
-    input.setAttribute('autocorrect', 'off');
-    input.setAttribute('autocapitalize', 'none');
+    // Set correct inputmode so Android shows right keyboard type
+    if(input.type === 'email' || input.name === 'email' || input.id.indexOf('email') >= 0){
+      input.setAttribute('inputmode','email');
+    } else {
+      input.setAttribute('inputmode','text');
+    }
+    input.setAttribute('autocorrect','off');
+    input.setAttribute('autocapitalize','off');
+    input.setAttribute('spellcheck','false');
+    // readOnly trick: WebView opens keyboard when switching from readOnly to editable
     input.readOnly = true;
-    input.focus();
+    input.blur();
     setTimeout(function(){
       input.readOnly = false;
       input.focus();
-      setTimeout(function(){
-        input.scrollIntoView({behavior:'smooth', block:'center'});
-      }, 300);
-    }, 50);
+      // Place cursor at end
+      try{var v=input.value;input.value='';input.value=v;}catch(e){}
+    }, 30);
   }
-  document.addEventListener('touchend', function(e){
+
+  // Intercept on pointerdown (fires before focus, works on Android WebView)
+  document.addEventListener('pointerdown', function(e){
+    var el = e.target;
+    if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')){
+      forceKeyboard(el);
+    }
+  }, {passive:true});
+
+  // Also on touchstart as fallback
+  document.addEventListener('touchstart', function(e){
     var el = e.target;
     if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')){
       forceKeyboard(el);
@@ -1155,7 +1175,7 @@ function renderLobby(){
         : `<div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:10px;padding:12px 14px;">
              <div style="font-size:clamp(10px,2.6vw,12px);font-weight:700;color:#1E293B;font-family:var(--H2);margin-bottom:8px;">🔐 Retrouve tes bons</div>
              <div style="display:flex;gap:8px;align-items:center;">
-               <input id="lobby-login-email" type="email" placeholder="ton@email.com" autocomplete="email"
+               <input id="lobby-login-email" type="email" inputmode="email" placeholder="ton@email.com" autocomplete="email"
                  style="flex:1;border:1.5px solid #E4E4E6;border-radius:7px;padding:9px 12px;font-size:15px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;-webkit-appearance:none;min-width:0;transition:border-color .2s;">
                <button id="lobby-login-btn"
                  style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:7px;padding:9px 14px;font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:6px;">
@@ -1797,9 +1817,9 @@ function renderFormPost(){
       <div class="fm-sub">Laisse tes coordonnées et reçois<br><b>tous tes bons de réduction Jumia.</b></div>
     </div>
     <div class="fm-card">
-      <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" placeholder="Yasmine" autocomplete="given-name"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
-      <div class="fm-field"><label class="fm-label" for="inp-lastname">Nom</label><input class="fm-input" id="inp-lastname" type="text" placeholder="Alaoui" autocomplete="family-name"><div class="fm-error-msg" id="err-lastname">Nom requis</div></div>
-      <div class="fm-field"><label class="fm-label" for="inp-email">E-mail</label><input class="fm-input" id="inp-email" type="email" placeholder="yasmine@email.com" autocomplete="email" value="${playerEmail||''}"><div class="fm-error-msg" id="err-email">E-mail valide requis</div></div>
+      <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" inputmode="text" placeholder="Yasmine" autocomplete="given-name"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
+      <div class="fm-field"><label class="fm-label" for="inp-lastname">Nom</label><input class="fm-input" id="inp-lastname" type="text" inputmode="text" placeholder="Alaoui" autocomplete="family-name"><div class="fm-error-msg" id="err-lastname">Nom requis</div></div>
+      <div class="fm-field"><label class="fm-label" for="inp-email">E-mail</label><input class="fm-input" id="inp-email" type="email" inputmode="email" placeholder="yasmine@email.com" autocomplete="email" value="${playerEmail||''}"><div class="fm-error-msg" id="err-email">E-mail valide requis</div></div>
       <div style="display:none"><input class="fm-input" id="inp-city" type="text" value="Maroc"></div>
     </div>
     <div class="fm-spacer"></div>
@@ -2064,7 +2084,7 @@ function renderMyVouchers(fromGame){
       <div id="mv-rank-nudge"></div>
 
       <!-- Sponsor strip -->
-      <div style="background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(10px,2.5vw,13px) clamp(12px,3vw,15px);margin-bottom:10px;">
+      <div style="margin-bottom:10px;">
         <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px;">Boutiques partenaires</div>
         <div style="display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;">
           ${SPONSORS.map(function(sp,si){
