@@ -247,6 +247,16 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 
 #tier-up-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:tierUpIn .3s ease;}
 
+/* ── Voucher expiry timer ── */
+[id^="expiry-"]{
+  display:inline-block;
+  font-weight:700;
+  color:#e68800;
+}
+
+/* ── New record overlay uses same tierUpIn anim ── */
+#record-overlay{animation:tierUpIn .3s ease;}
+
 #screen-lobby{
   flex:1;display:flex;flex-direction:column;
   background:#F1F1F2;
@@ -772,6 +782,14 @@ async function doLogin(){
 
 function $(id){return document.getElementById(id);}
 
+// ── Analytics / GTM ───────────────────────────────────────
+window.dataLayer = window.dataLayer || [];
+function _track(event, params){
+  try{
+    window.dataLayer.push(Object.assign({event:'jg_'+event, game:'GardienDeBut'}, params||{}));
+  }catch(e){}
+}
+
 function spawnItem(speed){
   var r=Math.random();var type,w,h;
   var goldenChance, ballChance;
@@ -788,6 +806,7 @@ function spawnItem(speed){
 }
 
 function copyCode(text,btn){
+  _track('voucher_copied',{code:text,player:playerEmail||'anonymous'});
   const originalText=btn.textContent;
   const ok=()=>{
     btn.textContent='✓ COPIÉ';btn.disabled=true;btn.style.opacity='.7';
@@ -956,7 +975,10 @@ function renderLeaderboard(){
       </div>
       <div class="lbd-card" id="lbd-card"><div class="lbd-loading">Chargement...</div></div>
     </div>
-    <div class="lbd-footer"><button class="btn-lbd-back" onclick="goTo(renderLobby)">← RETOUR</button></div>
+    <div class="lbd-footer" style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="_shareLeaderboard()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#25D366;color:#ffffff;border:none;border-radius:8px;padding:clamp(12px,3vw,14px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;letter-spacing:.03em;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.112.549 4.09 1.508 5.812L0 24l6.337-1.48A11.948 11.948 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.89 0-3.66-.497-5.194-1.361l-.373-.22-3.864.902.938-3.765-.243-.386A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>PARTAGER MON RANG</button>
+      <button class="btn-lbd-back" onclick="goTo(renderLobby)">← RETOUR</button>
+    </div>
   </div>`;
   fetchLeaderboard().then(players=>{
     const card=$('lbd-card');if(!card)return;
@@ -977,7 +999,8 @@ function renderLeaderboard(){
       const fullName = [p.name, p.lastName].filter(Boolean).join(' ') || 'Joueur';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const you=isMe?'<span class="lbd-you-badge">TOI</span>':'';
-      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}</div><div class="lbd-score">${pts}</div></div>`;
+      const prizeTag = rank<=3 ? '<span style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:#ff9900;font-family:var(--H2);background:#fff8ee;border:0.5px solid rgba(255,153,0,.4);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;">🎁 '+WEEKLY_PRIZE.sponsor+'</span>' : '';
+      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}${prizeTag}</div><div class="lbd-score">${pts}</div></div>`;
     }).join('');
     card.innerHTML=rows;
 
@@ -1061,7 +1084,8 @@ function renderLobby(){
     ${att===0
       ? `<div class="lb-no-attempts">
            <div class="lb-no-attempts-title">TEMPS MORT !</div>
-           <div class="lb-no-attempts-sub">Tes essais reviennent à minuit. En attendant, utilise tes bons sur Jumia !</div>
+           <div class="lb-no-attempts-sub" id="attempts-countdown">Calcul en cours...</div>
+           <div style="margin-top:10px;"><button onclick="goTo(renderMyVouchers)" style="background:#ff9900;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;">🎟️ UTILISER MES BONS</button></div>
          </div>`
       : `<div class="lb-cta">
            <div class="lb-cta-hint">${att} essai${att>1?'s':''} restant${att>1?'s':''}</div>
@@ -1168,6 +1192,8 @@ function renderLobby(){
     loginInp.addEventListener('keydown',function(e){if(e.key==='Enter')doLobbyLogin();});
     loginBtn.addEventListener('pointerdown',doLobbyLogin);
   }
+  // Start countdown if no attempts left
+  if(att===0) startAttemptsCountdown();
 }
 
 function showTutorialScreen(){
@@ -1403,6 +1429,7 @@ function _dom(id){ return _domCache[id] || (_domCache[id] = document.getElementB
 function _clearDomCache(){ _domCache = {}; }
 
 function startGame(){
+  _track('game_start',{attempts_left:attempts});
   startMusic();
   done=false;wid=0;itemsArr=[];
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
@@ -1620,7 +1647,10 @@ function endGame(final){
   stopMusic();
   scoreVal=final;
   attempts=Math.max(0,attempts-1);
+  _track('game_end',{score:final,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(final).code});
+  var _prevBest=bestScore;
   if(final>bestScore)bestScore=final;
+  if(final>_prevBest&&_prevBest>0){window._newRecord=true;}else{window._newRecord=false;}
   var ev=getVoucher(final);
   var tierKey=ev.code;
   var existing=earnedVouchers.filter(function(x){return x.code===tierKey;})[0];
@@ -1660,7 +1690,7 @@ function renderFormPost(){
       <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" placeholder="Yasmine" autocomplete="given-name"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
       <div class="fm-field"><label class="fm-label" for="inp-lastname">Nom</label><input class="fm-input" id="inp-lastname" type="text" placeholder="Alaoui" autocomplete="family-name"><div class="fm-error-msg" id="err-lastname">Nom requis</div></div>
       <div class="fm-field"><label class="fm-label" for="inp-email">E-mail</label><input class="fm-input" id="inp-email" type="email" placeholder="yasmine@email.com" autocomplete="email" value="${playerEmail||''}"><div class="fm-error-msg" id="err-email">E-mail valide requis</div></div>
-      <div class="fm-field" style="margin-bottom:0"><label class="fm-label" for="inp-city">Ville</label><input class="fm-input" id="inp-city" type="text" placeholder="Casablanca" autocomplete="address-level2"><div class="fm-error-msg" id="err-city">Ville requise</div></div>
+      <div style="display:none"><input class="fm-input" id="inp-city" type="text" value="Maroc"></div>
     </div>
     <div class="fm-spacer"></div>
     <div style="padding:0 clamp(16px,4vw,22px);">
@@ -1724,6 +1754,7 @@ function submitForm(){
     } else {
       // ── NEW PLAYER ───────────────────────────────────────────
       playerName=name;playerLastName=lastname;playerEmail=normEmail;playerCity=city;
+      _track('form_submit',{email:normEmail,score:scoreVal,is_new:true});
       saveSession();
       _lbdCache=null;_lbdCacheTs=0;
       _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
@@ -1938,7 +1969,7 @@ function renderMyVouchers(fromGame){
         <div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px;">Boutiques partenaires</div>
         <div style="display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;">
           ${SPONSORS.map(function(sp,si){
-            return '<div onclick="var s=SPONSORS['+si+'];if(s&&s.shop)window.open(s.shop,\'_blank\')" style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;background:#F8F8F8;border:1px solid #E4E4E6;border-radius:8px;padding:7px 8px;min-width:56px;cursor:pointer;-webkit-tap-highlight-color:transparent;">'+
+            return '<div onclick="_track(\'sponsor_click\',{brand:\''+SPONSORS[si].name+'\',screen:\'vouchers\'});var s=SPONSORS['+si+'];if(s&&s.shop)window.open(s.shop,\'_blank\')" style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;background:#F8F8F8;border:1px solid #E4E4E6;border-radius:8px;padding:7px 8px;min-width:56px;cursor:pointer;-webkit-tap-highlight-color:transparent;">'+
               sponsorLogoHTML(sp,30)+
               '<div style="font-size:clamp(8px,2vw,9px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;">'+sp.discount+'</div>'+
               '<div style="font-size:clamp(7px,1.8vw,8px);color:#8A8A9A;font-family:var(--H2);font-weight:600;white-space:nowrap;max-width:52px;overflow:hidden;text-overflow:ellipsis;text-align:center;">'+sp.name+'</div>'+
@@ -2053,7 +2084,9 @@ function renderMyVouchers(fromGame){
             ?'<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">'+
                 '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(9px,2.3vw,11px) 10px;font-size:clamp(13px,3.5vw,16px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.16em;text-align:center;">'+t.code+'</div>'+
                 '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(9px,2.3vw,11px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
-              '</div>'
+              '</div>'+
+              '<a href="https://www.jumia.ma/" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;width:100%;background:#1E293B;color:#ffffff;border-radius:8px;padding:clamp(10px,2.5vw,12px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;box-sizing:border-box;">ACHETER MAINTENANT →</a>'+
+              '<div style="margin-top:6px;text-align:center;font-size:clamp(9px,2.3vw,10px);color:#e68800;font-family:var(--H2);font-weight:700;">⏱ Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'
             :'')+
 
         '</div>';
@@ -2069,6 +2102,12 @@ function renderMyVouchers(fromGame){
   // Wire REJOUER
   var rb=document.getElementById('mv-btn-replay');
   if(rb)rb.addEventListener('pointerdown',function(){goTo(startGame);});
+
+  // Start expiry countdowns
+  setTimeout(startExpiryCountdowns, 100);
+
+  // Show new record burst if applicable
+  if(window._newRecord){window._newRecord=false;setTimeout(showNewRecord,600);}
 
   // Animate score count-up
   if((fromGame||hasPlayedOnce)&&s>0){
@@ -2160,6 +2199,82 @@ async function doLobbyLogin(){
 function doLogout(){
   clearSession();
   goTo(renderLobby);
+}
+
+// ── ATTEMPTS MIDNIGHT COUNTDOWN ──────────────────────────────
+function startAttemptsCountdown(){
+  var el=document.getElementById('attempts-countdown');
+  if(!el)return;
+  function update(){
+    var now=new Date();
+    var midnight=new Date(now);
+    midnight.setHours(24,0,0,0);
+    var diff=Math.max(0,midnight-now);
+    var h=Math.floor(diff/3600000);
+    var m=Math.floor((diff%3600000)/60000);
+    var s=Math.floor((diff%60000)/1000);
+    var str='Tes essais reviennent dans '+
+      String(h).padStart(2,'0')+'h '+
+      String(m).padStart(2,'0')+'m '+
+      String(s).padStart(2,'0')+'s';
+    var el2=document.getElementById('attempts-countdown');
+    if(el2){el2.textContent=str;}else{clearInterval(_attTimer);}
+  }
+  update();
+  var _attTimer=setInterval(update,1000);
+}
+
+// ── VOUCHER EXPIRY COUNTDOWN (midnight same day) ─────────────
+function startExpiryCountdowns(){
+  var spans=document.querySelectorAll('[id^="expiry-"]');
+  if(!spans.length)return;
+  function update(){
+    var now=new Date();
+    var midnight=new Date(now);midnight.setHours(24,0,0,0);
+    var diff=Math.max(0,midnight-now);
+    var h=Math.floor(diff/3600000);
+    var m=Math.floor((diff%3600000)/60000);
+    var s=Math.floor((diff%60000)/1000);
+    var str=String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
+    document.querySelectorAll('[id^="expiry-"]').forEach(function(sp){sp.textContent=str;});
+  }
+  update();
+  var _expTimer=setInterval(update,1000);
+}
+
+// ── WHATSAPP SHARE ────────────────────────────────────────────
+function _shareLeaderboard(){
+  _track('share_leaderboard',{player:playerEmail||'anonymous',score:bestScore});
+  fetchLeaderboard().then(function(players){
+    var myRank='?';
+    if(playerEmail){
+      var myEmail=playerEmail.toLowerCase().trim();
+      var idx=players.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmail;});
+      if(idx>=0)myRank=idx+1;
+    }
+    var msg='🏆 Je suis #'+myRank+' sur Jumia Gardien de But avec '+Number(bestScore).toLocaleString('fr-FR')+' pts !\n\nPeux-tu faire mieux ? 👉 '+window.location.href;
+    var url='https://wa.me/?text='+encodeURIComponent(msg);
+    window.open(url,'_blank');
+  }).catch(function(){
+    var msg='🏆 Je joue à Jumia Gardien de But ! Viens me défier 👉 '+window.location.href;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  });
+}
+
+// ── NEW PERSONAL RECORD BURST ─────────────────────────────────
+function showNewRecord(){
+  var old=document.getElementById('record-overlay');if(old)old.remove();
+  var el=document.createElement('div');
+  el.id='record-overlay';
+  el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:tierUpIn .3s ease;';
+  el.innerHTML='<div style="background:#ffffff;border:2px solid #ff9900;border-radius:16px;padding:24px 32px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4);">'+
+    '<div style="font-size:36px;margin-bottom:6px;">🎉</div>'+
+    '<div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:4px;">NOUVEAU RECORD</div>'+
+    '<div style="font-size:clamp(28px,8vw,36px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;">'+Number(bestScore).toLocaleString('fr-FR')+' pts</div>'+
+  '</div>';
+  document.body.appendChild(el);
+  sfxTierUp();
+  setTimeout(function(){el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(function(){el.remove();},420);},2200);
 }
 
 function preloadAssets(){
