@@ -449,10 +449,11 @@ const IMG_TROPHY="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' v
 // ── VOUCHER TIERS (score thresholds ×2.5 vs original) ─────────────────────
 // Original → New:  300→750  |  800→2000  |  2000→5000
 function getVoucher(s){
-  if(s>=5000)return{disc:"20%",code:"JMLEGENDE20",label:"LÉGENDE",min:400};
-  if(s>=2000) return{disc:"15%",code:"JMCHAMP15", label:"CHAMPION",min:250};
-  if(s>=750) return{disc:"10%",code:"JMMATCH10", label:"MATCH READY",min:150};
-  return          {disc:"5%", code:"JMSTART5",  label:"DÉBUTANT",min:0};
+  if(s>=5000)return{disc:"60 DH",code:"GWOF-602024",label:"LÉGENDE",min:750};
+  if(s>=2000) return{disc:"50 DH",code:"GWOF-509162",label:"CHAMPION",min:600};
+  if(s>=750) return{disc:"30 DH",code:"GWOF-304364",label:"MATCH READY",min:400};
+  if(s>=300) return{disc:"20 DH",code:"GWOF-200789",label:"DÉBUTANT",min:240};
+  return          {disc:"10 DH",code:"GWOF-107655",label:"STARTER",min:120};
 }
 
 // STATE
@@ -505,10 +506,11 @@ function clearSession(){
 function vouchersFromScore(score){
   var result=[];
   var TIERS=[
-    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',min:400,pts:5000},
-    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',min:250,pts:2000},
-    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150,pts:750},
-    {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',min:0,pts:0},
+    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',min:750,pts:5000},
+    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',min:600,pts:2000},
+    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:400,pts:750},
+    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',min:240,pts:300},
+    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',min:120,pts:0},
   ];
   for(var i=0;i<TIERS.length;i++){
     if(score>=TIERS[i].pts){
@@ -931,7 +933,7 @@ function renderLobby(){
       <div class="lb-stat" id="lb-stat-voucher"
            style="cursor:pointer;"
            onclick="goTo(renderMyVouchers)">
-        <div class="lb-stat-val${bestScore>0?' hi':''}">${bestScore>=5000?'20%':bestScore>=2000?'15%':bestScore>=750?'10%':bestScore>0?'5%':'—'}</div>
+        <div class="lb-stat-val${bestScore>0?' hi':''}">${bestScore>=5000?'60 DH':bestScore>=2000?'50 DH':bestScore>=750?'30 DH':bestScore>=300?'20 DH':bestScore>0?'10 DH':'—'}</div>
         <div class="lb-stat-lbl">Mes bons <span class="lb-stat-arrow">›</span></div>
       </div>
     </div>
@@ -962,7 +964,7 @@ function renderLobby(){
         <div class="lb-action-card__icon">🎟️</div>
         <div class="lb-action-card__body">
           <div class="lb-action-card__title">MES BONS</div>
-          <div class="lb-action-card__sub">${bestScore>=5000?'20% OFF débloqué — utilise-le !':bestScore>=2000?'15% OFF débloqué — utilise-le !':bestScore>=750?'10% OFF débloqué — utilise-le !':bestScore>0?'5% OFF débloqué — utilise-le !':'Jusqu\'à 20% OFF — joue pour plus !'}</div>
+          <div class="lb-action-card__sub">${bestScore>=5000?'60 DH débloqué — utilise-le !':bestScore>=2000?'50 DH débloqué — utilise-le !':bestScore>=750?'30 DH débloqué — utilise-le !':bestScore>=300?'20 DH débloqué — utilise-le !':bestScore>0?'10 DH débloqué — utilise-le !':'Jusqu\'à 60 DH de réduction — joue !'}</div>
         </div>
         <div class="lb-action-card__arrow" style="color:#ff9900;">›</div>
       </div>
@@ -1418,7 +1420,7 @@ function tick(ts){
     scoreVal+=ptsGained;
     var sd=_dom('score-disp');if(sd)sd.textContent=scoreVal;
     // Tier-up toasts
-    const tiers=[{t:5000,l:'LÉGENDE',d:'20%'},{t:2000,l:'CHAMPION',d:'15%'},{t:750,l:'MATCH READY',d:'10%'}];
+    const tiers=[{t:5000,l:'LÉGENDE',d:'60 DH'},{t:2000,l:'CHAMPION',d:'50 DH'},{t:750,l:'MATCH READY',d:'30 DH'},{t:300,l:'DÉBUTANT',d:'20 DH'}];
     for(var ti=0;ti<tiers.length;ti++){
       if(scoreVal>=tiers[ti].t&&lastTierReached<tiers[ti].t){lastTierReached=tiers[ti].t;showTierUp(tiers[ti].l,tiers[ti].d);break;}
     }
@@ -1616,8 +1618,8 @@ function renderResult(){
       <div class="rs-score-card"><div class="rs-score-val">${Math.floor(elapsedSec)}s</div><div class="rs-score-lbl">SURVIE</div></div>
     </div>
     ${isLow
-      ?`<div class="rs-low"><div class="rs-low-title">PAS ENCORE !</div><div class="rs-low-sub">Atteins <b>750 pts</b> pour ton bon.<br>Attrape plus de ballons !</div></div>`
-      :`<div class="rs-voucher"><div class="rs-voucher-pct">${v.disc} OFF</div><div class="rs-voucher-label">${v.label}${v.min>0?' · min. '+v.min+' MAD':''}</div><div class="rs-voucher-code">${v.code}</div></div>`}
+      ?`<div class="rs-low"><div class="rs-low-title">PAS ENCORE !</div><div class="rs-low-sub">Atteins <b>300 pts</b> pour 20 DH, <b>750 pts</b> pour 30 DH.<br>Attrape plus de ballons !</div></div>`
+      :`<div class="rs-voucher"><div class="rs-voucher-pct">${v.disc} OFF</div><div class="rs-voucher-label">${v.label}${v.min>0?' · min. '+v.min+' DH':''}</div><div class="rs-voucher-code">${v.code}</div></div>`}
     <div id="rs-rank-nudge"></div>
     <div style="flex:1;min-height:clamp(12px,3vw,20px);"></div>
     <div class="rs-actions">
@@ -1678,10 +1680,11 @@ function renderMyVouchers(fromGame){
   // fromGame = true when arriving straight from endGame/submitForm
   // ── TIERS with ×2.5 pts thresholds ─────────────────────────
   var TIERS=[
-    {disc:'20%',code:'JMLEGENDE20',label:'LÉGENDE',    min:400, pts:5000},
-    {disc:'15%',code:'JMCHAMP15', label:'CHAMPION',   min:250, pts:2000},
-    {disc:'10%',code:'JMMATCH10', label:'MATCH READY',min:150, pts:750 },
-    {disc:'5%', code:'JMSTART5',  label:'DÉBUTANT',   min:0,   pts:0   },
+    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',    min:750, pts:5000},
+    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',   min:600, pts:2000},
+    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:400, pts:750 },
+    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',   min:240, pts:300 },
+    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',      min:120, pts:0   },
   ];
 
   // ── CASCADE RULE ────────────────────────────────────────────
@@ -1717,18 +1720,18 @@ function renderMyVouchers(fromGame){
   var scoreBannerHTML = '';
   if(fromGame || hasPlayedOnce){
     scoreBannerHTML =
-      '<div style="display:flex;gap:8px;padding:clamp(12px,3vw,16px) clamp(16px,4vw,22px) 0;">' +
-        '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:10px;padding:10px 6px;text-align:center;">' +
-          '<div id="mv-pts-anim" style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;">'+Number(s).toLocaleString('fr-FR')+'</div>' +
-          '<div style="font-size:clamp(7px,1.8vw,9px);font-weight:700;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">POINTS</div>' +
+      '<div style="display:flex;gap:6px;padding:8px clamp(16px,4vw,22px) 0;">' +
+        '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:8px;padding:7px 4px;text-align:center;">' +
+          '<div id="mv-pts-anim" style="font-size:clamp(15px,4.2vw,18px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;">'+Number(s).toLocaleString('fr-FR')+'</div>' +
+          '<div style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">POINTS</div>' +
         '</div>' +
-        '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:10px;padding:10px 6px;text-align:center;">' +
-          '<div style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;">×'+Math.min(maxComboVal,3)+'</div>' +
-          '<div style="font-size:clamp(7px,1.8vw,9px);font-weight:700;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">COMBO</div>' +
+        '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:8px;padding:7px 4px;text-align:center;">' +
+          '<div style="font-size:clamp(15px,4.2vw,18px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;">×'+Math.min(maxComboVal,3)+'</div>' +
+          '<div style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">COMBO</div>' +
         '</div>' +
-        '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:10px;padding:10px 6px;text-align:center;">' +
-          '<div style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;">'+Math.floor(elapsedSec)+'s</div>' +
-          '<div style="font-size:clamp(7px,1.8vw,9px);font-weight:700;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">SURVIE</div>' +
+        '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:8px;padding:7px 4px;text-align:center;">' +
+          '<div style="font-size:clamp(15px,4.2vw,18px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;">'+Math.floor(elapsedSec)+'s</div>' +
+          '<div style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:rgba(255,255,255,.65);font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">SURVIE</div>' +
         '</div>' +
       '</div>';
   }
@@ -1736,26 +1739,26 @@ function renderMyVouchers(fromGame){
   $('app').innerHTML=`
   <div id="screen-vouchers" style="flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;animation:fadeIn .25s ease;">
 
-    <!-- Header — orange, taller when post-game to fit score bar -->
-    <div style="flex:0 0 auto;background:#ff9900;padding:clamp(16px,4vw,20px) clamp(16px,4vw,22px) clamp(16px,4vw,20px);">
+    <!-- Header — orange, compact for webview -->
+    <div style="flex:0 0 auto;background:#ff9900;padding:10px clamp(16px,4vw,22px) 10px;">
 
       <!-- Back + title row -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:${(fromGame||hasPlayedOnce)?'10px':'clamp(14px,3.5vw,18px)'};">
-        <button onclick="goTo(renderLobby)" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:${(fromGame||hasPlayedOnce)?'8px':'10px'};">
+        <button onclick="goTo(renderLobby)" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div style="flex:1;">
-          <div style="font-size:clamp(18px,5vw,22px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;">${(fromGame||hasPlayedOnce)?resultLabel:'MES BONS'}</div>
-          <div style="font-size:clamp(9px,2.3vw,11px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:2px;">${(fromGame||hasPlayedOnce)?'Utilise-les dès maintenant sur Jumia':'Tes réductions sont actives'}</div>
+          <div style="font-size:clamp(16px,4.5vw,20px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;">${(fromGame||hasPlayedOnce)?resultLabel:'MES BONS'}</div>
+          <div style="font-size:clamp(9px,2.3vw,10px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:1px;">${(fromGame||hasPlayedOnce)?'Utilise-les dès maintenant sur Jumia':'Tes réductions sont actives'}</div>
         </div>
-        ${attLeft>0?`<button id="mv-btn-replay" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#ffffff;border-radius:10px;padding:8px 14px;font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">⚽ REJOUER</button>`:''}
+        ${attLeft>0?`<button id="mv-btn-replay" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#ffffff;border-radius:8px;padding:6px 12px;font-size:clamp(10px,2.6vw,12px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">⚽ REJOUER</button>`:''}
       </div>
 
       <!-- Score bar (post-game only) -->
       ${scoreBannerHTML}
 
       <!-- Progress strip -->
-      <div style="display:flex;gap:6px;align-items:center;margin-top:clamp(12px,3vw,16px);">
+      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
         ${tierDisplay.map(function(t){
           return '<div style="flex:1;height:5px;border-radius:3px;background:'+(t.unlocked?'#ffffff':'rgba(255,255,255,.25)')+';transition:background .3s;"></div>';
         }).join('')}
@@ -1813,26 +1816,47 @@ function renderMyVouchers(fromGame){
             ?'<div style="background:rgba(255,153,0,.15);color:#e68800;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">INCLUS</div>'
             :'<div style="background:#E4E4E6;color:#8A8A9A;font-size:clamp(8px,2vw,9px);font-weight:900;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:2px 7px;">'+(t.pts>0?Number(t.pts).toLocaleString('fr-FR')+' pts':'Gratuit')+'</div>';
 
-        var minLabel = t.unlocked
-          ?(t.min===0?'<span style="color:#27ae60;font-weight:700;">Sans minimum d\'achat</span>':'min. '+t.min+' MAD')
-          :(t.min>0?'min. '+t.min+' MAD':'Sans minimum');
+        // Minimum order — the hero element
+        var minBlock = t.min===0
+          ?'<div style="display:flex;align-items:center;gap:6px;margin-top:8px;background:'+(t.unlocked?'#e8f5e9':'#f5f5f5')+';border-radius:8px;padding:8px 12px;">'+
+              '<div style="font-size:16px;flex-shrink:0;">🛒</div>'+
+              '<div>'+
+                '<div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;">Minimum d\'achat</div>'+
+                '<div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:#27ae60;font-family:var(--H1);">Aucun minimum requis</div>'+
+              '</div>'+
+            '</div>'
+          :'<div style="display:flex;align-items:center;gap:6px;margin-top:8px;background:'+(t.unlocked?'#fff8ee':'#f5f5f5')+';border-radius:8px;padding:8px 12px;">'+
+              '<div style="font-size:16px;flex-shrink:0;">🛒</div>'+
+              '<div>'+
+                '<div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;">Minimum d\'achat</div>'+
+                '<div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:'+(t.unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);">'+Number(t.min).toLocaleString('fr-FR')+' DH</div>'+
+              '</div>'+
+            '</div>';
 
-        return '<div style="background:'+bg+';border:1.5px solid '+border+';border-radius:12px;padding:clamp(14px,3.5vw,18px);margin-bottom:10px;opacity:'+opacity+';">'+
-          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:'+(t.unlocked?'12px':'0')+';">'+
+        return '<div style="background:'+bg+';border:1.5px solid '+border+';border-radius:12px;padding:clamp(12px,3vw,16px);margin-bottom:10px;opacity:'+opacity+';">'+
+
+          // Top row: amount + badge + label
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:0;">'+
             '<div style="flex:1;">'+
               '<div style="display:flex;align-items:baseline;gap:8px;">'+
-                '<div style="font-size:clamp(30px,8.5vw,40px);font-weight:900;color:'+(t.unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);line-height:1;letter-spacing:-.01em;">'+t.disc+' OFF</div>'+
+                '<div style="font-size:clamp(26px,7.5vw,36px);font-weight:900;color:'+(t.unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);line-height:1;letter-spacing:-.01em;">'+t.disc+' OFF</div>'+
                 badge+
               '</div>'+
-              '<div style="font-size:clamp(10px,2.5vw,12px);color:#8A8A9A;font-family:var(--H2);margin-top:3px;">'+t.label+' · '+minLabel+'</div>'+
+              '<div style="font-size:clamp(9px,2.3vw,11px);color:#8A8A9A;font-family:var(--H2);margin-top:1px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">'+t.label+'</div>'+
             '</div>'+
           '</div>'+
+
+          // Minimum order block — always visible, prominent
+          minBlock+
+
+          // Code + copy button — only when unlocked
           (t.unlocked
-            ?'<div style="display:flex;align-items:center;gap:8px;">'+
-                '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(10px,2.5vw,12px) 10px;font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.18em;text-align:center;">'+t.code+'</div>'+
-                '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
+            ?'<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">'+
+                '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(9px,2.3vw,11px) 10px;font-size:clamp(13px,3.5vw,16px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.16em;text-align:center;">'+t.code+'</div>'+
+                '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(9px,2.3vw,11px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
               '</div>'
             :'')+
+
         '</div>';
       }).join('')}
 
