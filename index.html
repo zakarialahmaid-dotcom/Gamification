@@ -431,16 +431,16 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lb-sponsor-tile{
   flex:0 0 clamp(72px,18vw,88px);
   height:clamp(72px,18vw,88px);
-  background:#ffffff;
-  border:1px solid #E4E4E6;
+  background:transparent;
+  border:none;
   border-radius:12px;
   display:flex;align-items:center;justify-content:center;
-  padding:8px;overflow:hidden;
+  padding:4px;overflow:hidden;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
-  transition:border-color .15s,transform .1s;
+  transition:transform .1s;
 }
-.lb-sponsor-tile:active{border-color:#ff9900;transform:scale(.95);}
+.lb-sponsor-tile:active{transform:scale(.95);}
 .lb-sponsor-tile img{width:100%;height:100%;object-fit:contain;border-radius:6px;}
 .lb-sponsor-tile-placeholder{
   width:100%;height:100%;
@@ -768,7 +768,7 @@ async function doLogin(){
   }
 }
 
-function $(id){return document.getElementById(id);}
+
 
 // ── Analytics / GTM ───────────────────────────────────────
 window.dataLayer = window.dataLayer || [];
@@ -777,6 +777,36 @@ function _track(event, params){
     window.dataLayer.push(Object.assign({event:'jg_'+event, game:'GardienDeBut'}, params||{}));
   }catch(e){}
 }
+
+function $(id){return document.getElementById(id);}
+
+// ── ANDROID WEBVIEW KEYBOARD FIX ─────────────────────────────
+(function(){
+  function forceKeyboard(input){
+    if(!input) return;
+    input.setAttribute('inputmode', input.type === 'email' ? 'email' : 'text');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('autocapitalize', 'none');
+    input.readOnly = true;
+    input.focus();
+    setTimeout(function(){
+      input.readOnly = false;
+      input.focus();
+      setTimeout(function(){
+        input.scrollIntoView({behavior:'smooth', block:'center'});
+      }, 300);
+    }, 50);
+  }
+  document.addEventListener('touchend', function(e){
+    var el = e.target;
+    if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')){
+      forceKeyboard(el);
+    }
+  }, {passive:true});
+})();
+
+
+
 
 function spawnItem(speed){
   var r=Math.random();var type,w,h;
@@ -1170,22 +1200,16 @@ function renderLobby(){
     if(!inner || !track) return;
 
     var pos      = 0;
-    var halfW    = 0;
+    var halfW    = 0;       // width of ONE set of logos
     var rafId    = null;
     var lastTs   = null;
     var PX_PER_S = 45;
-    var paused   = false;
 
-    // Measure after two rAF ticks to ensure layout is fully flushed
-    function measure(){
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          // halfW = width of ONE full set of logos (inner has 2 sets)
-          // Use scrollWidth/2 after layout is guaranteed flushed
-          var w = inner.scrollWidth;
-          if(w > 10) halfW = w / 2;
-        });
-      });
+    // Normalise pos into [-halfW, 0) range — no blanks ever
+    function wrapPos(){
+      if(halfW <= 0) return;
+      pos = pos % halfW;          // keep within one period
+      if(pos > 0)  pos -= halfW;  // always negative (scrolled left)
     }
 
     function startScroll(){
@@ -1201,26 +1225,38 @@ function renderLobby(){
       if(lastTs === null) lastTs = ts;
       var dt = Math.min(ts - lastTs, 50);
       lastTs = ts;
-
       if(halfW > 0){
         pos -= PX_PER_S * (dt / 1000);
-        // Seamless: when we've scrolled one full set, snap back to 0
-        if(pos <= -halfW) pos += halfW;
+        wrapPos();
+        inner.style.transform = 'translateX('+Math.round(pos)+'px)';
       }
-
-      inner.style.transform = 'translateX('+Math.round(pos)+'px)';
       rafId = requestAnimationFrame(step);
     }
 
-    // Wait for all images to load before measuring
+    // Measure: wait for layout to flush, then start
+    function measureAndStart(){
+      // Double rAF guarantees layout is complete
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          var w = inner.scrollWidth;
+          if(w > 10){
+            halfW = Math.round(w / 2);
+            wrapPos(); // clamp pos now that halfW is known
+          }
+          startScroll();
+        });
+      });
+    }
+
+    // Wait for all images before measuring
     var imgs  = Array.prototype.slice.call(inner.querySelectorAll('img'));
     var total = imgs.length;
     var done  = 0;
     function onImgDone(){
       done++;
-      if(done >= total){ measure(); startScroll(); }
+      if(done >= total) measureAndStart();
     }
-    if(total === 0){ measure(); startScroll(); }
+    if(total === 0){ measureAndStart(); }
     else {
       imgs.forEach(function(img){
         if(img.complete && img.naturalWidth > 0){ onImgDone(); }
@@ -1229,19 +1265,16 @@ function renderLobby(){
           img.addEventListener('error', onImgDone, {once:true});
         }
       });
-      // Safety fallback — start after 2s regardless
-      setTimeout(function(){
-        if(!rafId){ measure(); startScroll(); }
-      }, 2000);
+      setTimeout(function(){ if(!rafId) measureAndStart(); }, 2000);
     }
 
-    // Touch swipe — 1:1 finger tracking
+    // Touch swipe — 1:1 finger tracking, wraps correctly
     var touchX = 0, velX = 0, lastTouchT = 0;
     track.addEventListener('touchstart', function(e){
       stopScroll();
-      touchX     = e.touches[0].clientX;
+      touchX = e.touches[0].clientX;
       lastTouchT = performance.now();
-      velX       = 0;
+      velX = 0;
     }, {passive:true});
     track.addEventListener('touchmove', function(e){
       var now = performance.now();
@@ -1250,35 +1283,23 @@ function renderLobby(){
       touchX  = e.touches[0].clientX;
       lastTouchT = now;
       pos += dx;
-      // Keep pos within [-halfW, 0] range
-      if(halfW > 0){
-        while(pos > 0)       pos -= halfW;
-        while(pos <= -halfW) pos += halfW;
-      }
+      wrapPos(); // always clamp — no blank space on swipe either
       inner.style.transform = 'translateX('+Math.round(pos)+'px)';
     }, {passive:true});
     track.addEventListener('touchend', function(){
-      // Apply momentum from swipe velocity
-      if(halfW > 0){
-        pos += velX * 120;
-        while(pos > 0)       pos -= halfW;
-        while(pos <= -halfW) pos += halfW;
-        inner.style.transform = 'translateX('+Math.round(pos)+'px)';
-      }
-      setTimeout(startScroll, 100);
+      if(halfW > 0){ pos += velX * 80; wrapPos(); inner.style.transform = 'translateX('+Math.round(pos)+'px)'; }
+      setTimeout(startScroll, 80);
     }, {passive:true});
 
-    // Pause when tab hidden
+    // Pause when tab hidden, resume on return
     document.addEventListener('visibilitychange', function(){
       if(document.hidden){ stopScroll(); }
-      else { startScroll(); }
+      else { lastTs = null; startScroll(); }
     });
 
-    // Cleanup on navigate away
+    // Cleanup on navigate
     var obs = new MutationObserver(function(){
-      if(!document.getElementById('lb-sponsors-inner')){
-        stopScroll(); obs.disconnect();
-      }
+      if(!document.getElementById('lb-sponsors-inner')){ stopScroll(); obs.disconnect(); }
     });
     var appEl = document.getElementById('app');
     if(appEl) obs.observe(appEl, {childList:true});
@@ -2050,7 +2071,7 @@ function renderMyVouchers(fromGame){
             var logoInner=sp.logo
               ?'<img src="'+sp.logo+'" alt="'+sp.name+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" draggable="false" loading="lazy">'
               :'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#1E293B;font-family:var(--H1);background:#F1F1F2;border-radius:6px;">'+sp.name.slice(0,2).toUpperCase()+'</div>';
-            return '<div onclick="_track(\'sponsor_click\',{brand:SPONSORS['+si+'].name,screen:\'vouchers\'});var s=SPONSORS['+si+'];if(s&&s.shop)window.open(s.shop,\'_blank\')" style="flex:0 0 clamp(64px,16vw,80px);height:clamp(64px,16vw,80px);background:#F8F8F8;border:1px solid #E4E4E6;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:7px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;">'+logoInner+'</div>';
+            return '<div onclick="_track(\'sponsor_click\',{brand:SPONSORS['+si+'].name,screen:\'vouchers\'});var s=SPONSORS['+si+'];if(s&&s.shop)window.open(s.shop,\'_blank\')" style="flex:0 0 clamp(64px,16vw,80px);height:clamp(64px,16vw,80px);background:transparent;border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:4px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;">'+logoInner+'</div>';
           }).join('')}
         </div>
       </div>
