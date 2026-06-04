@@ -500,7 +500,48 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lb-action-card--voucher .lb-action-card__sub{color:#e68800;font-weight:700;}
 .lb-action-card__arrow{font-size:clamp(20px,5vw,24px);font-weight:900;color:#8A8A9A;font-family:var(--H1);flex-shrink:0;line-height:1;}
 
-</style>
+/* ── VIRTUAL KEYBOARD ─────────────────────────────────────── */
+#vkb-overlay{position:fixed;inset:0;z-index:9998;display:none;}
+#vkb{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#d1d5db;
+  padding:6px 3px 10px;
+  transform:translateY(100%);
+  transition:transform .2s ease;
+  touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
+}
+#vkb.vkb-show{transform:translateY(0);}
+.vkb-preview{
+  background:#1e293b;color:#fff;
+  font-size:15px;font-family:system-ui,sans-serif;
+  padding:6px 12px;border-radius:6px;
+  margin:0 4px 6px;min-height:32px;
+  display:flex;align-items:center;
+  overflow:hidden;
+}
+.vkb-preview span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vkb-caret{width:2px;height:16px;background:#ff9900;margin-left:2px;flex-shrink:0;animation:vkbBlink .8s step-end infinite;}
+@keyframes vkbBlink{0%,100%{opacity:1}50%{opacity:0}}
+.vkb-row{display:flex;justify-content:center;gap:4px;margin-bottom:4px;}
+.vkb-k{
+  height:42px;min-width:30px;flex:1;max-width:38px;
+  background:#fff;border:none;border-radius:5px;
+  box-shadow:0 1px 0 0 #8a8e97;
+  font-size:16px;font-weight:500;color:#111;
+  font-family:system-ui,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .08s;
+  -webkit-tap-highlight-color:transparent;
+  flex-shrink:0;
+}
+.vkb-k:active{background:#bbc0c9;}
+.vkb-k.dark{background:#adb5bd;font-size:13px;max-width:46px;}
+.vkb-k.wide{max-width:60px;}
+.vkb-k.space{flex:3;max-width:180px;font-size:13px;color:#555;}
+.vkb-k.done{background:#ff9900;color:#fff;font-weight:700;font-size:13px;max-width:76px;}
+.vkb-k.done:active{background:#e68800;}
+
 </head>
 <body>
 <div id="app"></div>
@@ -782,47 +823,139 @@ function _track(event, params){
 
 function $(id){return document.getElementById(id);}
 
-// ── ANDROID WEBVIEW KEYBOARD FIX ─────────────────────────────
-// touch-action:none on body blocks keyboard in Jumia WebView.
-// Override: set input attributes + readOnly trick on every tap.
+// ── VIRTUAL KEYBOARD ─────────────────────────────────────────
 (function(){
-  function forceKeyboard(input){
-    if(!input) return;
-    // Set correct inputmode so Android shows right keyboard type
-    if(input.type === 'email' || input.name === 'email' || input.id.indexOf('email') >= 0){
-      input.setAttribute('inputmode','email');
-    } else {
-      input.setAttribute('inputmode','text');
-    }
-    input.setAttribute('autocorrect','off');
-    input.setAttribute('autocapitalize','off');
-    input.setAttribute('spellcheck','false');
-    // readOnly trick: WebView opens keyboard when switching from readOnly to editable
-    input.readOnly = true;
-    input.blur();
-    setTimeout(function(){
-      input.readOnly = false;
-      input.focus();
-      // Place cursor at end
-      try{var v=input.value;input.value='';input.value=v;}catch(e){}
-    }, 30);
+  var vkb       = document.getElementById('vkb');
+  var vkbKeys   = document.getElementById('vkb-keys');
+  var vkbText   = document.getElementById('vkb-text');
+  var vkbOvl    = document.getElementById('vkb-overlay');
+  var activeInput = null;
+  var shifted   = false;
+  var numMode   = false;
+
+  // ── Layouts ──────────────────────────────────────────────
+  var alpha = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['⇧','z','x','c','v','b','n','m','⌫'],
+    ['123','@','.','espace','done']
+  ];
+  var nums = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['-','_','.','@','#','!','&','+','=','%'],
+    ['/','\\',':',';','(',')','€','$','£','¥'],
+    ['abc','espace','⌫','done']
+  ];
+
+  function currentLayout(){ return numMode ? nums : alpha; }
+
+  function buildKeys(){
+    vkbKeys.innerHTML = '';
+    var layout = currentLayout();
+    layout.forEach(function(row){
+      var div = document.createElement('div');
+      div.className = 'vkb-row';
+      row.forEach(function(k){
+        var btn = document.createElement('div');
+        btn.className = 'vkb-k';
+        var display = k;
+        if(k === 'espace'){ btn.className += ' space'; display = 'espace'; }
+        else if(k === 'done'){ btn.className += ' done'; display = 'OK ✓'; }
+        else if(k === '⌫'){ btn.className += ' dark wide'; display = '⌫'; }
+        else if(k === '⇧'){ btn.className += ' dark wide'; display = shifted ? '⇧●' : '⇧'; }
+        else if(k === '123' || k === 'abc'){ btn.className += ' dark wide'; }
+        else if(['@','.','#','!','_','-'].indexOf(k) >= 0){ btn.className += ' dark'; }
+
+        btn.textContent = display;
+        btn.addEventListener('touchstart', function(e){
+          e.preventDefault(); e.stopPropagation();
+          handleKey(k);
+        }, {passive:false});
+        // Also pointerdown for desktop testing
+        btn.addEventListener('pointerdown', function(e){
+          e.preventDefault(); e.stopPropagation();
+          handleKey(k);
+        });
+        div.appendChild(btn);
+      });
+      vkbKeys.appendChild(div);
+    });
   }
 
-  // Intercept on pointerdown (fires before focus, works on Android WebView)
-  document.addEventListener('pointerdown', function(e){
-    var el = e.target;
-    if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')){
-      forceKeyboard(el);
+  function handleKey(k){
+    if(!activeInput) return;
+    if(k === 'done'){ closeVKB(); return; }
+    if(k === '⌫'){
+      activeInput.value = activeInput.value.slice(0,-1);
+      syncPreview(); return;
     }
-  }, {passive:true});
+    if(k === '⇧'){ shifted = !shifted; buildKeys(); return; }
+    if(k === '123'){ numMode = true; buildKeys(); return; }
+    if(k === 'abc'){ numMode = false; buildKeys(); return; }
+    if(k === 'espace'){ activeInput.value += ' '; syncPreview(); return; }
+    var char = (!numMode && shifted) ? k.toUpperCase() : k;
+    activeInput.value += char;
+    if(shifted){ shifted = false; buildKeys(); }
+    syncPreview();
+    // fire input event so any listeners update
+    activeInput.dispatchEvent(new Event('input', {bubbles:true}));
+  }
 
-  // Also on touchstart as fallback
+  function syncPreview(){
+    vkbText.textContent = activeInput ? activeInput.value : '';
+  }
+
+  function openVKB(input){
+    activeInput = input;
+    // Prevent native keyboard
+    input.setAttribute('readonly','readonly');
+    input.blur();
+    syncPreview();
+    buildKeys();
+    vkb.classList.add('vkb-show');
+    vkbOvl.style.display = 'block';
+    // Scroll the input into view above the keyboard
+    setTimeout(function(){
+      var rect = input.getBoundingClientRect();
+      var kbH  = vkb.offsetHeight;
+      var vis  = window.innerHeight - kbH;
+      if(rect.bottom > vis){
+        var scroller = input.closest('[style*="overflow"]') || input.closest('.fm-form') || document.getElementById('app');
+        if(scroller) scroller.scrollTop += (rect.bottom - vis + 16);
+      }
+    }, 220);
+  }
+
+  function closeVKB(){
+    vkb.classList.remove('vkb-show');
+    vkbOvl.style.display = 'none';
+    if(activeInput){
+      // Fire change event
+      activeInput.dispatchEvent(new Event('change', {bubbles:true}));
+      activeInput = null;
+    }
+  }
+
+  // Close on overlay tap
+  vkbOvl.addEventListener('touchstart', function(e){
+    e.preventDefault(); closeVKB();
+  }, {passive:false});
+
+  // Intercept all input taps in the game
   document.addEventListener('touchstart', function(e){
     var el = e.target;
-    if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')){
-      forceKeyboard(el);
+    if(!el) return;
+    // If tapping a key, ignore
+    if(el.closest('#vkb')) return;
+    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){
+      e.preventDefault();
+      e.stopPropagation();
+      openVKB(el);
+    } else if(activeInput && !el.closest('#vkb')){
+      closeVKB();
     }
-  }, {passive:true});
+  }, {passive:false, capture:true});
+
 })();
 
 
@@ -2416,5 +2549,11 @@ function preloadAssets(){
 
 preloadAssets();
 </script>
+<!-- ── VIRTUAL KEYBOARD ── -->
+<div id="vkb-overlay"></div>
+<div id="vkb">
+  <div class="vkb-preview"><span id="vkb-text"></span><div class="vkb-caret"></div></div>
+  <div id="vkb-keys"></div>
+</div>
 </body>
 </html>
