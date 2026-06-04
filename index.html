@@ -831,34 +831,35 @@ function _track(event, params){
 function $(id){return document.getElementById(id);}
 
 // ── VIRTUAL KEYBOARD ─────────────────────────────────────────
-setTimeout(function(){
-(function(){
-  var vkb      = document.getElementById('vkb');
-  var vkbKeys  = document.getElementById('vkb-keys');
-  var vkbText  = document.getElementById('vkb-text');
-  var vkbOvl   = document.getElementById('vkb-overlay');
-  if(!vkb||!vkbKeys||!vkbOvl){console.warn('[VKB] elements not found');return;}
+(function initVKB(){
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initVKB);
+    return;
+  }
 
-  var activeInput = null;
-  var shifted = false;
-  var numMode = false;
+  var vkb     = document.getElementById('vkb');
+  var vkbKeys = document.getElementById('vkb-keys');
+  var vkbText = document.getElementById('vkb-text');
+  var vkbOvl  = document.getElementById('vkb-overlay');
+  if(!vkb||!vkbKeys||!vkbOvl){console.warn('[VKB] missing elements');return;}
 
-  var ALPHA = [
+  var activeInput=null, shifted=false, numMode=false;
+
+  var ALPHA=[
     ['q','w','e','r','t','y','u','i','o','p'],
     ['a','s','d','f','g','h','j','k','l'],
-    ['⇧','z','x','c','v','b','n','m','⌫'],
-    ['123','@','.','-','_','espace','OK ✓']
+    ['\u21e7','z','x','c','v','b','n','m','\u232b'],
+    ['123','@','.','-','_','espace','OK \u2713']
   ];
-  var NUMS = [
+  var NUMS=[
     ['1','2','3','4','5','6','7','8','9','0'],
     ['-','_','.','@','!','&','+','=','#','%'],
-    ['abc','espace','⌫','OK ✓']
+    ['abc','espace','\u232b','OK \u2713']
   ];
 
   function buildKeys(){
     vkbKeys.innerHTML='';
-    var layout = numMode ? NUMS : ALPHA;
-    layout.forEach(function(row){
+    (numMode?NUMS:ALPHA).forEach(function(row){
       var d=document.createElement('div');
       d.className='vkb-row';
       row.forEach(function(k){
@@ -866,11 +867,18 @@ setTimeout(function(){
         b.className='vkb-k';
         var label=k;
         if(k==='espace'){b.className+=' space';label='espace';}
-        else if(k==='OK ✓'){b.className+=' done';}
-        else if(k==='⌫'||k==='⇧'||k==='123'||k==='abc'){b.className+=' dark wide';}
+        else if(k==='OK \u2713'){b.className+=' done';}
+        else if(k==='\u232b'){b.className+=' dark wide';}
+        else if(k==='\u21e7'){b.className+=' dark wide';label=shifted?'\u21e7\u25cf':'\u21e7';}
+        else if(k==='123'||k==='abc'){b.className+=' dark wide';}
         else if(['@','.','-','_','#','!'].indexOf(k)>=0){b.className+=' dark';}
         b.textContent=label;
-        b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();tap(k);},{passive:false});
+        b.addEventListener('touchstart',function(e){e.preventDefault();b.style.background='#bbc0c9';},{passive:false});
+        b.addEventListener('touchend',function(e){
+          e.preventDefault();e.stopPropagation();
+          b.style.background='';
+          tap(k);
+        },{passive:false});
         d.appendChild(b);
       });
       vkbKeys.appendChild(d);
@@ -879,9 +887,9 @@ setTimeout(function(){
 
   function tap(k){
     if(!activeInput)return;
-    if(k==='OK ✓'){vkbClose();return;}
-    if(k==='⌫'){activeInput.value=activeInput.value.slice(0,-1);sync();return;}
-    if(k==='⇧'){shifted=!shifted;buildKeys();return;}
+    if(k==='OK \u2713'){vkbClose();return;}
+    if(k==='\u232b'){activeInput.value=activeInput.value.slice(0,-1);sync();return;}
+    if(k==='\u21e7'){shifted=!shifted;buildKeys();return;}
     if(k==='123'){numMode=true;buildKeys();return;}
     if(k==='abc'){numMode=false;buildKeys();return;}
     if(k==='espace'){k=' ';}
@@ -892,7 +900,10 @@ setTimeout(function(){
   }
 
   function sync(){
-    if(vkbText) vkbText.textContent=activeInput?activeInput.value:'';
+    if(!vkbText)return;
+    var v=activeInput?activeInput.value:'';
+    vkbText.textContent=v||'\u00a0';
+    vkbText.style.opacity=v?'1':'0.4';
   }
 
   function vkbOpen(inp){
@@ -905,54 +916,96 @@ setTimeout(function(){
       if(!inp)return;
       var kh=vkb.offsetHeight||260;
       var r=inp.getBoundingClientRect();
-      var avail=window.innerHeight-kh-16;
+      var avail=window.innerHeight-kh-20;
       if(r.bottom>avail){
         var el=inp.parentNode;
         while(el&&el!==document.body){
-          if(el.scrollHeight>el.clientHeight){el.scrollTop+=(r.bottom-avail+20);break;}
+          if(el.scrollHeight>el.clientHeight){el.scrollTop+=(r.bottom-avail+24);break;}
           el=el.parentNode;
         }
       }
-    },200);
+    },250);
   }
 
   function vkbClose(){
     vkb.classList.remove('vkb-show');
     vkbOvl.style.display='none';
     if(activeInput){
+      // Restore to normal so native keyboard can try again next tap
+      activeInput.removeAttribute('readonly');
+      activeInput.removeAttribute('inputmode');
+      activeInput.style.caretColor='';
       try{activeInput.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
       activeInput=null;
     }
   }
 
   window._vkbClose=vkbClose;
-
   vkbOvl.addEventListener('touchend',function(e){e.preventDefault();vkbClose();},{passive:false});
+  vkbOvl.addEventListener('click',function(){vkbClose();});
 
-  window._vkbWire=function(){
-    var sel='input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=password])';
-    document.querySelectorAll(sel).forEach(function(inp){
-      if(inp._vkbWired)return;
-      inp._vkbWired=true;
-      inp.setAttribute('readonly','readonly');
-      inp.setAttribute('inputmode','none');
-      inp.addEventListener('touchend',function(e){
-        e.preventDefault();e.stopPropagation();
-        vkbOpen(inp);
-      },{passive:false});
-      inp.addEventListener('click',function(e){
-        e.preventDefault();vkbOpen(inp);
-      });
+  // Detect if we're on Android
+  var isAndroid = /Android/i.test(navigator.userAgent);
+
+  function wireInput(inp){
+    if(inp._vkbWired)return;
+    inp._vkbWired=true;
+
+    if(!isAndroid){
+      // iOS / desktop — native keyboard works fine, do nothing
+      return;
+    }
+
+    // ── Android only ──────────────────────────────────────
+    // Strategy: let the native keyboard try first.
+    // If viewport height doesn't shrink within 600ms, native KB failed → open VKB.
+
+    inp.addEventListener('touchend',function(e){
+      // Don't preventDefault — let native focus happen naturally
+      var heightBefore = window.innerHeight;
+
+      // Temporarily allow focus
+      inp.removeAttribute('readonly');
+      inp.removeAttribute('inputmode');
+      inp.focus();
+
+      // Wait to see if native keyboard opens (shrinks the viewport)
+      setTimeout(function(){
+        var heightAfter = window.innerHeight;
+        var nativeKbOpened = (heightBefore - heightAfter) > 100;
+
+        if(nativeKbOpened){
+          // Native keyboard opened — let it handle input, don't show VKB
+          // Keep input writable
+        } else {
+          // Native keyboard did NOT open — restore restrictions and show VKB
+          inp.setAttribute('readonly','readonly');
+          inp.setAttribute('inputmode','none');
+          inp.blur();
+          inp.style.caretColor='transparent';
+          vkbOpen(inp);
+        }
+      }, 600);
+    },{passive:true});
+
+    // Close VKB when input loses focus to native
+    inp.addEventListener('blur',function(){
+      if(activeInput===inp && !vkb.classList.contains('vkb-show')){
+        // Native keyboard took over — keep it
+      }
     });
-  };
+  }
 
-  // Initial wire (catches any static inputs)
-  window._vkbWire();
+  function wireAll(){
+    var sel='input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=password])';
+    document.querySelectorAll(sel).forEach(wireInput);
+  }
+
+  window._vkbWire=wireAll;
+  wireAll();
+  setInterval(wireAll,300);
 
 })();
-}, 0); // end setTimeout — ensures DOM is fully ready
-
-
 
 
 function spawnItem(speed){
