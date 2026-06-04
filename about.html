@@ -1091,17 +1091,6 @@ function renderLobby(){
            <div class="lb-cta-hint">${att} essai${att>1?'s':''} restant${att>1?'s':''}</div>
            <button class="btn-kickoff" id="btn-start">⚽  LANCER LA PARTIE</button>
          </div>`}
-    <!-- ── Weekly prize banner ── -->
-    <div class="lb-prize-banner" onclick="goTo(renderLeaderboard)">
-      <div class="lb-prize-icon">🏆</div>
-      <div class="lb-prize-body">
-        <div class="lb-prize-label">CADEAU SEMAINE — PARTENAIRE ${WEEKLY_PRIZE.sponsor.toUpperCase()}</div>
-        <div class="lb-prize-title">${WEEKLY_PRIZE.title}</div>
-        <div class="lb-prize-sub">Offert au Top 3 du classement${WEEKLY_PRIZE.endDate?' · jusqu\'au '+WEEKLY_PRIZE.endDate:''}</div>
-      </div>
-      <div class="lb-prize-arrow">›</div>
-    </div>
-
     <!-- ── Sponsor strip ── -->
     <div class="lb-sponsors">
       <div class="lb-sponsors-title">Boutiques partenaires</div>
