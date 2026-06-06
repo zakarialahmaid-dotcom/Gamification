@@ -1162,7 +1162,12 @@ function $(id){return document.getElementById(id);}
 
   window._vkbWire=wireAll;
   wireAll();
-  setInterval(wireAll,300);
+  // Poll only when not in game — pause during gameplay to save CPU
+  var _vkbTimer=setInterval(function(){
+    // Stop polling during active game (no inputs exist then anyway)
+    var inGame=!!document.getElementById('screen-game');
+    if(!inGame) wireAll();
+  },400);
 
 })();
 
@@ -1302,7 +1307,7 @@ var _playerIndex = {}; // email → {name,lastName,score} — full lookup table
 async function fetchLeaderboard(){
   if(_lbdCache && (Date.now()-_lbdCacheTs)<30000) return _lbdCache;
   // Fetch more rows so fetchPlayerScore can find anyone, not just top 50
-  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 500');
+  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 100');
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
   try{
     const res=await fetch(url);const text=await res.text();
@@ -1362,7 +1367,6 @@ function renderLeaderboard(){
     let rows=players.map((p,i)=>{
       const rank=i+1;
       const mc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
-      // Match by email first, fall back to full name match
       const emailMatch = myEmail && (p.email||'').toLowerCase().trim()===myEmail;
       const nameMatch  = !myEmail && myName && (p.name||'').toLowerCase().trim()===myName;
       const isMe = (emailMatch||nameMatch) && (hasPlayedOnce||myEmail);
@@ -1370,18 +1374,18 @@ function renderLeaderboard(){
       const fullName = [p.name, p.lastName].filter(Boolean).join(' ') || 'Joueur';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const you=isMe?'<span class="lbd-you-badge">TOI</span>':'';
-      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}</div><div class="lbd-score">${pts}</div></div>`;
+      const prizeTag = rank<=3 ? '<span style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:#ff9900;font-family:var(--H2);background:#fff8ee;border:0.5px solid rgba(255,153,0,.4);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;">🎁 Adidas</span>' : '';
+      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}${prizeTag}</div><div class="lbd-score">${pts}</div></div>`;
     }).join('');
     card.innerHTML=rows;
 
+    // ── PROXIMITY NUDGE ─────────────────────────────────────────
     if(myIdx>=0){
       const myScore = players[myIdx].score;
       const p3score = players[2] ? players[2].score : null;
       let proximityHTML = '';
-
       if(myIdx===0){
-        const p2=players[1];
-        const gap2=p2?myScore-p2.score:null;
+        const gap2=players[1]?myScore-players[1].score:null;
         proximityHTML=`<div class="lbd-proximity">🥇 TU ES EN TÊTE !<span>${gap2>0?'Tu mènes de '+Number(gap2).toLocaleString('fr-FR')+' pts sur le 2ème — reste devant !':'Profite — mais ils arrivent !'}</span></div>`;
       } else if(myIdx===1){
         const gapUp=players[0].score-myScore;
@@ -1389,10 +1393,9 @@ function renderLeaderboard(){
         const downPart=gapDown>0?' · '+Number(gapDown).toLocaleString('fr-FR')+' pts d\'avance sur le 3ème':'';
         proximityHTML=`<div class="lbd-proximity">🥈 À <b>${Number(gapUp).toLocaleString('fr-FR')} pts</b> de la 1ère place !<span>Tu es 2ème${downPart} — rejoue !</span></div>`;
       } else if(myIdx===2){
-        const gapUp=players[1].score-myScore;
-        proximityHTML=`<div class="lbd-proximity">🥉 TU ES 3ème !<span>À ${Number(gapUp).toLocaleString('fr-FR')} pts de la 2ème place — rejoue !</span></div>`;
+        proximityHTML=`<div class="lbd-proximity">🥉 TU ES 3ème !<span>À ${Number(players[1].score-myScore).toLocaleString('fr-FR')} pts de la 2ème place — rejoue !</span></div>`;
       } else {
-        const gap3 = p3score!=null ? p3score - myScore : null;
+        const gap3=p3score!=null?p3score-myScore:null;
         const above=players[myIdx-1];
         const gapAbove=above?above.score-myScore:null;
         if(gap3!=null&&gap3>0){
@@ -1401,27 +1404,80 @@ function renderLeaderboard(){
           proximityHTML=`<div class="lbd-proximity">Tu es à égalité avec le 3ème !<span>Un point de plus et tu es dans le Top 3 🥉</span></div>`;
         }
       }
-
       if(proximityHTML){
-        const d=document.createElement('div');
-        d.innerHTML=proximityHTML;
+        const d=document.createElement('div');d.innerHTML=proximityHTML;
         card.insertBefore(d.firstChild,card.firstChild);
       }
-
-      // Scroll the overflow container to center the player's row
-      // scrollIntoView doesn't work reliably inside overflow:auto containers on mobile
-      setTimeout(function(){
-        var row=document.getElementById('lbd-row-'+myIdx);
-        var container=document.querySelector('.lbd-scroll');
-        if(!row||!container)return;
-        var containerRect=container.getBoundingClientRect();
-        var rowRect=row.getBoundingClientRect();
-        // Current scroll + row's offset from container top − half container height + half row height
-        var target = container.scrollTop + (rowRect.top - containerRect.top) - (containerRect.height/2) + (rowRect.height/2);
-        container.scrollTo({top:Math.max(0,target), behavior:'smooth'});
-      },350);
     }
-  }).catch(()=>{const c=$('lbd-card');if(c)c.innerHTML='<div class="lbd-empty">Classement hors ligne — réessaie dans un instant.</div>';});
+
+    // ── PLAYER OUTSIDE TOP 100 — sticky card at bottom ─────────
+    if(myIdx===-1 && myEmail && bestScore>0){
+      // Find true rank from _playerIndex (has all players sorted by score)
+      var allSorted = Object.values(_playerIndex).sort(function(a,b){return b.score-a.score;});
+      var trueRank = allSorted.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmail;});
+      var myData = _playerIndex[myEmail];
+      if(trueRank>=0 && myData){
+        var trueRankNum = trueRank+1;
+        var myPts = Number(myData.score).toLocaleString('fr-FR');
+        var last3 = players.slice(-3); // last 3 in top 100 for gap reference
+        var last = players[players.length-1];
+        var gapToTop100 = last ? last.score - myData.score : null;
+        var gapMsg = gapToTop100>0
+          ? 'Il te manque <b>'+Number(gapToTop100).toLocaleString('fr-FR')+' pts</b> pour entrer dans le Top 100'
+          : 'Tu es à la limite du Top 100 !';
+        // Add ellipsis separator
+        var sep='<div style="text-align:center;padding:8px 0;color:#8A8A9A;font-size:18px;letter-spacing:4px;">···</div>';
+        // Sticky self row
+        var selfRow='<div class="lbd-row mine" style="position:sticky;bottom:0;background:#fff8ee;border:2px solid #ff9900;box-shadow:0 -4px 16px rgba(255,153,0,.2);">'+
+          '<div class="lbd-medal other" style="background:#ff9900;color:#fff;">'+trueRankNum+'</div>'+
+          '<div class="lbd-name">'+(playerName&&playerLastName?playerName+' '+playerLastName:playerName||'Toi')+
+            '<span class="lbd-you-badge">TOI</span></div>'+
+          '<div class="lbd-score">'+myPts+' pts</div>'+
+        '</div>'+
+        '<div style="background:#fff8ee;border:0 solid #ff9900;border-width:0 2px 2px;border-radius:0 0 8px 8px;padding:8px 12px;margin-top:-4px;font-size:clamp(10px,2.6vw,12px);color:#e68800;font-family:var(--H2);text-align:center;">'+gapMsg+' — rejoue !</div>';
+        var div=document.createElement('div');
+        div.innerHTML=sep+selfRow;
+        card.appendChild(div);
+      }
+    }
+
+    // Inject rank into voucher header badge
+    var rankBadge=document.getElementById('mv-rank-badge');
+    if(rankBadge&&playerEmail){
+      var myEmailR=playerEmail.toLowerCase().trim();
+      var myIdxR=players.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmailR;});
+      if(myIdxR>=0){
+        rankBadge.textContent='#'+(myIdxR+1)+' au classement';
+        rankBadge.style.display='inline-block';
+      }
+    }
+
+    // ── SCROLL TO MY ROW ────────────────────────────────────────
+    if(myIdx>=0){
+      // Double rAF ensures layout is fully flushed before measuring
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          var row=document.getElementById('lbd-row-'+myIdx);
+          var container=document.querySelector('.lbd-scroll');
+          if(!row||!container)return;
+          var containerRect=container.getBoundingClientRect();
+          var rowRect=row.getBoundingClientRect();
+          // Position row at 40% from top (not center) — feels natural, shows rows above too
+          var target=container.scrollTop+(rowRect.top-containerRect.top)-(containerRect.height*0.4)+(rowRect.height/2);
+          container.scrollTo({top:Math.max(0,target),behavior:'smooth'});
+        });
+      });
+    } else if(myIdx===-1 && bestScore>0){
+      // Player not in top 100 — scroll to bottom to reveal sticky card
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          var container=document.querySelector('.lbd-scroll');
+          if(container) container.scrollTo({top:container.scrollHeight,behavior:'smooth'});
+        });
+      });
+    }
+
+  }).catch(()=>{const c=$('lbd-card');if(c)c.innerHTML='<div class="lbd-empty">Classement hors ligne — réessaie dans un instant. <button onclick="goTo(renderLeaderboard)" style="margin-top:8px;display:block;width:100%;background:#ff9900;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:900;font-family:var(--H1);font-size:13px;cursor:pointer;">↺ RÉESSAYER</button></div>';});
 }
 
 function renderLobby(){
@@ -1739,12 +1795,8 @@ function renderGame(){
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
       <div id="dodge-hint">DANGER !</div>
-      <!-- Hearts above gloves — 3 full hearts at game start -->
-      <div id="lives-hearts">
-        <span class="lives-heart-icon" id="lh-1">❤️</span>
-        <span class="lives-heart-icon" id="lh-2">❤️</span>
-        <span class="lives-heart-icon" id="lh-3">❤️</span>
-      </div>
+      <!-- Hearts above gloves — generated dynamically from livesVal -->
+      <div id="lives-hearts"></div>
       <div id="game-overlay">
         <div class="score-circle"><div class="score-num" id="score-disp">0</div><div class="score-lbl">POINTS</div></div>
       </div>
@@ -1938,31 +1990,36 @@ function startGame(){
 }
 
 function updateLivesDisplay(){
-  // Update hearts above gloves
   var container=document.getElementById('lives-hearts');
   if(!container)return;
-  var maxLives=3;
+  var maxLives=3; // max hearts to display (extensible)
+  // Rebuild hearts if count changed (handles bonus lives)
+  if(container.children.length!==maxLives){
+    container.innerHTML='';
+    for(var j=1;j<=maxLives;j++){
+      var s=document.createElement('span');
+      s.className='lives-heart-icon';
+      s.id='lh-'+j;
+      s.textContent='❤️';
+      container.appendChild(s);
+    }
+  }
+  // Update each heart state
   for(var i=1;i<=maxLives;i++){
     var h=document.getElementById('lh-'+i);
     if(!h)continue;
-    if(i<=livesVal){
-      h.classList.remove('lost');
-    } else {
-      h.classList.add('lost');
-    }
+    if(i<=livesVal){ h.classList.remove('lost'); }
+    else { h.classList.add('lost'); }
   }
-  // Flash full opacity briefly when life lost
+  // Flash to full opacity on life loss
   container.classList.add('flash');
   setTimeout(function(){
     var c=document.getElementById('lives-hearts');
     if(c)c.classList.remove('flash');
-  }, 600);
-  // Red glow when last life
-  if(container){
-    container.style.filter = livesVal===1
-      ? 'drop-shadow(0 0 8px rgba(236,35,38,.8))'
-      : '';
-  }
+  },600);
+  // Red glow on last life
+  container.style.filter=livesVal===1
+    ?'drop-shadow(0 0 8px rgba(236,35,38,.8))':'';
 }
 
 function tick(ts){
