@@ -98,9 +98,36 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .score-circle{width:clamp(60px,15vw,74px);height:clamp(60px,15vw,74px);background:#ffffff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 4px 16px rgba(0,0,0,.25);flex-shrink:0;}
 .score-num{font-size:clamp(17px,5vw,22px);font-weight:900;color:#1E293B;line-height:1;font-family:var(--H1);}
 .score-lbl{font-size:7px;font-weight:700;color:#8A8A9A;font-family:var(--H2);letter-spacing:.06em;text-transform:uppercase;}
-#lives-counter{position:relative;width:clamp(46px,12vw,58px);height:clamp(46px,12vw,58px);display:flex;align-items:center;justify-content:center;}
-#lives-counter img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5));transition:transform .2s;}
-#lives-count{position:absolute;top:-4px;right:-5px;background:var(--red);color:var(--white);border-radius:50%;width:clamp(18px,5vw,22px);height:clamp(18px,5vw,22px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,13px);font-weight:900;font-family:var(--H1);border:2px solid var(--white);}
+#lives-counter{display:none;} /* hidden — replaced by #lives-hearts below */
+
+/* Hearts above gloves — small, semi-transparent, non-blocking */
+#lives-hearts{
+  position:absolute;
+  bottom:calc(clamp(62px,16vw,82px) + clamp(10px,2.5vw,14px)); /* glove height + gap */
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:clamp(4px,1.2vw,7px);
+  z-index:7;
+  pointer-events:none;
+  opacity:0.75; /* semi-transparent — items visible through/around it */
+  transition:opacity .3s;
+}
+/* Flash to full opacity when a life is lost */
+#lives-hearts.flash{opacity:1;}
+.lives-heart-icon{
+  font-size:clamp(16px,4.5vw,22px);
+  line-height:1;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));
+  transition:transform .15s,opacity .3s;
+  display:block;
+}
+.lives-heart-icon.lost{
+  opacity:0.2;
+  transform:scale(.8);
+  filter:grayscale(1) drop-shadow(0 1px 3px rgba(0,0,0,.4));
+}
 
 #goal-zone{position:absolute;bottom:0;left:0;right:0;height:clamp(120px,30vw,150px);pointer-events:none;z-index:2;border-top:2px solid rgba(255,255,255,.2);}
 #goal-zone::before{content:'';position:absolute;top:-1px;left:12%;right:12%;height:2px;background:rgba(255,255,255,.35);border-radius:1px;}
@@ -1712,9 +1739,14 @@ function renderGame(){
       <div id="catch-ring"></div>
       <div id="danger-bar"></div>
       <div id="dodge-hint">DANGER !</div>
+      <!-- Hearts above gloves — 3 full hearts at game start -->
+      <div id="lives-hearts">
+        <span class="lives-heart-icon" id="lh-1">❤️</span>
+        <span class="lives-heart-icon" id="lh-2">❤️</span>
+        <span class="lives-heart-icon" id="lh-3">❤️</span>
+      </div>
       <div id="game-overlay">
         <div class="score-circle"><div class="score-num" id="score-disp">0</div><div class="score-lbl">POINTS</div></div>
-        <div id="lives-counter"><img src="${IMG_HEART}" alt="lives" id="lives-heart-img"><div id="lives-count">3</div></div>
       </div>
       <div id="touch-hint">
         <div class="touch-zone touch-zone-left">
@@ -1899,17 +1931,38 @@ function startGame(){
   // Pre-cache all game DOM refs immediately after render
   _dom('glove-el');_dom('glove-shake');_dom('score-disp');_dom('combo-badge');
   _dom('danger-bar');_dom('dodge-hint');_dom('screen-game');
-  _dom('lives-count');_dom('lives-heart-img');_dom('catch-ring');
+  _dom('catch-ring');
   _dom('game-field');
   updateLivesDisplay();
   animId=requestAnimationFrame(tick);
 }
 
 function updateLivesDisplay(){
-  var b=_dom('lives-count'),h=_dom('lives-heart-img');
-  if(b)b.textContent=livesVal;
-  if(h){h.style.transform='scale(1.4)';setTimeout(function(){var img=_dom('lives-heart-img');if(img)img.style.transform='scale(1)';},200);
-    h.style.filter=livesVal===1?'drop-shadow(0 0 8px rgba(236,35,38,.9))':'drop-shadow(0 3px 10px rgba(0,0,0,.5))';}
+  // Update hearts above gloves
+  var container=document.getElementById('lives-hearts');
+  if(!container)return;
+  var maxLives=3;
+  for(var i=1;i<=maxLives;i++){
+    var h=document.getElementById('lh-'+i);
+    if(!h)continue;
+    if(i<=livesVal){
+      h.classList.remove('lost');
+    } else {
+      h.classList.add('lost');
+    }
+  }
+  // Flash full opacity briefly when life lost
+  container.classList.add('flash');
+  setTimeout(function(){
+    var c=document.getElementById('lives-hearts');
+    if(c)c.classList.remove('flash');
+  }, 600);
+  // Red glow when last life
+  if(container){
+    container.style.filter = livesVal===1
+      ? 'drop-shadow(0 0 8px rgba(236,35,38,.8))'
+      : '';
+  }
 }
 
 function tick(ts){
