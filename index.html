@@ -57,7 +57,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-60px) scale(.8)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 @keyframes bigShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-14px)}40%{transform:translateX(14px)}60%{transform:translateX(-9px)}80%{transform:translateX(9px)}}
-@keyframes screenFlash{0%,100%{background:#1E293B}40%{background:#3a0000}70%{background:#2a0000}}
+@keyframes screenFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
 @keyframes itemIn{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:scale(1)}}
 @keyframes goldenSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
 @keyframes dangerPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
@@ -114,9 +114,9 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .item-ball.danger-close{filter:drop-shadow(0 0 10px rgba(255,255,255,.9)) drop-shadow(0 4px 8px rgba(0,0,0,.3));animation:dangerPulse .35s ease infinite;}
 .item-golden{width:clamp(42px,11vw,56px);height:clamp(42px,11vw,56px);filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));animation:goldenSpin 1.2s linear infinite,itemIn .15s ease;}
 .item-golden img{width:100%;height:100%;object-fit:contain;border-radius:50%;}
-.item-redcard{width:clamp(58px,15vw,76px);height:clamp(76px,20vw,100px);filter:drop-shadow(0 0 8px rgba(255,0,0,.7)) drop-shadow(0 4px 10px rgba(0,0,0,.5));}
+.item-redcard{width:clamp(58px,15vw,76px);height:clamp(76px,20vw,100px);filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));}
 .item-redcard img{width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;}
-.item-redcard.danger-close{filter:drop-shadow(0 0 12px rgba(255,0,0,1)) drop-shadow(0 0 22px rgba(255,0,0,.6));animation:dangerPulse .35s ease infinite;}
+.item-redcard.danger-close{filter:drop-shadow(0 0 10px rgba(255,140,0,.7)) drop-shadow(0 2px 8px rgba(0,0,0,.5));animation:dangerPulse .35s ease infinite;}
 
 #glove-el{position:absolute;z-index:6;left:0;width:90px;display:flex;align-items:center;justify-content:center;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);contain:layout style;}
 #glove-shake{display:flex;align-items:center;justify-content:center;width:90px;}
@@ -132,7 +132,13 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 #danger-bar{position:absolute;bottom:0;left:0;right:0;height:0;background:var(--red);transition:height .15s,opacity .15s;opacity:0;z-index:3;}
 #dodge-hint{position:absolute;left:50%;transform:translateX(-50%);background:rgba(236,35,38,.92);color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:900;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8;font-family:var(--H2);}
 
-#screen-game.hit-flash{-webkit-animation:screenFlash .4s ease;animation:screenFlash .4s ease;}
+#screen-game.hit-flash::after{
+  content:'';
+  position:absolute;inset:0;z-index:50;
+  background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,.55) 100%);
+  animation:screenFlash .45s ease forwards;
+  pointer-events:none;
+}
 
 #btn-mute{position:absolute;bottom:clamp(10px,2.5vw,14px);left:clamp(10px,2.5vw,14px);width:clamp(32px,8vw,40px);height:clamp(32px,8vw,40px);border-radius:50%;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.2);cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:9;touch-action:manipulation;}
 
@@ -500,39 +506,43 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lb-action-card--voucher .lb-action-card__sub{color:#e68800;font-weight:700;}
 .lb-action-card__arrow{font-size:clamp(20px,5vw,24px);font-weight:900;color:#8A8A9A;font-family:var(--H1);flex-shrink:0;line-height:1;}
 
-/* ── VIRTUAL KEYBOARD ─────────────────────────────────────── */
+/* ── VIRTUAL KEYBOARD — Android Material style ─────────────── */
 #vkb-overlay{position:fixed;inset:0;z-index:9998;display:none;background:transparent;}
 #vkb{
   position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:#d1d5db;
-  padding:clamp(4px,1.2vw,8px) clamp(2px,0.8vw,6px) clamp(8px,2.5vw,16px);
-  transform:translateY(100%);
-  transition:transform .2s ease;
+  background:#EEF0F3;
+  padding:clamp(3px,1vw,6px) clamp(2px,0.6vw,4px) clamp(6px,2vw,12px);
+  padding-bottom:calc(clamp(6px,2vw,12px) + env(safe-area-inset-bottom,0px));
+  transform:translateY(100%) translateZ(0);
+  transition:transform .18s cubic-bezier(.4,0,.2,1);
   touch-action:manipulation;
   user-select:none;-webkit-user-select:none;
-  /* Safe area for iPhone home bar */
-  padding-bottom:calc(clamp(8px,2.5vw,16px) + env(safe-area-inset-bottom, 0px));
-  width:100%;
-  box-sizing:border-box;
+  width:100%;box-sizing:border-box;
+  will-change:transform;
+  -webkit-backface-visibility:hidden;backface-visibility:hidden;
+  box-shadow:0 -1px 0 rgba(0,0,0,.12);
 }
-#vkb.vkb-show{transform:translateY(0);}
+#vkb.vkb-show{transform:translateY(0) translateZ(0);}
 
-/* Preview bar - shows what's being typed */
+/* Preview bar — shows what's being typed */
 .vkb-preview{
-  background:#1e293b;color:#fff;
-  font-size:clamp(12px,3.5vw,15px);
-  font-family:system-ui,-apple-system,sans-serif;
-  padding:clamp(5px,1.5vw,8px) clamp(8px,2.5vw,12px);
-  border-radius:6px;
-  margin:0 clamp(2px,0.8vw,4px) clamp(4px,1.2vw,6px);
-  min-height:clamp(28px,8vw,34px);
+  background:#ffffff;
+  color:#202124;
+  font-size:clamp(13px,3.8vw,16px);
+  font-family:Roboto,system-ui,-apple-system,sans-serif;
+  padding:clamp(6px,1.8vw,9px) clamp(10px,3vw,14px);
+  border-radius:4px;
+  margin:0 clamp(2px,0.6vw,4px) clamp(4px,1.2vw,7px);
+  min-height:clamp(32px,9vw,40px);
   display:flex;align-items:center;
   overflow:hidden;
+  border:1.5px solid #ff9900;
 }
 .vkb-preview span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .vkb-caret{
-  width:2px;height:clamp(12px,3.5vw,16px);
-  background:#ff9900;margin-left:2px;flex-shrink:0;
+  width:2px;height:clamp(14px,4vw,18px);
+  background:#ff9900;
+  margin-left:1px;flex-shrink:0;
   animation:vkbBlink .8s step-end infinite;
 }
 @keyframes vkbBlink{0%,100%{opacity:1}50%{opacity:0}}
@@ -541,41 +551,68 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .vkb-row{
   display:flex;
   justify-content:center;
-  gap:clamp(3px,0.8vw,5px);
-  margin-bottom:clamp(3px,0.8vw,5px);
+  gap:clamp(4px,1vw,7px);
+  margin-bottom:clamp(4px,1vw,7px);
+  padding:0 clamp(2px,0.6vw,4px);
 }
 
-/* Individual keys — scale with viewport width */
+/* Regular letter keys — Android white rounded */
 .vkb-k{
-  height:clamp(36px,10.5vw,46px);
-  min-width:0;
-  flex:1;
-  max-width:clamp(28px,9vw,42px);
-  background:#fff;
+  height:clamp(40px,11.5vw,50px);
+  min-width:0;flex:1;
+  max-width:clamp(30px,9.5vw,44px);
+  background:#ffffff;
   border:none;
-  border-radius:5px;
-  box-shadow:0 1px 0 0 #8a8e97;
-  font-size:clamp(13px,4vw,17px);
-  font-weight:500;color:#111;
-  font-family:system-ui,-apple-system,sans-serif;
+  border-radius:4px;
+  box-shadow:0 1px 0 1px #B0B3BA;
+  font-size:clamp(14px,4.2vw,18px);
+  font-weight:400;
+  color:#202124;
+  font-family:Roboto,system-ui,-apple-system,sans-serif;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
-  flex-shrink:0;
-  transition:background .06s;
-  box-sizing:border-box;
+  touch-action:manipulation;
+  flex-shrink:0;box-sizing:border-box;
+  will-change:background;
+  -webkit-user-select:none;user-select:none;
+  position:relative;
 }
-.vkb-k:active{background:#bbc0c9;}
-.vkb-k.dark{background:#adb5bd;font-size:clamp(11px,3.2vw,14px);max-width:clamp(34px,10vw,52px);}
-.vkb-k.wide{max-width:clamp(38px,11vw,56px);}
-.vkb-k.space{flex:4;max-width:none;font-size:clamp(11px,3vw,13px);color:#555;}
-.vkb-k.done{
-  background:#ff9900;color:#fff;font-weight:700;
+/* Android key popup on press */
+.vkb-k:active{background:#D4D7DC;}
+
+/* Dark/action keys (shift, backspace, 123, abc) */
+.vkb-k.dark{
+  background:#C8CBD0;
+  box-shadow:0 1px 0 1px #9EA2A9;
+  font-size:clamp(11px,3.2vw,14px);
+  color:#202124;
+  max-width:clamp(36px,11vw,54px);
+}
+.vkb-k.dark:active{background:#B0B3BA;}
+.vkb-k.wide{max-width:clamp(40px,12vw,60px);}
+
+/* Space bar */
+.vkb-k.space{
+  flex:4;max-width:none;
   font-size:clamp(11px,3vw,13px);
-  max-width:clamp(56px,17vw,84px);
-  flex-shrink:0;
+  color:#5F6368;
+  letter-spacing:.03em;
 }
-.vkb-k.done:active{background:#e68800;}
+
+/* OK / Enter key — orange accent */
+.vkb-k.done{
+  background:#ff9900;
+  color:#ffffff;
+  font-weight:700;
+  font-size:clamp(11px,3vw,14px);
+  max-width:clamp(60px,18vw,90px);
+  flex-shrink:0;
+  box-shadow:0 1px 0 1px #cc7a00;
+  border-radius:4px;
+  letter-spacing:.03em;
+}
+.vkb-k.done:active{background:#e68800;box-shadow:0 1px 0 1px #b36b00;}
 
 </style>
 </head>
@@ -640,6 +677,25 @@ const SHEET_GID='0';
 // ── SPONSOR CONFIG ─────────────────────────────────────────────
 // Replace LOGO_URL with real URLs when available
 // Replace SHOP_URL with real Jumia boutique URLs
+// Deep-links per voucher tier — Jumia app format jumia://ma/mlp-maroc-foot/
+const TIER_SHOP_URLS = {
+  'GWOF-602024': 'jumia://ma/mlp-maroc-foot/',
+  'GWOF-509162': 'jumia://ma/mlp-maroc-foot/',
+  'GWOF-304364': 'jumia://ma/mlp-maroc-foot/',
+  'GWOF-200789': 'jumia://ma/mlp-maroc-foot/',
+  'GWOF-107655': 'jumia://ma/mlp-maroc-foot/',
+  'NJA25':       'jumia://ma/mlp-maroc-foot/',
+};
+
+// "What you can buy" anchor per tier
+const TIER_EXAMPLES = {
+  'GWOF-602024': 'ex. une paire Adidas, un sac à main',
+  'GWOF-509162': 'ex. un casque Xiaomi, des chaussures',
+  'GWOF-304364': 'ex. des vêtements, accessoires mode',
+  'GWOF-200789': 'ex. cosmétiques, soins beauté',
+  'GWOF-107655': 'ex. accessoires, petits articles',
+};
+
 const SPONSORS = [
   {name:'Adidas',            discount:'-70%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_adidas.webp',              shop:'https://www.jumia.ma/adidas/'},
   {name:'Taurus',            discount:'-70%', logo:'https://raw.githubusercontent.com/Madzack69/Icons/main/logo_taurus.webp',               shop:'https://www.jumia.ma/taurus/'},
@@ -665,6 +721,35 @@ function sponsorLogoHTML(sp, size){
 }
 // Saves: email, name, bestScore, earnedVouchers → localStorage
 const SESSION_KEY='jg_session_v2';
+
+// ── STREAK ────────────────────────────────────────────────────
+function checkStreak(){
+  var today=new Date().toISOString().slice(0,10);
+  var raw=localStorage.getItem('jg_streak');
+  var streak=raw?JSON.parse(raw):{days:0,last:'',bonus:false};
+  var yesterday=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  if(streak.last===yesterday){
+    streak.days=Math.min(streak.days+1,7);
+  } else if(streak.last!==today){
+    streak.days=1;
+  }
+  streak.last=today;
+  // Bonus attempt on day 3, 5, 7
+  var bonusDays=[3,5,7];
+  if(bonusDays.indexOf(streak.days)>=0&&!streak.bonus){
+    streak.bonus=true;
+    attempts=Math.min(attempts+1,5); // +1 attempt, max 5
+    localStorage.setItem('jg_streak',JSON.stringify(streak));
+    return streak.days; // return streak day to show notification
+  }
+  streak.bonus=false;
+  localStorage.setItem('jg_streak',JSON.stringify(streak));
+  return 0;
+}
+
+function getStreak(){
+  try{var r=localStorage.getItem('jg_streak');return r?JSON.parse(r):{days:0};}catch(e){return{days:0};}
+}
 
 function saveSession(){
   try{
@@ -857,9 +942,32 @@ async function doLogin(){
 
 // ── Analytics / GTM ───────────────────────────────────────
 window.dataLayer = window.dataLayer || [];
+
+// Map game events to Jumia's standard event names (from app analytics)
+var JM_EVENT_MAP = {
+  'game_start':     'screen_view',          // screen_view: 9.5M events — standard page view
+  'game_end':       'user_engagement',      // user_engagement: 3.3M — session engagement
+  'voucher_copied': 'vouchers_view',        // vouchers_view: 4,821 — closest voucher event
+  'sponsor_click':  'select_promotion',     // select_promotion: 190K — ad/promo tap
+  'form_submit':    'lead_times_location_click', // not ideal — override below
+  'share_leaderboard': 'whatsapp_open',     // whatsapp_open: 2,560 — exact match
+  'game_start_purchase_funnel': 'begin_checkout', // for funnel tracking
+};
+
 function _track(event, params){
   try{
+    // Always push custom jg_ event for game-specific tracking
     window.dataLayer.push(Object.assign({event:'jg_'+event, game:'GardienDeBut'}, params||{}));
+    // Also push mapped Jumia standard event for unified analytics
+    var mapped = JM_EVENT_MAP[event];
+    if(mapped){
+      var stdParams = Object.assign({screen_name:'GardienDeBut', game_event:event}, params||{});
+      if(event==='game_end') stdParams.engagement_time_msec = (params&&params.survie?params.survie*1000:0);
+      if(event==='voucher_copied') stdParams.promotion_id = params&&params.code;
+      if(event==='sponsor_click') stdParams.promotion_id = params&&params.brand;
+      if(event==='share_leaderboard') stdParams.method = 'whatsapp';
+      window.dataLayer.push(Object.assign({event:mapped}, stdParams));
+    }
   }catch(e){}
 }
 
@@ -908,12 +1016,14 @@ function $(id){return document.getElementById(id);}
         else if(k==='123'||k==='abc'){b.className+=' dark wide';}
         else if(['@','.','-','_','#','!'].indexOf(k)>=0){b.className+=' dark';}
         b.textContent=label;
-        b.addEventListener('touchstart',function(e){e.preventDefault();b.style.background='#bbc0c9';},{passive:false});
+        b.addEventListener('touchstart',function(e){e.preventDefault();b.style.background='#D4D7DC';b.style.color='#202124';},{passive:false});
         b.addEventListener('touchend',function(e){
           e.preventDefault();e.stopPropagation();
-          b.style.background='';
+          b.style.background='';b.style.color='';
           tap(k);
         },{passive:false});
+        // Fallback for desktop
+        b.addEventListener('click',function(){tap(k);});
         d.appendChild(b);
       });
       vkbKeys.appendChild(d);
@@ -1766,6 +1876,17 @@ function _clearDomCache(){ _domCache = {}; }
 
 function startGame(){
   _track('game_start',{attempts_left:attempts});
+  // Check daily streak — may award bonus attempt
+  var streakDay=checkStreak();
+  if(streakDay>0){
+    setTimeout(function(){
+      var el=document.createElement('div');
+      el.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ff9900;color:#fff;font-family:var(--H1);font-weight:900;font-size:clamp(13px,3.5vw,16px);padding:10px 22px;border-radius:24px;z-index:9000;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);animation:tierUpIn .3s ease;';
+      el.textContent='🔥 '+streakDay+' jours de suite — +1 essai bonus !';
+      document.body.appendChild(el);
+      setTimeout(function(){el.remove();},3000);
+    },1500);
+  }
   startMusic();
   done=false;wid=0;itemsArr=[];
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
@@ -1998,6 +2119,16 @@ function endGame(final){
   saveSession(); // always persist attempts count (works for anonymous players too)
   // Bust leaderboard cache so next open shows fresh data with this score
   _lbdCache=null;_lbdCacheTs=0;
+  // Notify parent app (Jumia WebView) about the game result
+  try{
+    window.parent.postMessage({
+      type:'jumia_game_end',
+      score:final,
+      voucher:getVoucher(final).code,
+      discount:getVoucher(final).disc,
+      player:playerEmail||null
+    },'*');
+  }catch(e){}
   // Inject player into _playerIndex immediately so they appear in leaderboard
   // even before the sheet has processed the submission
   if(playerEmail){
@@ -2023,10 +2154,9 @@ function renderFormPost(){
       <div class="fm-sub">Laisse tes coordonnées et reçois<br><b>tous tes bons de réduction Jumia.</b></div>
     </div>
     <div class="fm-card">
-      <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" inputmode="text" placeholder="Yasmine" autocomplete="given-name"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
-      <div class="fm-field"><label class="fm-label" for="inp-lastname">Nom</label><input class="fm-input" id="inp-lastname" type="text" inputmode="text" placeholder="Alaoui" autocomplete="family-name"><div class="fm-error-msg" id="err-lastname">Nom requis</div></div>
+      <div class="fm-field"><label class="fm-label" for="inp-name">Prénom</label><input class="fm-input" id="inp-name" type="text" inputmode="text" placeholder="Yasmine" autocomplete="given-name" value="${playerName||''}"><div class="fm-error-msg" id="err-name">Prénom requis</div></div>
+      <div class="fm-field"><label class="fm-label" for="inp-lastname">Nom</label><input class="fm-input" id="inp-lastname" type="text" inputmode="text" placeholder="Alaoui" autocomplete="family-name" value="${playerLastName||''}"><div class="fm-error-msg" id="err-lastname">Nom requis</div></div>
       <div class="fm-field"><label class="fm-label" for="inp-email">E-mail</label><input class="fm-input" id="inp-email" type="email" inputmode="email" placeholder="yasmine@email.com" autocomplete="email" value="${playerEmail||''}"><div class="fm-error-msg" id="err-email">E-mail valide requis</div></div>
-      <div style="display:none"><input class="fm-input" id="inp-city" type="text" value="Maroc"></div>
     </div>
     <div class="fm-spacer"></div>
     <div style="padding:0 clamp(16px,4vw,22px);">
@@ -2035,16 +2165,27 @@ function renderFormPost(){
     <div class="fm-legal">En continuant, tu acceptes d'être contacté(e) par Jumia pour recevoir tes offres.</div>
   </div>`;
   $('btn-submit').addEventListener('click',submitForm);
-  ['inp-name','inp-lastname','inp-email','inp-city'].forEach(function(id){var el=$(id);if(el)el.addEventListener('focus',function(){setTimeout(function(){$(id)&&$(id).scrollIntoView({behavior:'smooth',block:'center'});},300);});});
+  // Highlight pre-filled fields so user knows they're already filled
+  ['inp-name','inp-lastname','inp-email'].forEach(function(id){
+    var el=$(id);if(!el)return;
+    if(el.value) el.style.borderColor='#27ae60'; // green border = already filled
+    el.addEventListener('focus',function(){
+      el.style.borderColor='#ff9900';
+      setTimeout(function(){el&&el.scrollIntoView({behavior:'smooth',block:'center'});},300);
+    });
+    el.addEventListener('blur',function(){
+      el.style.borderColor=el.value?'#27ae60':'';
+    });
+  });
 }
 
 function submitForm(){
   // Remove readonly (set by VKB) before reading values
-  ['inp-name','inp-lastname','inp-email','inp-city'].forEach(function(id){var el=$(id);if(el)el.removeAttribute('readonly');});
+  ['inp-name','inp-lastname','inp-email'].forEach(function(id){var el=$(id);if(el)el.removeAttribute('readonly');});
   var _n=$('inp-name');const name=_n?_n.value.trim():'';
   var _ln=$('inp-lastname');const lastname=_ln?_ln.value.trim():'';
   var _em=$('inp-email');const email=_em?_em.value.trim():'';
-  var _ct=$('inp-city');const city=_ct?_ct.value.trim():'';
+  const city='Maroc';
   let valid=true;
   const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const testRe=/^(test|demo|fake|dummy|admin|user|azerty|qwerty|asdf|aaa+|bbb+|xxx+|abc|123|nom|foo|bar|na|none)$/i;
@@ -2054,7 +2195,6 @@ function submitForm(){
     ['inp-name','err-name',name.length<2||testRe.test(name)||repeat.test(name),'Prénom invalide'],
     ['inp-lastname','err-lastname',lastname.length<2||testRe.test(lastname)||repeat.test(lastname),'Nom invalide'],
     ['inp-email','err-email',!emailRe.test(email)||testEmail.test(email),'E-mail invalide'],
-    ['inp-city','err-city',city.length<2||testRe.test(city)||repeat.test(city),'Ville invalide'],
   ];
   fields.forEach(function(_f){var id=_f[0],eid=_f[1],fail=_f[2],msg=_f[3];var _fe=$(id);if(_fe)_fe.classList.toggle('error',fail);const em=$(eid);if(em){em.textContent=msg;em.classList.toggle('visible',fail);}if(fail)valid=false;});
   if(!valid)return;
@@ -2191,6 +2331,12 @@ function renderResult(){
   }).catch(function(){});
 }
 
+function _sendVoucher(el){
+  var code=el&&el.getAttribute?el.getAttribute('data-code'):'';
+  var disc=el&&el.getAttribute?el.getAttribute('data-disc'):'';
+  try{window.parent.postMessage({type:'jumia_voucher',code:code,discount:disc},'*');}catch(e){}
+}
+
 function renderMyVouchers(fromGame){
   // fromGame = true when arriving straight from endGame/submitForm
   // ── TIERS with ×2.5 pts thresholds ─────────────────────────
@@ -2280,7 +2426,7 @@ function renderMyVouchers(fromGame){
       </div>
       <div style="display:flex;gap:6px;margin-top:5px;">
         ${tierDisplay.map(function(t){
-          return '<div style="flex:1;text-align:center;font-size:clamp(8px,2vw,9px);font-weight:700;color:'+(t.unlocked?'rgba(255,255,255,.9)':'rgba(255,255,255,.4)')+';font-family:var(--H2);">'+t.disc+'</div>';
+          return '<div style="flex:1;text-align:center;font-size:clamp(8px,2vw,9px);font-weight:700;color:'+(t.unlocked?'rgba(255,255,255,.9)':'rgba(255,255,255,.4)')+';font-family:var(--H2);">'+t.disc+'<span id="mv-rank-badge" style="display:none;background:rgba(255,255,255,.2);color:#fff;font-size:clamp(8px,2vw,9px);font-weight:700;font-family:var(--H2);border-radius:10px;padding:1px 7px;margin-left:6px;"></span>'+'</div>';
         }).join('')}
       </div>
     </div>
@@ -2359,6 +2505,8 @@ function renderMyVouchers(fromGame){
                 '<div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;">Minimum d\'achat</div>'+
                 '<div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:'+(t.unlocked?'#ff9900':'#8A8A9A')+';font-family:var(--H1);">'+Number(t.min).toLocaleString('fr-FR')+' DH</div>'+
               '</div>'+
+              '<div style="font-size:clamp(8px,2vw,9px);color:#8A8A9A;font-family:var(--H2);margin-top:2px;font-style:italic;">'+(typeof TIER_EXAMPLES!=='undefined'&&TIER_EXAMPLES[t.code]?TIER_EXAMPLES[t.code]:'')+
+            '</div>'+
             '</div>';
 
         return '<div style="background:'+bg+';border:1.5px solid '+border+';border-radius:12px;padding:clamp(12px,3vw,16px);margin-bottom:10px;opacity:'+opacity+';">'+
@@ -2383,12 +2531,64 @@ function renderMyVouchers(fromGame){
                 '<div style="flex:1;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:clamp(9px,2.3vw,11px) 10px;font-size:clamp(13px,3.5vw,16px);font-weight:900;color:#1E293B;font-family:var(--H1);letter-spacing:.16em;text-align:center;">'+t.code+'</div>'+
                 '<button onclick="copyCode(\''+t.code+'\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(9px,2.3vw,11px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
               '</div>'+
-              '<a href="https://www.jumia.ma/" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;width:100%;background:#1E293B;color:#ffffff;border-radius:8px;padding:clamp(10px,2.5vw,12px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;box-sizing:border-box;">ACHETER MAINTENANT →</a>'+
+              '<a href="'+(typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[t.code]?TIER_SHOP_URLS[t.code]:'jumia://ma/mlp-maroc-foot/')+'" target="_blank" onclick="_sendVoucher(this)" data-code="'+t.code+'" data-disc="'+t.disc+'" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;width:100%;background:#1E293B;color:#ffffff;border-radius:8px;padding:clamp(10px,2.5vw,12px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;box-sizing:border-box;">ACHETER MAINTENANT →</a>'+
               '<div style="margin-top:6px;text-align:center;font-size:clamp(9px,2.3vw,10px);color:#e68800;font-family:var(--H2);font-weight:700;">⏱ Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'
             :'')+
 
         '</div>';
       }).join('')}
+
+      <!-- NJA25 BONUS — always shown, visually separated from game vouchers -->
+      ${(function(){
+        return '<div style="margin-bottom:10px;">'+
+
+          // Separator — clear visual break from game vouchers
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'+
+            '<div style="flex:1;height:1px;background:#E4E4E6;"></div>'+
+            '<div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;">🎁 Offre 1ère commande</div>'+
+            '<div style="flex:1;height:1px;background:#E4E4E6;"></div>'+
+          '</div>'+
+
+          // Card
+          '<div style="background:linear-gradient(135deg,#5b2d8e,#7b3db5);border-radius:12px;padding:clamp(14px,3.5vw,18px);position:relative;overflow:hidden;">'+
+
+            '<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none;"></div>'+
+
+            // Condition banner at top — most important info
+            '<div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px;">'+
+              '<span style="font-size:13px;">⚠️</span>'+
+              '<div>'+
+                '<div style="font-size:clamp(9px,2.3vw,11px);font-weight:900;color:#ffffff;font-family:var(--H1);">VALABLE SUR 1ÈRE COMMANDE UNIQUEMENT</div>'+
+                '<div style="font-size:clamp(8px,2vw,9px);color:rgba(255,255,255,.65);font-family:var(--H2);margin-top:1px;">Ne s\'applique pas aux commandes existantes</div>'+
+              '</div>'+
+            '</div>'+
+
+            // Amount + label
+            '<div style="font-size:clamp(20px,5.5vw,26px);font-weight:900;color:#ffffff;font-family:var(--H1);line-height:1;margin-bottom:2px;">30 DH OFF</div>'+
+            '<div style="font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-bottom:10px;">-10% limité à 30 DH</div>'+
+
+            // Min order
+            '<div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;">'+
+              '<span style="font-size:15px;">🛒</span>'+
+              '<div>'+
+                '<div style="font-size:clamp(8px,2vw,9px);font-weight:700;color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;">Minimum d\'achat</div>'+
+                '<div style="font-size:clamp(13px,3.5vw,15px);font-weight:900;color:#ffffff;font-family:var(--H1);">199 DH</div>'+
+                '<div style="font-size:clamp(8px,2vw,9px);color:rgba(255,255,255,.5);font-family:var(--H2);font-style:italic;">ex. cosmétiques, mode, accessoires</div>'+
+              '</div>'+
+            '</div>'+
+
+            // Code + copy
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+
+              '<div style="flex:1;background:rgba(255,255,255,.15);border:2px dashed rgba(255,255,255,.5);border-radius:8px;padding:clamp(9px,2.3vw,11px) 10px;font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#ffffff;font-family:var(--H1);letter-spacing:.18em;text-align:center;">NJA25</div>'+
+              '<button onclick="copyCode(\'NJA25\',this)" style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:8px;padding:clamp(9px,2.3vw,11px) clamp(12px,3vw,16px);font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
+            '</div>'+
+
+            // CTA
+            '<a href="jumia://ma/mlp-maroc-foot/" onclick="_sendVoucher(this)" data-code="NJA25" data-disc="30 DH" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#ffffff;color:#5b2d8e;border-radius:8px;padding:clamp(10px,2.5vw,12px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;box-sizing:border-box;">UTILISER MON BON →</a>'+
+
+          '</div>'+
+        '</div>';
+      })()}
 
       <!-- Classement shortcut -->
       <button onclick="goTo(renderLeaderboard)" style="display:block;width:100%;background:#ffffff;border:1px solid #E4E4E6;border-radius:10px;padding:clamp(12px,3vw,14px);font-size:clamp(12px,3vw,14px);font-weight:700;color:#1E293B;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:clamp(20px,5vw,28px);" id="mv-lbd-btn">🏆 VOIR LE CLASSEMENT</button>
@@ -2415,6 +2615,16 @@ function renderMyVouchers(fromGame){
 
   // Fetch leaderboard → rank nudge + update classement button
   fetchLeaderboard().then(function(players){
+    // Inject rank into voucher header
+    var rankBadge=document.getElementById('mv-rank-badge');
+    if(rankBadge&&playerEmail){
+      var myEmailR=playerEmail.toLowerCase().trim();
+      var myIdxR=players.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmailR;});
+      if(myIdxR>=0){
+        rankBadge.textContent='#'+(myIdxR+1)+' au classement';
+        rankBadge.style.display='inline-block';
+      }
+    }
     var nudgeEl=document.getElementById('mv-rank-nudge');
     var lbdBtnEl=document.getElementById('mv-lbd-btn');
     if(!players||!players.length)return;
@@ -2542,19 +2752,29 @@ function startExpiryCountdowns(){
 
 // ── WHATSAPP SHARE ────────────────────────────────────────────
 function _shareLeaderboard(){
+  var GAME_URL='https://www.jumia.ma/sp-word-catcher-game/';
   _track('share_leaderboard',{player:playerEmail||'anonymous',score:bestScore});
   fetchLeaderboard().then(function(players){
-    var myRank='?';
+    var myRank=null;
     if(playerEmail){
       var myEmail=playerEmail.toLowerCase().trim();
       var idx=players.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmail;});
       if(idx>=0)myRank=idx+1;
     }
-    var msg='🏆 Je suis #'+myRank+' sur Jumia Gardien de But avec '+Number(bestScore).toLocaleString('fr-FR')+' pts !\n\nPeux-tu faire mieux ? 👉 '+window.location.href;
-    var url='https://wa.me/?text='+encodeURIComponent(msg);
-    window.open(url,'_blank');
+    var msg;
+    if(bestScore>0&&myRank){
+      // Has score and rank
+      msg='🏆 Je suis #'+myRank+' sur Jumia Gardien de But avec '+Number(bestScore).toLocaleString('fr-FR')+' pts !\n\nPeux-tu faire mieux ? 👉 '+GAME_URL;
+    } else if(bestScore>0){
+      // Has score but not yet on leaderboard
+      msg='⚽ J\'ai marqué '+Number(bestScore).toLocaleString('fr-FR')+' pts sur Jumia Gardien de But !\n\nViens me défier 👉 '+GAME_URL;
+    } else {
+      // No score yet
+      msg='⚽ Je joue à Jumia Gardien de But — un jeu exclusif Jumia !\n\nEssaie de battre mon score 👉 '+GAME_URL;
+    }
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
   }).catch(function(){
-    var msg='🏆 Je joue à Jumia Gardien de But ! Viens me défier 👉 '+window.location.href;
+    var msg='⚽ Je joue à Jumia Gardien de But — un jeu exclusif Jumia !\n\nEssaie de battre mon score 👉 '+GAME_URL;
     window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
   });
 }
