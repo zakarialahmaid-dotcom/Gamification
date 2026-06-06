@@ -1536,18 +1536,18 @@ function renderLobby(){
     <!-- ── Prominent action cards ── -->
     <div class="lb-action-cards">
 
-      <!-- Leaderboard card — social proof -->
-      <div class="lb-action-card lb-action-card--leaderboard" onclick="goTo(renderLeaderboard)">
+      <!-- Leaderboard card — gated on having played -->
+      <div class="lb-action-card lb-action-card--leaderboard" onclick="goToLeaderboardGated()">
         <div class="lb-action-card__icon">🏆</div>
         <div class="lb-action-card__body">
           <div class="lb-action-card__title">CLASSEMENT</div>
-          <div class="lb-action-card__sub">Vois qui domine le terrain</div>
+          <div class="lb-action-card__sub">${playerEmail?'Voir ton rang en direct':'Joue pour voir ton rang !'}</div>
         </div>
         <div class="lb-action-card__arrow">›</div>
       </div>
 
-      <!-- Mes bons card — conversion driver -->
-      <div class="lb-action-card lb-action-card--voucher" onclick="goTo(renderMyVouchers)">
+      <!-- Mes bons card — gated on email -->
+      <div class="lb-action-card lb-action-card--voucher" onclick="goToVouchersGated()">
         <div class="lb-action-card__icon">🎟️</div>
         <div class="lb-action-card__body">
           <div class="lb-action-card__title">MES BONS</div>
@@ -1606,8 +1606,17 @@ function renderLobby(){
   if(loginInp&&loginBtn){
     loginInp.addEventListener('focus',function(){loginInp.style.borderColor='#ff9900';});
     loginInp.addEventListener('blur',function(){loginInp.style.borderColor='#E4E4E6';});
-    loginInp.addEventListener('keydown',function(e){if(e.key==='Enter')doLobbyLogin();});
-    loginBtn.addEventListener('pointerdown',doLobbyLogin);
+    loginInp.addEventListener('keydown',function(e){if(e.key==='Enter'){if(window._vkbClose)window._vkbClose();doLobbyLogin();}});
+    // Use touchend so VKB doesnt intercept; close VKB first, then submit
+    loginBtn.addEventListener('touchend',function(e){
+      e.preventDefault();e.stopPropagation();
+      if(window._vkbClose)window._vkbClose();
+      setTimeout(doLobbyLogin,60);
+    },{passive:false});
+    loginBtn.addEventListener('click',function(e){
+      if(window._vkbClose)window._vkbClose();
+      setTimeout(doLobbyLogin,60);
+    });
   }
   // Start countdown if no attempts left
   if(att===0) startAttemptsCountdown();
@@ -2274,7 +2283,10 @@ function renderFormPost(){
     </div>
     <div class="fm-legal">En continuant, tu acceptes d'être contacté(e) par Jumia pour recevoir tes offres.</div>
   </div>`;
-  $('btn-submit').addEventListener('click',submitForm);
+  $('btn-submit').addEventListener('click',function(){
+    if(window._vkbClose)window._vkbClose();
+    setTimeout(submitForm,60);
+  });
   // Highlight pre-filled fields so user knows they're already filled
   ['inp-name','inp-lastname','inp-email'].forEach(function(id){
     var el=$(id);if(!el)return;
@@ -2445,6 +2457,121 @@ function _sendVoucher(el){
   var code=el&&el.getAttribute?el.getAttribute('data-code'):'';
   var disc=el&&el.getAttribute?el.getAttribute('data-disc'):'';
   try{window.parent.postMessage({type:'jumia_voucher',code:code,discount:disc},'*');}catch(e){}
+}
+
+// ── EMAIL GATE MODAL ──────────────────────────────────────────
+// Shared prompt shown when user tries to access leaderboard/vouchers without email
+function _showEmailGate(title, subtitle, icon, onSuccess){
+  var old=document.getElementById('email-gate-modal');if(old)old.remove();
+  var modal=document.createElement('div');
+  modal.id='email-gate-modal';
+  modal.style.cssText='position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;animation:tierUpIn .2s ease;';
+  modal.innerHTML=
+    '<div style="background:#fff;border-radius:16px 16px 0 0;padding:24px clamp(20px,5vw,28px) 32px;width:100%;max-width:480px;box-sizing:border-box;">'+
+      '<div style="text-align:center;margin-bottom:16px;">'+
+        '<div style="font-size:32px;margin-bottom:8px;">'+icon+'</div>'+
+        '<div style="font-size:clamp(16px,4.5vw,20px);font-weight:900;color:#1E293B;font-family:var(--H1);text-transform:uppercase;margin-bottom:4px;">'+title+'</div>'+
+        '<div style="font-size:clamp(11px,2.8vw,13px);color:#8A8A9A;font-family:var(--H2);line-height:1.4;">'+subtitle+'</div>'+
+      '</div>'+
+      '<div style="position:relative;margin-bottom:10px;">'+
+        '<input id="gate-email-inp" type="email" inputmode="email" placeholder="ton@email.com" autocomplete="email"'+
+          ' style="width:100%;border:2px solid #E4E4E6;border-radius:8px;padding:12px 14px;font-size:15px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;box-sizing:border-box;-webkit-appearance:none;">'+
+      '</div>'+
+      '<div id="gate-email-err" style="font-size:11px;color:#ec2326;font-family:var(--H2);margin-bottom:10px;min-height:14px;"></div>'+
+      '<button id="gate-email-btn" style="width:100%;background:#ff9900;color:#fff;border:none;border-radius:8px;padding:14px;font-size:clamp(13px,3.5vw,15px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:10px;">'+
+        '<span id="gate-email-label">CONTINUER</span>'+
+        '<div id="gate-email-spinner" style="display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;"></div>'+
+      '</button>'+
+      '<button onclick="document.getElementById(\'email-gate-modal\').remove()" style="width:100%;background:none;border:none;color:#8A8A9A;font-size:13px;font-family:var(--H2);cursor:pointer;padding:6px;">Annuler</button>'+
+    '</div>';
+
+  document.body.appendChild(modal);
+  // Wire VKB on the input
+  if(window._vkbWire) setTimeout(window._vkbWire, 50);
+
+  // Pre-fill if email known
+  var inp=document.getElementById('gate-email-inp');
+  if(inp && playerEmail){ inp.value=playerEmail; inp.style.borderColor='#27ae60'; }
+
+  // Submit handler
+  function _gateSubmit(){
+    var inp=document.getElementById('gate-email-inp');
+    var err=document.getElementById('gate-email-err');
+    var btn=document.getElementById('gate-email-btn');
+    var lbl=document.getElementById('gate-email-label');
+    var spn=document.getElementById('gate-email-spinner');
+    if(!inp)return;
+    var email=inp.value.trim().toLowerCase();
+    var emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRe.test(email)){
+      if(err)err.textContent='Adresse e-mail invalide.';
+      inp.style.borderColor='#ec2326';
+      return;
+    }
+    if(err)err.textContent='';
+    if(btn)btn.disabled=true;
+    if(lbl)lbl.style.display='none';
+    if(spn)spn.style.display='block';
+
+    // Lookup sheet
+    playerEmail=email;
+    fetchPlayerScore(email).then(function(result){
+      if(result&&result.score>0){
+        // Known player — restore session
+        playerName=result.name||'';
+        playerLastName=result.lastName||'';
+        bestScore=result.score;
+        earnedVouchers=vouchersFromScore(result.score);
+        hasPlayedOnce=true;
+        saveSession();
+      }
+      // Either way: save email and proceed
+      saveSession();
+      var m=document.getElementById('email-gate-modal');if(m)m.remove();
+      onSuccess();
+    }).catch(function(){
+      saveSession();
+      var m=document.getElementById('email-gate-modal');if(m)m.remove();
+      onSuccess();
+    });
+  }
+
+  var btn=document.getElementById('gate-email-btn');
+  if(btn){
+    btn.addEventListener('touchend',function(e){
+      e.preventDefault();e.stopPropagation();
+      if(window._vkbClose)window._vkbClose();
+      setTimeout(_gateSubmit,60);
+    },{passive:false});
+    btn.addEventListener('click',function(){
+      if(window._vkbClose)window._vkbClose();
+      setTimeout(_gateSubmit,60);
+    });
+  }
+  // Close on backdrop tap
+  modal.addEventListener('touchend',function(e){if(e.target===modal)modal.remove();},{passive:true});
+}
+
+// Leaderboard gate
+function goToLeaderboardGated(){
+  if(playerEmail){ goTo(renderLeaderboard); return; }
+  _showEmailGate(
+    'Vois ton rang',
+    'Entre ton e-mail pour voir ta position dans le classement et te comparer aux autres joueurs.',
+    '🏆',
+    function(){ goTo(renderLeaderboard); }
+  );
+}
+
+// Vouchers gate
+function goToVouchersGated(){
+  if(playerEmail){ goTo(renderMyVouchers); return; }
+  _showEmailGate(
+    'Récupère tes bons',
+    'Entre ton e-mail pour retrouver tes bons de réduction et les utiliser sur Jumia.',
+    '🎟️',
+    function(){ goTo(renderMyVouchers); }
+  );
 }
 
 function renderMyVouchers(fromGame){
