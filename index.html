@@ -204,7 +204,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .tuto-screen-btn:active{transform:translateY(4px);box-shadow:0 0 0 #e68800;}
 
 #screen-form{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;}
-.fm-top{flex:0 0 auto;background:#ff9900;padding:clamp(28px,7vw,40px) clamp(20px,5vw,28px) clamp(22px,5.5vw,28px);text-align:center;}
+.fm-top{flex:0 0 auto;background:#ff9900;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);text-align:center;}
 .fm-icon{font-size:44px;margin-bottom:10px;}
 .fm-title{font-size:clamp(28px,8vw,36px);font-weight:900;color:#ffffff;line-height:.92;font-family:var(--H1);margin-bottom:8px;text-transform:uppercase;}
 .fm-sub{font-size:clamp(13px,3.2vw,15px);color:rgba(255,255,255,.75);font-family:var(--H2);font-weight:500;line-height:1.4;}
@@ -446,7 +446,6 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   position:relative;
   overflow:hidden;
   width:100%;
-  contain:layout style;
 }
 .lb-sponsors-track::before,
 .lb-sponsors-track::after{
@@ -458,10 +457,19 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   display:flex;
   gap:10px;
   width:max-content;
-  will-change:transform;
+  /* CSS infinite marquee — animates exactly one set width, loops perfectly */
+  animation:marqueeScroll 18s linear infinite;
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
-  transform:translateX(0);
+}
+.lb-sponsors-inner:hover,
+.lb-sponsors-inner.paused{
+  animation-play-state:paused;
+}
+/* translate by exactly 50% = one full set of logos (inner has 2 identical sets) */
+@keyframes marqueeScroll{
+  0%  {transform:translateX(0);}
+  100%{transform:translateX(-50%);}
 }
 .lb-sponsor-tile{
   flex:0 0 clamp(72px,18vw,88px);
@@ -682,11 +690,11 @@ const IMG_TROPHY="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' v
 // ── VOUCHER TIERS (score thresholds ×2.5 vs original) ─────────────────────
 // Original → New:  300→750  |  800→2000  |  2000→5000
 function getVoucher(s){
-  if(s>=5000)return{disc:"60 DH",code:"GWOF-602024",label:"LÉGENDE",min:750};
-  if(s>=2000) return{disc:"50 DH",code:"GWOF-509162",label:"CHAMPION",min:600};
-  if(s>=750) return{disc:"30 DH",code:"GWOF-304364",label:"MATCH READY",min:400};
-  if(s>=300) return{disc:"20 DH",code:"GWOF-200789",label:"DÉBUTANT",min:240};
-  return          {disc:"10 DH",code:"GWOF-107655",label:"STARTER",min:120};
+  if(s>=5000)return{disc:"60 DH",code:"GWOF-602024",label:"LÉGENDE",min:600};
+  if(s>=2000) return{disc:"50 DH",code:"GWOF-509162",label:"CHAMPION",min:500};
+  if(s>=750) return{disc:"30 DH",code:"GWOF-304364",label:"MATCH READY",min:300};
+  if(s>=300) return{disc:"20 DH",code:"GWOF-200789",label:"DÉBUTANT",min:200};
+  return          {disc:"10 DH",code:"GWOF-107655",label:"STARTER",min:100};
 }
 
 // STATE
@@ -812,11 +820,11 @@ function clearSession(){
 function vouchersFromScore(score){
   var result=[];
   var TIERS=[
-    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',min:750,pts:5000},
-    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',min:600,pts:2000},
-    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:400,pts:750},
-    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',min:240,pts:300},
-    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',min:120,pts:0},
+    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',min:600,pts:5000},
+    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',min:500,pts:2000},
+    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:300,pts:750},
+    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',min:200,pts:300},
+    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',min:100,pts:0},
   ];
   for(var i=0;i<TIERS.length;i++){
     if(score>=TIERS[i].pts){
@@ -1282,10 +1290,59 @@ function showTierUp(label,disc){
   const old=document.getElementById('tier-up-overlay');if(old)old.remove();
   const el=document.createElement('div');
   el.id='tier-up-overlay';
-  el.innerHTML=`<div style="background:#ffffff;border:2px solid #E4E4E6;border-radius:16px;padding:clamp(20px,5vw,28px) clamp(28px,7vw,40px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);"><div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">BON DÉBLOQUÉ</div><div style="font-size:clamp(32px,9vw,44px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;margin-bottom:4px;">${disc} OFF</div><div style="font-size:clamp(14px,3.8vw,18px);font-weight:900;color:var(--white);font-family:var(--H1);text-transform:uppercase;">${label}</div></div>`;
+  el.innerHTML=`<div style="background:#ffffff;border:2px solid #ff9900;border-radius:16px;padding:clamp(20px,5vw,28px) clamp(28px,7vw,40px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);"><div style="font-size:clamp(9px,2.3vw,11px);font-weight:700;color:#8A8A9A;font-family:var(--H2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">BON DÉBLOQUÉ 🎟️</div><div style="font-size:clamp(32px,9vw,44px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;margin-bottom:4px;">${disc} OFF</div><div style="font-size:clamp(14px,3.8vw,18px);font-weight:900;color:var(--dark);font-family:var(--H1);text-transform:uppercase;">${label}</div></div>`;
   document.body.appendChild(el);
   sfxTierUp();
   setTimeout(()=>{el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>el.remove(),420);},1800);
+}
+
+// Motivational rank toast — shown every 10 catches
+var _catchCount=0;
+var _lastRankShown=-1;
+function _showRankToast(msg, sub){
+  var old=document.getElementById('rank-toast');if(old)old.remove();
+  var el=document.createElement('div');
+  el.id='rank-toast';
+  el.style.cssText='position:fixed;top:18%;left:50%;transform:translateX(-50%);z-index:9000;pointer-events:none;text-align:center;animation:tierUpIn .3s ease;';
+  el.innerHTML='<div style="background:linear-gradient(135deg,#1E293B,#2D3F57);border:2px solid #ff9900;border-radius:14px;padding:12px 22px;box-shadow:0 6px 24px rgba(0,0,0,.5);white-space:nowrap;">'+
+    '<div style="font-size:clamp(16px,4.5vw,20px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:1;">'+msg+'</div>'+
+    (sub?'<div style="font-size:clamp(10px,2.6vw,12px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:3px;">'+sub+'</div>':'')+
+  '</div>';
+  document.body.appendChild(el);
+  setTimeout(function(){el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(function(){el.remove();},420);},2200);
+}
+
+function _getRankMessage(rank, total){
+  if(rank<=3)  return {msg:'🥇 TOP '+rank+' !',        sub:'Tu es dans le podium — continue !'};
+  if(rank<=10) return {msg:'🔥 TOP 10 !',              sub:'Encore '+Math.max(1,rank-3)+' places et tu es sur le podium'};
+  if(rank<=20) return {msg:'⚡ TOP 20 !',              sub:'Tu grimpes — il te manque '+(rank-10)+' places pour le Top 10'};
+  if(rank<=30) return {msg:'💪 TOP 30 !',              sub:'Tu es dans les meilleurs — rejoue !'};
+  if(rank<=50) return {msg:'🎯 TOP 50 !',              sub:(rank-30)+' places de plus et tu entres dans le Top 30'};
+  if(rank<=100)return {msg:'🏅 TOP 100 !',             sub:'Tu es dans le classement — continue à grimper'};
+  return null;
+}
+
+function _checkRankMotivation(){
+  if(!playerEmail||!_playerIndex) return;
+  // Get current rank from _playerIndex by comparing score
+  var myEmail=playerEmail.toLowerCase().trim();
+  var allSorted=Object.values(_playerIndex).sort(function(a,b){return b.score-a.score;});
+  var myIdx=allSorted.findIndex(function(p){return(p.email||'').toLowerCase()===myEmail;});
+  if(myIdx<0) return;
+  var rank=myIdx+1;
+  var total=allSorted.length;
+  // Only show if rank improved since last notification
+  if(rank===_lastRankShown) return;
+  // Show milestones: top 3,10,20,30,50,100
+  var milestones=[3,10,20,30,50,100];
+  for(var i=0;i<milestones.length;i++){
+    var m=milestones[i];
+    if(rank<=m&&(_lastRankShown<0||_lastRankShown>m)){
+      var info=_getRankMessage(rank,total);
+      if(info){ _showRankToast(info.msg,info.sub); _lastRankShown=rank; }
+      break;
+    }
+  }
 }
 
 function goTo(fn){
@@ -1374,8 +1431,7 @@ function renderLeaderboard(){
       const fullName = [p.name, p.lastName].filter(Boolean).join(' ') || 'Joueur';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
       const you=isMe?'<span class="lbd-you-badge">TOI</span>':'';
-      const prizeTag = rank<=3 ? '<span style="font-size:clamp(7px,1.8vw,8px);font-weight:700;color:#ff9900;font-family:var(--H2);background:#fff8ee;border:0.5px solid rgba(255,153,0,.4);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;">🎁 Adidas</span>' : '';
-      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}${prizeTag}</div><div class="lbd-score">${pts}</div></div>`;
+      return`<div class="lbd-row${isMe?' mine':''}" id="lbd-row-${i}"><div class="lbd-medal ${mc}">${rank}</div><div class="lbd-name">${fullName}${you}</div><div class="lbd-score">${pts}</div></div>`;
     }).join('');
     card.innerHTML=rows;
 
@@ -1575,7 +1631,7 @@ function renderLobby(){
              <div style="font-size:clamp(10px,2.6vw,12px);font-weight:700;color:#1E293B;font-family:var(--H2);margin-bottom:8px;">🔐 Retrouve tes bons</div>
              <div style="display:flex;gap:8px;align-items:center;">
                <input id="lobby-login-email" type="email" inputmode="email" placeholder="ton@email.com" autocomplete="email"
-                 style="flex:1;border:1.5px solid #E4E4E6;border-radius:7px;padding:9px 12px;font-size:15px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;-webkit-appearance:none;min-width:0;transition:border-color .2s;">
+                 style="flex:1;border:1.5px solid #E4E4E6;border-radius:7px;padding:9px 12px;font-size:16px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;-webkit-appearance:none;min-width:0;transition:border-color .2s;">
                <button id="lobby-login-btn"
                  style="flex-shrink:0;background:#ff9900;color:#ffffff;border:none;border-radius:7px;padding:9px 14px;font-size:clamp(11px,2.8vw,13px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:6px;">
                  <span id="lobby-login-label">OK</span>
@@ -1621,116 +1677,19 @@ function renderLobby(){
   // Start countdown if no attempts left
   if(att===0) startAttemptsCountdown();
 
-  // ── Sponsor strip: fluid infinite marquee ──────────────────
+  // ── Sponsor strip: pure CSS marquee — touch pauses animation ──
   (function(){
     var inner = document.getElementById('lb-sponsors-inner');
     var track = document.getElementById('lb-sponsors-track');
     if(!inner || !track) return;
-
-    var pos      = 0;
-    var halfW    = 0;       // width of ONE set of logos
-    var rafId    = null;
-    var lastTs   = null;
-    var PX_PER_S = 45;
-
-    // Normalise pos into [-halfW, 0) range — no blanks ever
-    function wrapPos(){
-      if(halfW <= 0) return;
-      pos = pos % halfW;          // keep within one period
-      if(pos > 0)  pos -= halfW;  // always negative (scrolled left)
-    }
-
-    function startScroll(){
-      if(rafId !== null) return;
-      lastTs = null;
-      rafId = requestAnimationFrame(step);
-    }
-    function stopScroll(){
-      if(rafId !== null){ cancelAnimationFrame(rafId); rafId = null; lastTs = null; }
-    }
-
-    function step(ts){
-      if(lastTs === null) lastTs = ts;
-      var dt = Math.min(ts - lastTs, 50);
-      lastTs = ts;
-      if(halfW > 0){
-        pos -= PX_PER_S * (dt / 1000);
-        wrapPos();
-        inner.style.transform = 'translateX('+Math.round(pos)+'px)';
-      }
-      rafId = requestAnimationFrame(step);
-    }
-
-    // Measure: wait for layout to flush, then start
-    function measureAndStart(){
-      // Double rAF guarantees layout is complete
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          var w = inner.scrollWidth;
-          if(w > 10){
-            halfW = Math.round(w / 2);
-            wrapPos(); // clamp pos now that halfW is known
-          }
-          startScroll();
-        });
-      });
-    }
-
-    // Wait for all images before measuring
-    var imgs  = Array.prototype.slice.call(inner.querySelectorAll('img'));
-    var total = imgs.length;
-    var done  = 0;
-    function onImgDone(){
-      done++;
-      if(done >= total) measureAndStart();
-    }
-    if(total === 0){ measureAndStart(); }
-    else {
-      imgs.forEach(function(img){
-        if(img.complete && img.naturalWidth > 0){ onImgDone(); }
-        else {
-          img.addEventListener('load',  onImgDone, {once:true});
-          img.addEventListener('error', onImgDone, {once:true});
-        }
-      });
-      setTimeout(function(){ if(!rafId) measureAndStart(); }, 2000);
-    }
-
-    // Touch swipe — 1:1 finger tracking, wraps correctly
-    var touchX = 0, velX = 0, lastTouchT = 0;
-    track.addEventListener('touchstart', function(e){
-      stopScroll();
-      touchX = e.touches[0].clientX;
-      lastTouchT = performance.now();
-      velX = 0;
-    }, {passive:true});
-    track.addEventListener('touchmove', function(e){
-      var now = performance.now();
-      var dx  = e.touches[0].clientX - touchX;
-      velX    = dx / Math.max(1, now - lastTouchT);
-      touchX  = e.touches[0].clientX;
-      lastTouchT = now;
-      pos += dx;
-      wrapPos(); // always clamp — no blank space on swipe either
-      inner.style.transform = 'translateX('+Math.round(pos)+'px)';
-    }, {passive:true});
-    track.addEventListener('touchend', function(){
-      if(halfW > 0){ pos += velX * 80; wrapPos(); inner.style.transform = 'translateX('+Math.round(pos)+'px)'; }
-      setTimeout(startScroll, 80);
-    }, {passive:true});
-
-    // Pause when tab hidden, resume on return
+    // Pause on touch, resume on release
+    track.addEventListener('touchstart', function(){ inner.classList.add('paused'); }, {passive:true});
+    track.addEventListener('touchend',   function(){ inner.classList.remove('paused'); }, {passive:true});
+    // Pause when tab hidden
     document.addEventListener('visibilitychange', function(){
-      if(document.hidden){ stopScroll(); }
-      else { lastTs = null; startScroll(); }
+      if(document.hidden) inner.classList.add('paused');
+      else inner.classList.remove('paused');
     });
-
-    // Cleanup on navigate
-    var obs = new MutationObserver(function(){
-      if(!document.getElementById('lb-sponsors-inner')){ stopScroll(); obs.disconnect(); }
-    });
-    var appEl = document.getElementById('app');
-    if(appEl) obs.observe(appEl, {childList:true});
   })();
 }
 
@@ -1983,6 +1942,7 @@ function startGame(){
   startMusic();
   done=false;wid=0;itemsArr=[];
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
+  _catchCount=0;_lastRankShown=-1;
   lastT=null;lastSpawn=0;spawnInt=2000;pressDir=null;lastPressTime=0;touchHintDismissed=false;
   window._swipeVel=0;window._swipeActive=false;
   window._adrenaline=false;window._adrenalineShown=false;
@@ -2172,6 +2132,16 @@ function tick(ts){
     const tiers=[{t:5000,l:'LÉGENDE',d:'60 DH'},{t:2000,l:'CHAMPION',d:'50 DH'},{t:750,l:'MATCH READY',d:'30 DH'},{t:300,l:'DÉBUTANT',d:'20 DH'}];
     for(var ti=0;ti<tiers.length;ti++){
       if(scoreVal>=tiers[ti].t&&lastTierReached<tiers[ti].t){lastTierReached=tiers[ti].t;showTierUp(tiers[ti].l,tiers[ti].d);break;}
+    }
+    // Rank motivation every 10 catches — update _playerIndex with live score first
+    _catchCount++;
+    if(_catchCount%10===0){
+      if(playerEmail&&_playerIndex){
+        var _me=playerEmail.toLowerCase().trim();
+        if(_playerIndex[_me]) _playerIndex[_me].score=scoreVal;
+        else _playerIndex[_me]={name:playerName||'Joueur',lastName:playerLastName||'',email:_me,score:scoreVal};
+      }
+      _checkRankMotivation();
     }
     // Score circle ring — cached via querySelector (called once on first pts gain)
     if(!_domCache['_circle'])_domCache['_circle']=document.querySelector('.score-circle');
@@ -2475,7 +2445,7 @@ function _showEmailGate(title, subtitle, icon, onSuccess){
       '</div>'+
       '<div style="position:relative;margin-bottom:10px;">'+
         '<input id="gate-email-inp" type="email" inputmode="email" placeholder="ton@email.com" autocomplete="email"'+
-          ' style="width:100%;border:2px solid #E4E4E6;border-radius:8px;padding:12px 14px;font-size:15px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;box-sizing:border-box;-webkit-appearance:none;">'+
+          ' style="width:100%;border:2px solid #E4E4E6;border-radius:8px;padding:12px 14px;font-size:16px;font-family:var(--H2);color:#1E293B;background:#F8F8F8;outline:none;box-sizing:border-box;-webkit-appearance:none;">'+
       '</div>'+
       '<div id="gate-email-err" style="font-size:11px;color:#ec2326;font-family:var(--H2);margin-bottom:10px;min-height:14px;"></div>'+
       '<button id="gate-email-btn" style="width:100%;background:#ff9900;color:#fff;border:none;border-radius:8px;padding:14px;font-size:clamp(13px,3.5vw,15px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:10px;">'+
@@ -2578,11 +2548,11 @@ function renderMyVouchers(fromGame){
   // fromGame = true when arriving straight from endGame/submitForm
   // ── TIERS with ×2.5 pts thresholds ─────────────────────────
   var TIERS=[
-    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',    min:750, pts:5000},
-    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',   min:600, pts:2000},
-    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:400, pts:750 },
-    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',   min:240, pts:300 },
-    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',      min:120, pts:0   },
+    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',    min:600, pts:5000},
+    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',   min:500, pts:2000},
+    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:300, pts:750 },
+    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',   min:200, pts:300 },
+    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',      min:100, pts:0   },
   ];
 
   // ── CASCADE RULE ────────────────────────────────────────────
@@ -2647,7 +2617,7 @@ function renderMyVouchers(fromGame){
         </button>
         <div style="flex:1;">
           <div style="font-size:clamp(16px,4.5vw,20px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;">${(fromGame||hasPlayedOnce)?resultLabel:'MES BONS'}</div>
-          <div style="font-size:clamp(9px,2.3vw,10px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:1px;">${(fromGame||hasPlayedOnce)?'Utilise-les dès maintenant sur Jumia':'Tes réductions sont actives'}</div>
+          <div style="font-size:clamp(9px,2.3vw,10px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:1px;">${(fromGame||hasPlayedOnce)?'Tes bons exclusifs t\'attendent !'  :'Tes bons exclusifs sont actifs'}</div>
         </div>
         ${attLeft>0?`<button id="mv-btn-replay" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#ffffff;border-radius:8px;padding:6px 12px;font-size:clamp(10px,2.6vw,12px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">⚽ REJOUER</button>`:''}
       </div>
@@ -2821,7 +2791,7 @@ function renderMyVouchers(fromGame){
             '</div>'+
 
             // CTA
-            '<a href="jumia://ma/mlp-maroc-foot/" onclick="_sendVoucher(this)" data-code="NJA25" data-disc="30 DH" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#ffffff;color:#5b2d8e;border-radius:8px;padding:clamp(10px,2.5vw,12px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;box-sizing:border-box;">UTILISER MON BON →</a>'+
+            '<a href="https://www.jumia.ma/mlp-nouveaux-clients/" target="_blank" onclick="_sendVoucher(this)" data-code="NJA25" data-disc="30 DH" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#ffffff;color:#5b2d8e;border-radius:8px;padding:clamp(10px,2.5vw,12px);font-size:clamp(12px,3vw,14px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;box-sizing:border-box;">UTILISER MON BON →</a>'+
 
           '</div>'+
         '</div>';
