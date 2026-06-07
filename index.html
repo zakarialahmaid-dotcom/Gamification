@@ -720,16 +720,16 @@ const TIER_SHOP_URLS = {
   'GWOF-304364': 'jumia://ma/mlp-maroc-foot/',
   'GWOF-200789': 'jumia://ma/mlp-maroc-foot/',
   'GWOF-107655': 'jumia://ma/mlp-maroc-foot/',
-  'NJA25':       'jumia://ma/mlp-maroc-foot/',
+  'NJA25':       'https://www.jumia.ma/mlp-nouveaux-clients/',
 };
 
-// "What you can buy" anchor per tier
+// "What you can buy" — aligned with top user search needs
 const TIER_EXAMPLES = {
-  'GWOF-602024': 'ex. une paire Adidas, un sac à main',
-  'GWOF-509162': 'ex. un casque Xiaomi, des chaussures',
-  'GWOF-304364': 'ex. des vêtements, accessoires mode',
-  'GWOF-200789': 'ex. cosmétiques, soins beauté',
-  'GWOF-107655': 'ex. accessoires, petits articles',
+  'GWOF-602024': 'chaussures de sport, sandales, mode',
+  'GWOF-509162': 'robes, vêtements femme, chaussures',
+  'GWOF-304364': "sandales femmes, robes d'été, mode",
+  'GWOF-200789': 'sandales, maillots de bain, beauté',
+  'GWOF-107655': 'soins visage, hygiène, crèmes solaires',
 };
 
 const SPONSORS = [
@@ -2309,50 +2309,124 @@ function renderFormPost(){
   });
 }
 
+// ── LAYER 1: VALIDATION HELPERS ─────────────────────────────────────────────
+
+// Hard-block: known placeholder / garbage names
+var _BAD_NAME = /^(test|demo|fake|dummy|admin|user|joueur|anonyme|inconnu|nobody|someone|azerty|qwerty|azert|qwert|asdfgh?|zxcvbn?|aaa+|bbb+|ccc+|ddd+|eee+|fff+|xxx+|yyy+|zzz+|abc|bca|cba|xyz|nom|prenom|prénom|foo|bar|baz|na|none|null|undefined|n\/a|rien|blabla|blablab|toto|tata|titi|tutu|momo|lolo|nono|roro|soso|jojo|coco|dodo|gogo|bobo|bibi|kiki|zizi|fifi|mimi|nini|popo|riri|vivi|wawa|yoyo|zebi|haha|hihi|huhu|héhé|hoho|hehe)$/i;
+
+// Hard-block: all-same char repeated (aaaa, 1111, …..)
+var _REPEAT_CHAR = /^(.)\1{2,}$/;
+
+// Hard-block: all-digit names (123, 456789)
+var _ALL_DIGITS = /^\d+$/;
+
+// Hard-block: keyboard walks (azerty, qsdf, …) — also catches substrings
+var _KEYBOARD = /^(az|qsd|qwer|azer|zxcv|asdf){1}/i;
+
+// Hard-block: disposable / temp email services
+var _DISPOSABLE_EMAIL = /(mailinator|yopmail|trashmail|tempmail|maildrop|guerrillamail|throwam|fakeinbox|10minutemail|sharklasers|spam4|dispostable|spamgourmet|dodgit|trashmail|mailnull|spamspot|binkmail|safetymail|mailtothis|throwaway|discard\.email|tempr\.email|getnada|filzmail|trbvm|tempmailaddress|discard\.email|mailnesia|spamex|spaml|spamoff|spamhere|spamfree24|cool\.fr\.nf|jetable\.fr\.nf|nospamfor|no-spam|antispam|spamcon|spam\.la|haltospam|spaml\.de|sogetthis|mailhazard|spamgob|meltmail|spamfree|klzlk|baxomale|binkmail|bloatbox|bobmail|bodhi\.lawlita|bofthew|bspamfree|bugmenot|bulkbye|bumpymail)/i;
+
+// Hard-block: Moroccan competitors — we flag and block silently
+var _COMPETITOR_DOMAINS = /^[^@]+@(marjane\.ma|aswak-assalam\.ma|aswakassalam\.ma|bim\.ma|Label\'vie\.com|labelvie\.com|carrefour\.ma|carrefourmaroc\.ma|lidl\.ma|amazon\.|amazon\.fr|amazon\.com|noon\.|noon\.com|noon\.ae|alibaba\.|alibaba\.com|aliexpress\.|aliexpress\.com|shein\.|shein\.com|temu\.|temu\.com|shopify\.|ebay\.|ebay\.fr|cdiscount\.|cdiscount\.com|fnac\.|fnac\.com|darty\.|darty\.com|inmaa\.ma|hmizate\.ma|msouk\.ma|espace-high-tech\.com|matelpro\.com|electroplanet\.ma|biougnach\.com|acima\.ma|seraphin\.ma|shopping\.ma|souq\.|laredoute\.|galeries-lafayette\.|printemps\.)/i;
+
+// Soft-flag: suspicious but don't block (goes to sheet with suspicious:true)
+var _SUSPICIOUS_NAME = /^[a-z]{1,2}$/i;  // single/double letter names
+
+function _validateName(val){
+  if(!val || val.length < 2) return 'Prénom trop court';
+  if(_ALL_DIGITS.test(val))  return 'Prénom invalide';
+  if(_REPEAT_CHAR.test(val)) return 'Prénom invalide';
+  if(_BAD_NAME.test(val))    return 'Prénom invalide';
+  if(_KEYBOARD.test(val) && val.length < 5) return 'Prénom invalide';
+  return null; // valid
+}
+
+function _validateEmail(val){
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if(!emailRe.test(val))          return 'E-mail invalide';
+  if(_DISPOSABLE_EMAIL.test(val)) return 'E-mail invalide';
+  if(_COMPETITOR_DOMAINS.test(val)) return null; // let through but will be flagged below
+  return null;
+}
+
+function _isSuspicious(name, lastname, email){
+  if(_COMPETITOR_DOMAINS.test(email)) return true;
+  if(_SUSPICIOUS_NAME.test(name))     return true;
+  if(_SUSPICIOUS_NAME.test(lastname)) return true;
+  // Name looks generic even if not in hard-block list
+  if(name === lastname)               return true;
+  return false;
+}
+
+// ── LAYER 2: SCORING GATE ────────────────────────────────────────────────────
+var MIN_SCORE_TO_SUBMIT = 50; // must have caught at least a few balls
+
 function submitForm(){
   // Remove readonly (set by VKB) before reading values
   ['inp-name','inp-lastname','inp-email'].forEach(function(id){var el=$(id);if(el)el.removeAttribute('readonly');});
-  var _n=$('inp-name');const name=_n?_n.value.trim():'';
-  var _ln=$('inp-lastname');const lastname=_ln?_ln.value.trim():'';
-  var _em=$('inp-email');const email=_em?_em.value.trim():'';
+  var _n=$('inp-name');const name=(_n?_n.value.trim():'');
+  var _ln=$('inp-lastname');const lastname=(_ln?_ln.value.trim():'');
+  var _em=$('inp-email');const email=(_em?_em.value.trim():'').toLowerCase();
   const city='Maroc';
   let valid=true;
-  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const testRe=/^(test|demo|fake|dummy|admin|user|azerty|qwerty|asdf|aaa+|bbb+|xxx+|abc|123|nom|foo|bar|na|none)$/i;
-  const repeat=/^(.)\1{2,}$/;
-  const testEmail=/(test|fake|demo|dummy|mailinator|yopmail|trashmail|tempmail|maildrop)/i;
-  const fields=[
-    ['inp-name','err-name',name.length<2||testRe.test(name)||repeat.test(name),'Prénom invalide'],
-    ['inp-lastname','err-lastname',lastname.length<2||testRe.test(lastname)||repeat.test(lastname),'Nom invalide'],
-    ['inp-email','err-email',!emailRe.test(email)||testEmail.test(email),'E-mail invalide'],
+
+  // ── Scoring gate — must have actually played ──────────────────
+  if(scoreVal < MIN_SCORE_TO_SUBMIT){
+    var sg=$('inp-name');
+    if(sg) sg.focus();
+    // Show a gentle message without blocking the UI harshly
+    var errEl=$('err-name');
+    if(errEl){
+      errEl.textContent='Joue d\'abord pour gagner tes bons !';
+      errEl.classList.add('visible');
+      setTimeout(function(){if(errEl)errEl.classList.remove('visible');},3000);
+    }
+    return;
+  }
+
+  // ── Field validation ──────────────────────────────────────────
+  var nameErr     = _validateName(name);
+  var lastnameErr = _validateName(lastname);
+  var emailErr    = _validateEmail(email);
+
+  var fields=[
+    ['inp-name',     'err-name',     nameErr,     nameErr||''],
+    ['inp-lastname', 'err-lastname', lastnameErr, lastnameErr||''],
+    ['inp-email',    'err-email',    emailErr,    emailErr||''],
   ];
-  fields.forEach(function(_f){var id=_f[0],eid=_f[1],fail=_f[2],msg=_f[3];var _fe=$(id);if(_fe)_fe.classList.toggle('error',fail);const em=$(eid);if(em){em.textContent=msg;em.classList.toggle('visible',fail);}if(fail)valid=false;});
+  fields.forEach(function(_f){
+    var id=_f[0],eid=_f[1],fail=_f[2],msg=_f[3];
+    var _fe=$(id);if(_fe)_fe.classList.toggle('error',!!fail);
+    var em=$(eid);if(em){em.textContent=msg;em.classList.toggle('visible',!!fail);}
+    if(fail)valid=false;
+  });
   if(!valid)return;
+
+  // ── Layer 3: silent suspicious flag ──────────────────────────
+  var suspicious = _isSuspicious(name, lastname, email);
 
   // Show spinner while we check
   const btn=$('btn-submit'),lbl=$('submit-label'),spn=$('submit-spinner');
   if(btn)btn.disabled=true;if(lbl)lbl.style.display='none';if(spn)spn.style.display='block';
 
-  var normEmail=email.toLowerCase().trim();
+  var normEmail=email;
 
   // ── Check if this email already exists in the sheet ──────────
   fetchPlayerScore(normEmail).then(function(existing){
 
     if(existing && existing.score > 0){
       // ── RETURNING PLAYER ─────────────────────────────────────
-      // Restore their best score (keep whichever is higher)
       playerName     = existing.name     || name;
       playerLastName = existing.lastName || lastname;
       playerEmail    = normEmail;
       playerCity     = city || playerCity;
-      // Keep the higher of existing best or current game score
       bestScore      = Math.max(existing.score, scoreVal, bestScore);
       earnedVouchers = vouchersFromScore(bestScore);
       hasPlayedOnce  = true;
       saveSession();
-      // Still submit this game's score to sheet (new row = new attempt logged)
       if(SHEET_URL.startsWith('https://')){
         const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+        if(suspicious) p.set('suspicious','true');
         fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
       }
       _lbdCache=null;_lbdCacheTs=0;
@@ -2368,19 +2442,20 @@ function submitForm(){
       _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
       if(SHEET_URL.startsWith('https://')){
         const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+        if(suspicious) p.set('suspicious','true');
         fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
       }
       goTo(function(){renderMyVouchers(true)});
     }
 
   }).catch(function(){
-    // Network error — proceed as new player, don't block
     playerName=name;playerLastName=lastname;playerEmail=normEmail;playerCity=city;
     saveSession();
     _lbdCache=null;_lbdCacheTs=0;
     _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
     if(SHEET_URL.startsWith('https://')){
       const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
+      if(suspicious) p.set('suspicious','true');
       fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
     }
     goTo(function(){renderMyVouchers(true)});
