@@ -720,7 +720,8 @@ const TIER_SHOP_URLS = {
   'GWOF-304364': 'jumia://ma/mlp-maroc-foot/',
   'GWOF-200789': 'jumia://ma/mlp-maroc-foot/',
   'GWOF-107655': 'jumia://ma/mlp-maroc-foot/',
-  'NJA25':       'https://www.jumia.ma/mlp-nouveaux-clients/',
+  // ── NJA25 redirects to mlp-maroc-foot like all other game vouchers ──
+  'NJA25':       'jumia://ma/mlp-maroc-foot/',
 };
 
 // "What you can buy" — aligned with top user search needs
@@ -1024,16 +1025,17 @@ function $(id){return document.getElementById(id);}
 
   var activeInput=null, shifted=false, numMode=false;
 
+  // ── AZERTY layout ────────────────────────────────────────────
   var ALPHA=[
-    ['q','w','e','r','t','y','u','i','o','p'],
-    ['a','s','d','f','g','h','j','k','l'],
-    ['\u21e7','z','x','c','v','b','n','m','\u232b'],
+    ['a','z','e','r','t','y','u','i','o','p'],
+    ['q','s','d','f','g','h','j','k','l','m'],
+    ['\u21e7','w','x','c','v','b','n',',','\u232b'],
     ['123','@','.','-','_','espace','OK \u2713']
   ];
   var NUMS=[
     ['1','2','3','4','5','6','7','8','9','0'],
     ['-','_','.','@','!','&','+','=','#','%'],
-    ['abc','espace','\u232b','OK \u2713']
+    ['\u2190','abc','\u2192','espace','\u232b','OK \u2713']
   ];
 
   function buildKeys(){
@@ -1049,7 +1051,7 @@ function $(id){return document.getElementById(id);}
         else if(k==='OK \u2713'){b.className+=' done';}
         else if(k==='\u232b'){b.className+=' dark wide';}
         else if(k==='\u21e7'){b.className+=' dark wide';label=shifted?'\u21e7\u25cf':'\u21e7';}
-        else if(k==='123'||k==='abc'){b.className+=' dark wide';}
+        else if(k==='\u2190'||k==='\u2192'){b.className+=' dark wide';}  // ← →
         else if(['@','.','-','_','#','!'].indexOf(k)>=0){b.className+=' dark';}
         b.textContent=label;
         b.addEventListener('touchstart',function(e){e.preventDefault();b.style.background='#D4D7DC';b.style.color='#202124';},{passive:false});
@@ -1068,24 +1070,87 @@ function $(id){return document.getElementById(id);}
 
   function tap(k){
     if(!activeInput)return;
-    if(k==='OK \u2713'){vkbClose();return;}
-    if(k==='\u232b'){activeInput.value=activeInput.value.slice(0,-1);sync();return;}
+    if(k==='OK \u2713'){
+      vkbClose();
+      // Submit whichever screen's form is currently active
+      setTimeout(function(){
+        // Lobby email
+        var lbl=document.getElementById('lobby-login-btn');
+        if(lbl&&lbl.offsetParent!==null){doLobbyLogin&&doLobbyLogin();return;}
+        // Gate email
+        var gb=document.getElementById('gate-email-btn');
+        if(gb&&gb.offsetParent!==null){gb.click();return;}
+        // Main form submit
+        var sb=document.getElementById('btn-submit');
+        if(sb&&sb.offsetParent!==null){submitForm&&submitForm();return;}
+        // Login screen
+        var lb=document.getElementById('login-btn');
+        if(lb&&lb.offsetParent!==null){lb.click();return;}
+      },60);
+      return;
+    }
+    if(k==='\u232b'){
+      // Backspace — remove char at caret if supported, else trim end
+      var v=activeInput.value;
+      var pos=activeInput.selectionStart;
+      if(typeof pos==='number'&&pos>0&&!activeInput.readOnly){
+        activeInput.value=v.slice(0,pos-1)+v.slice(pos);
+        try{activeInput.setSelectionRange(pos-1,pos-1);}catch(e){}
+      } else {
+        activeInput.value=v.slice(0,-1);
+      }
+      sync();return;
+    }
     if(k==='\u21e7'){shifted=!shifted;buildKeys();return;}
+    if(k==='\u2190'){ // ← move cursor left
+      var p=activeInput.selectionStart;
+      if(p>0){try{activeInput.setSelectionRange(p-1,p-1);}catch(e){}}
+      sync();return;
+    }
+    if(k==='\u2192'){ // → move cursor right
+      var p2=activeInput.selectionStart;
+      var len=activeInput.value.length;
+      if(p2<len){try{activeInput.setSelectionRange(p2+1,p2+1);}catch(e){}}
+      sync();return;
+    }
     if(k==='123'){numMode=true;buildKeys();return;}
     if(k==='abc'){numMode=false;buildKeys();return;}
     if(k==='espace'){k=' ';}
-    activeInput.value+=(!numMode&&shifted)?k.toUpperCase():k;
+    var ch=(!numMode&&shifted)?k.toUpperCase():k;
+    // Insert at caret position
+    var pos2=activeInput.selectionStart;
+    var v2=activeInput.value;
+    if(typeof pos2==='number'&&!activeInput.readOnly){
+      activeInput.value=v2.slice(0,pos2)+ch+v2.slice(pos2);
+      try{activeInput.setSelectionRange(pos2+1,pos2+1);}catch(e){}
+    } else {
+      activeInput.value+=ch;
+    }
     if(shifted&&k.length===1){shifted=false;buildKeys();}
     sync();
     try{activeInput.dispatchEvent(new Event('input',{bubbles:true}));}catch(e){}
   }
 
   function sync(){
-    if(!vkbText)return;
-    var v=activeInput?activeInput.value:'';
-    vkbText.textContent=v||'\u00a0';
-    vkbText.style.opacity=v?'1':'0.4';
+    if(!vkbText||!activeInput)return;
+    var v=activeInput.value;
+    var pos=activeInput.selectionStart;
+    if(typeof pos==='number'&&pos>=0){
+      // Render: before | after — caret div sits between them
+      var before=_esc(v.slice(0,pos));
+      var after=_esc(v.slice(pos));
+      vkbText.parentNode.innerHTML=
+        '<span id="vkb-text" style="flex:1;display:flex;align-items:center;white-space:nowrap;overflow:hidden;min-width:0;">'+(before||'')+'</span>'+
+        '<div class="vkb-caret"></div>'+
+        (after?'<span style="opacity:.4;white-space:nowrap;overflow:hidden;flex-shrink:1;min-width:0;">'+after+'</span>':'');
+      // Re-grab vkbText ref after innerHTML replacement
+      vkbText=document.getElementById('vkb-text');
+    } else {
+      vkbText.textContent=v||'\u00a0';
+      vkbText.style.opacity=v?'1':'0.4';
+    }
   }
+  function _esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
   function vkbOpen(inp){
     activeInput=inp;
@@ -1143,7 +1208,7 @@ function $(id){return document.getElementById(id);}
     // Lock the input so no native keyboard fires, use VKB instead
     inp.setAttribute('readonly','readonly');
     inp.setAttribute('inputmode','none');
-    inp.style.caretColor='transparent';
+    inp.style.caretColor='#ff9900'; /* visible orange caret */
 
     // Tap catcher — a plain div over the input, no touch restrictions
     var catcher=document.createElement('div');
@@ -2813,7 +2878,7 @@ function renderMyVouchers(fromGame){
         <div style="display:flex;align-items:center;gap:6px;">
           <div style="flex:1;background:rgba(255,255,255,.15);border:1.5px dashed rgba(255,255,255,.5);border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#fff;font-family:var(--H1);letter-spacing:.12em;text-align:center;">NJA25</div>
           <button class="mv-copy-btn" data-code="NJA25" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;">COPIER</button>
-          <a href="https://www.jumia.ma/mlp-nouveaux-clients/" class="mv-use-btn" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER \u2192</a>
+          <a href="jumia://ma/mlp-maroc-foot/" class="mv-use-btn" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER →</a>
         </div>
       </div>
 
