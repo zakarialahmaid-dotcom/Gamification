@@ -100,7 +100,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 #game-overlay{position:absolute;top:clamp(10px,2.5vw,14px);right:clamp(10px,2.5vw,14px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vw,12px);z-index:8;}
 .score-circle{width:clamp(60px,15vw,74px);height:clamp(60px,15vw,74px);background:#ffffff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 4px 16px rgba(0,0,0,.25);flex-shrink:0;}
 .score-num{font-size:clamp(17px,5vw,22px);font-weight:900;color:#403b3b;line-height:1;font-family:var(--H1);}
-.score-lbl{font-size:7px;font-weight:700;color:#777777;font-family:var(--H2);letter-spacing:.06em;text-transform:uppercase;}
+.score-lbl{font-size:9px;font-weight:700;color:#777777;font-family:var(--H2);letter-spacing:.06em;text-transform:uppercase;}
 #lives-counter{display:none;} /* hidden — replaced by #lives-hearts below */
 
 /* Hearts above gloves — small, semi-transparent, non-blocking */
@@ -240,7 +240,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .rs-score-card{flex:1;background:#ffffff;border:1px solid #E4E4E6;border-radius:10px;padding:clamp(12px,3vw,16px) 4px;text-align:center;}
 .rs-score-val{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:#403b3b;font-family:var(--H1);line-height:1;}
 .rs-score-val.orange{color:#ff9900;}
-.rs-score-lbl{font-size:clamp(7px,1.8vw,9px);color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700;}
+.rs-score-lbl{font-size:clamp(9px,2.3vw,10px);color:#6a6a6a;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;font-weight:700;}
 
 .rs-voucher{margin:0 clamp(20px,5vw,28px) clamp(16px,4vw,22px);background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;padding:clamp(12px,3vw,16px);text-align:center;}
 .rs-voucher-pct{font-size:clamp(48px,14vw,68px);font-weight:900;color:#ff9900;font-family:var(--H1);line-height:.88;letter-spacing:-.02em;}
@@ -373,13 +373,13 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 }
 .lb-stat-val.hi{color:#ff9900;}
 .lb-stat-lbl{
-  font-size:clamp(7px,1.8vw,9px);
-  font-weight:600;
-  color:#777777;
+  font-size:clamp(9px,2.3vw,10px);
+  font-weight:700;
+  color:#6a6a6a;
   font-family:var(--H2);
   text-transform:uppercase;
-  letter-spacing:.08em;
-  margin-top:5px;
+  letter-spacing:.05em;
+  margin-top:6px;
 }
 .lb-stat-arrow{color:#ff9900;margin-left:1px;}
 
@@ -776,6 +776,17 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 
 /* ════ FIT-TO-VIEWPORT (no-scroll: everything above the fold) ═══ */
 .fitw{transform-origin:top left;will-change:transform;}
+
+/* ════ VOUCHER CARD SWEEP (shimmer on unlocked bons) ════════════ */
+@keyframes mvSweep{0%{transform:translateX(-130%) skewX(-18deg);}100%{transform:translateX(330%) skewX(-18deg);}}
+.mv-voucher-card{position:relative;overflow:hidden;}
+.mv-voucher-card::after{content:'';position:absolute;top:0;bottom:0;left:0;width:42%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:translateX(-130%) skewX(-18deg);pointer-events:none;z-index:1;
+  animation:mvSweep 2.6s ease-in-out infinite;}
+.mv-voucher-card.dark::after{background:linear-gradient(100deg,transparent,rgba(255,255,255,.32),transparent);}
+.mv-voucher-card>*{position:relative;z-index:2;}
+@media (prefers-reduced-motion: reduce){.mv-voucher-card::after{display:none;}}
 
 </style>
 </head>
@@ -3194,15 +3205,15 @@ function renderMyVouchers(fromGame){
         '<div style="display:flex;gap:5px;margin-bottom:6px;">'+
           '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 2px;text-align:center;">'+
             '<div id="mv-pts-anim" style="font-size:clamp(12px,3.5vw,15px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">'+Number(s).toLocaleString('fr-FR')+'</div>'+
-            '<div style="font-size:clamp(7px,1.6vw,8px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">PTS</div>'+
+            '<div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">PTS</div>'+
           '</div>'+
           '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 2px;text-align:center;">'+
             '<div style="font-size:clamp(12px,3.5vw,15px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">\xd7'+Math.min(maxComboVal,3)+'</div>'+
-            '<div style="font-size:clamp(7px,1.6vw,8px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">COMBO</div>'+
+            '<div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">COMBO</div>'+
           '</div>'+
           '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 2px;text-align:center;">'+
             '<div style="font-size:clamp(12px,3.5vw,15px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">'+Math.floor(elapsedSec)+'s</div>'+
-            '<div style="font-size:clamp(7px,1.6vw,8px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">SURVIE</div>'+
+            '<div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">SURVIE</div>'+
           '</div>'+
         '</div>'
         :''}
@@ -3229,50 +3240,50 @@ function renderMyVouchers(fromGame){
         var discColor=t.unlocked?'#ff9900':'#ADADAD';
         var minColor=t.unlocked?'#403b3b':'#ADADAD';
         var badgeHtml=isBest
-          ?'<div style="background:#ff9900;color:#fff;font-size:clamp(7px,1.7vw,8px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">D\xc9BLOQU\xc9</div>'
+          ?'<div style="background:#ff9900;color:#fff;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">D\xc9BLOQU\xc9</div>'
           :t.cascaded
-            ?'<div style="background:rgba(255,153,0,.15);color:#e68800;font-size:clamp(7px,1.7vw,8px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">INCLUS</div>'
-            :'<div style="background:#EBEBEB;color:#777777;font-size:clamp(7px,1.7vw,8px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">'+(t.pts>0?Number(t.pts).toLocaleString('fr-FR')+' pts':'Gratuit')+'</div>';
+            ?'<div style="background:rgba(255,153,0,.15);color:#e68800;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">INCLUS</div>'
+            :'<div style="background:#EBEBEB;color:#777777;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">'+(t.pts>0?Number(t.pts).toLocaleString('fr-FR')+' pts':'Gratuit')+'</div>';
         var exHint=(typeof TIER_EXAMPLES!=='undefined'&&TIER_EXAMPLES[t.code])?TIER_EXAMPLES[t.code]:'';
-        return '<div style="background:'+bg+';border:'+border+';border-radius:10px;padding:clamp(8px,2.2vw,11px) clamp(10px,2.5vw,13px);margin-bottom:7px;opacity:'+opacity+';">'+
+        return '<div class="'+(t.unlocked?'mv-voucher-card':'')+'" style="background:'+bg+';border:'+border+';border-radius:10px;padding:clamp(10px,2.6vw,13px) clamp(11px,2.8vw,14px);margin-bottom:10px;opacity:'+opacity+';">'+
           '<div style="display:flex;align-items:center;gap:6px;">'+
             '<div style="font-size:clamp(18px,5.5vw,24px);font-weight:900;color:'+discColor+';font-family:var(--H1);line-height:1;flex-shrink:0;">'+t.disc+' OFF</div>'+
             badgeHtml+
             '<div style="flex:1;"></div>'+
             '<div style="text-align:right;flex-shrink:0;">'+
               '<div style="font-size:clamp(12px,3.3vw,14px);font-weight:900;color:'+minColor+';font-family:var(--H1);line-height:1;">'+Number(t.min).toLocaleString('fr-FR')+' DH</div>'+
-              '<div style="font-size:clamp(7px,1.6vw,8px);color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">minimum</div>'+
+              '<div style="font-size:clamp(8.5px,2.1vw,10px);color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">minimum</div>'+
             '</div>'+
           '</div>'+
-          (exHint?'<div style="font-size:clamp(9px,2.2vw,10px);color:#777777;font-family:var(--H2);font-style:italic;margin-top:3px;">'+exHint+'</div>':'')+
+          (exHint?'<div style="font-size:clamp(10px,2.4vw,11px);color:#6a6a6a;font-family:var(--H2);margin-top:3px;">'+exHint+'</div>':'')+
           (t.unlocked
             ?'<div style="display:flex;align-items:center;gap:6px;margin-top:7px;">'+
                 '<div style="flex:1;background:#fff8ee;border:1.5px dashed #ff9900;border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);letter-spacing:.08em;text-align:center;">'+t.code+'</div>'+
                 '<button class="mv-copy-btn" data-code="'+t.code+'" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
-                '<a href="'+(typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[t.code]?TIER_SHOP_URLS[t.code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/')+'" class="mv-use-btn" target="_blank" rel="noopener" data-code="'+t.code+'" data-disc="'+t.disc+'" style="flex-shrink:0;background:#403b3b;color:#fff;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER \u2192</a>'+
+                '<a href="'+(typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[t.code]?TIER_SHOP_URLS[t.code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/')+'" class="mv-use-btn" data-code="'+t.code+'" data-disc="'+t.disc+'" style="flex-shrink:0;background:#403b3b;color:#fff;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER \u2192</a>'+
               '</div>'+
-              '<div style="margin-top:3px;text-align:right;font-size:clamp(8px,1.9vw,9px);color:#e68800;font-family:var(--H2);">\u23f1 Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'
+              '<div style="margin-top:3px;text-align:right;font-size:clamp(9px,2.2vw,10px);color:#e68800;font-family:var(--H2);">\u23f1 Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'
             :'')+
         '</div>';
       }).join('')}
 
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0 7px;">
         <div style="flex:1;height:1px;background:#E4E4E6;"></div>
-        <div style="font-size:clamp(7px,1.7vw,8px);font-weight:700;color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;">\ud83c\udf81 1\xe8re commande</div>
+        <div style="font-size:clamp(8.5px,2.1vw,10px);font-weight:700;color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;">\ud83c\udf81 1\xe8re commande</div>
         <div style="flex:1;height:1px;background:#E4E4E6;"></div>
       </div>
-      <div style="background:linear-gradient(135deg,#5b2d8e,#7b3db5);border-radius:10px;padding:clamp(8px,2.2vw,11px) clamp(10px,2.5vw,13px);margin-bottom:7px;">
+      <div class="mv-voucher-card dark" style="background:linear-gradient(135deg,#5b2d8e,#7b3db5);border-radius:10px;padding:clamp(10px,2.6vw,13px) clamp(11px,2.8vw,14px);margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
           <div style="font-size:clamp(16px,4.8vw,20px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">30 DH OFF</div>
-          <div style="background:rgba(255,255,255,.2);color:#fff;font-size:clamp(7px,1.7vw,8px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;white-space:nowrap;">1\xc8RE COMMANDE</div>
+          <div style="background:rgba(255,255,255,.2);color:#fff;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;white-space:nowrap;">1\xc8RE COMMANDE</div>
           <div style="flex:1;"></div>
-          <div style="text-align:right;flex-shrink:0;"><div style="font-size:clamp(12px,3.3vw,14px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">199 DH</div><div style="font-size:clamp(7px,1.6vw,8px);color:rgba(255,255,255,.5);font-family:var(--H2);text-transform:uppercase;">minimum</div></div>
+          <div style="text-align:right;flex-shrink:0;"><div style="font-size:clamp(12px,3.3vw,14px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">199 DH</div><div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.5);font-family:var(--H2);text-transform:uppercase;">minimum</div></div>
         </div>
         <div style="font-size:clamp(8px,2vw,9px);color:rgba(255,255,255,.55);font-family:var(--H2);margin-bottom:6px;">-10% limit\xe9 \xe0 30 DH \xb7 ex. cosm\xe9tiques, mode, accessoires</div>
         <div style="display:flex;align-items:center;gap:6px;">
           <div style="flex:1;background:rgba(255,255,255,.15);border:1.5px dashed rgba(255,255,255,.5);border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#fff;font-family:var(--H1);letter-spacing:.08em;text-align:center;">NJA25</div>
           <button class="mv-copy-btn" data-code="NJA25" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;">COPIER</button>
-          <a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn" target="_blank" rel="noopener" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER →</a>
+          <a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER →</a>
         </div>
       </div>
 
@@ -3293,17 +3304,7 @@ function renderMyVouchers(fromGame){
 
   // Wire use/CTA buttons via data attributes
   document.querySelectorAll('.mv-use-btn').forEach(function(el){
-    el.addEventListener('click',function(e){
-      var self=this;
-      var href=self.getAttribute('href');
-      var code=self.dataset.code;
-      var disc=self.dataset.disc;
-      setTimeout(function(){
-        try{window.parent.postMessage({type:'jumia_voucher',code:code,discount:disc},'*');}catch(x){}
-      },0);
-      if(href){try{window.open(href,'_blank','noopener');}catch(x){window.location.href=href;}}
-      e.preventDefault();
-    });
+    el.addEventListener('click',function(e){_sendVoucher(this);});
   });
 
   // Start expiry countdowns
