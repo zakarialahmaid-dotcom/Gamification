@@ -248,6 +248,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .rs-voucher-code{display:inline-block;background:#fff8ee;border:2px dashed #ff9900;border-radius:8px;padding:5px 16px;font-size:clamp(13px,3.5vw,16px);font-weight:900;color:#403b3b;font-family:var(--H1);letter-spacing:.08em;margin-top:8px;}
 
 /* ── All unlocked vouchers (cascade) on result screen ── */
+.rs-vmore-note{font-size:clamp(9px,2.4vw,11px);font-weight:700;color:#777777;font-family:var(--H2);text-align:center;margin:0 clamp(20px,5vw,28px) clamp(14px,3.5vw,18px);}
 .rs-vmore-title{font-size:clamp(9px,2.4vw,11px);font-weight:700;color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;text-align:center;margin:0 clamp(20px,5vw,28px) 8px;}
 .rs-vouchers-more{margin:0 clamp(20px,5vw,28px) clamp(16px,4vw,22px);display:flex;flex-direction:column;gap:8px;}
 .rs-vrow{display:flex;align-items:center;gap:11px;background:#ffffff;border:1px solid #E4E4E6;border-radius:10px;padding:clamp(9px,2.4vw,11px) clamp(11px,3vw,14px);}
@@ -772,6 +773,9 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lk-slot-name{flex:1;font-family:var(--H1);font-weight:900;text-transform:uppercase;font-size:clamp(13px,3.4vw,15px);color:#fff;}
 .lk-slot-when{font-family:var(--H2);font-size:clamp(11px,2.8vw,12px);color:rgba(255,255,255,.6);}
 .lk-slot.now .lk-slot-when{color:#ffd24a;font-weight:700;}
+
+/* ════ FIT-TO-VIEWPORT (no-scroll: everything above the fold) ═══ */
+.fitw{transform-origin:top left;will-change:transform;}
 
 </style>
 </head>
@@ -1823,6 +1827,67 @@ function renderLeaderboard(){
 
 window.setHero=function(h){window.LOBBY_HERO=h;try{localStorage.setItem('jg_hero',h);}catch(e){}renderLobby();};
 
+// ════════════════════════════════════════════════════════════════
+//  FIT-TO-VIEWPORT — keeps everything above the fold on any device.
+//  Wraps a screen's content; if it's taller than the viewport, scales
+//  it down (with width compensation so it still fills the width).
+//  On tall screens it stays 1× and the normal flex layout applies.
+// ════════════════════════════════════════════════════════════════
+var FIT_SCREENS=['screen-lobby','screen-result','screen-lock','screen-login'];
+
+function fitScreen(screenEl){
+  if(!screenEl)return;
+  var w=screenEl.querySelector(':scope > .fitw');
+  if(!w){
+    w=document.createElement('div');
+    w.className='fitw';
+    while(screenEl.firstChild){ w.appendChild(screenEl.firstChild); }
+    screenEl.appendChild(w);
+  }
+  screenEl.style.overflow='hidden';
+  // reset to flex-fill (lets internal flex:1 spacers distribute on tall screens)
+  w.style.transform='none';
+  w.style.width='100%';
+  w.style.flex='1 1 auto';
+  w.style.display='flex';
+  w.style.flexDirection='column';
+  w.style.minHeight='100%';
+  var vh=screenEl.clientHeight;
+  if(!vh)return;
+  var ch=w.scrollHeight;
+  if(ch>vh+1){
+    // content overflows → switch to natural height + scale down to fit
+    w.style.flex='none';
+    w.style.minHeight='0';
+    var nat=w.scrollHeight;
+    var s=Math.max(0.5,vh/nat);
+    w.style.width=(100/s)+'%';
+    w.style.transform='scale('+s+')';
+  }
+}
+
+function fitCurrent(){
+  for(var i=0;i<FIT_SCREENS.length;i++){
+    var el=document.getElementById(FIT_SCREENS[i]);
+    if(el){ fitScreen(el); return; }
+  }
+}
+
+// Auto-fit on every screen render (innerHTML swap on #app)
+(function(){
+  var app=document.getElementById('app');
+  if(!app)return;
+  var mo=new MutationObserver(function(){
+    requestAnimationFrame(fitCurrent);
+    setTimeout(fitCurrent,120);   // after webfonts settle
+    setTimeout(fitCurrent,450);   // after images settle
+  });
+  mo.observe(app,{childList:true});
+  var _rt;
+  window.addEventListener('resize',function(){clearTimeout(_rt);_rt=setTimeout(fitCurrent,80);});
+  window.addEventListener('orientationchange',function(){setTimeout(fitCurrent,200);});
+})();
+
 // ── LOCK SCREEN (shown outside live windows) ─────────────────────
 function _fmtCountParts(ms){
   if(ms<0)ms=0;
@@ -2870,7 +2935,7 @@ function renderResult(){
     ${isLow
       ?`<div class="rs-low"><div class="rs-low-title">PAS ENCORE !</div><div class="rs-low-sub">Atteins <b>300 pts</b> pour 20 DH, <b>750 pts</b> pour 30 DH.<br>Attrape plus de ballons !</div></div>`
       :`<div class="rs-voucher"><div class="rs-voucher-pct">${v.disc} OFF</div><div class="rs-voucher-label">${v.label}${v.min>0?' · min. '+v.min+' DH':''}</div><div class="rs-voucher-code">${v.code}</div></div>
-       ${moreV.length?`<div class="rs-vmore-title">+ Tes autres bons débloqués</div><div class="rs-vouchers-more">${moreV.map(function(mv){return '<div class="rs-vrow"><div class="rs-vrow-disc">'+mv.disc+'</div><div class="rs-vrow-body"><div class="rs-vrow-code">'+mv.code+'</div><div class="rs-vrow-meta">'+mv.label+(mv.min>0?' · min. '+mv.min+' DH':'')+'</div></div><button class="rs-vrow-copy" data-code="'+mv.code+'">Copier</button></div>';}).join('')}</div>`:''}`}
+       ${moreV.length?`<div class="rs-vmore-note">+ ${moreV.length} autre${moreV.length>1?'s':''} bon${moreV.length>1?'s':''} dans « Mes bons »</div>`:''}`}
     <div id="rs-rank-nudge"></div>
     <div style="flex:1;min-height:clamp(12px,3vw,20px);"></div>
     <div class="rs-actions">
@@ -2925,6 +2990,7 @@ function renderResult(){
       if(myRank<=3){lbdBtn.innerHTML=IC.trophy+' MON CLASSEMENT — #'+myRank;}
       else if(p3){lbdBtn.innerHTML=IC.trophy+' TOP 3 À '+(Math.max(0,p3.score-myScore)+1>0?Number(Math.max(0,p3.score-myScore)+1).toLocaleString('fr-FR')+' pts':'0 pt');}
     }
+    if(typeof fitCurrent==='function')fitCurrent();
   }).catch(function(){});
 }
 
