@@ -3249,7 +3249,7 @@ function renderMyVouchers(fromGame){
             ?'<div style="display:flex;align-items:center;gap:6px;margin-top:7px;">'+
                 '<div style="flex:1;background:#fff8ee;border:1.5px dashed #ff9900;border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);letter-spacing:.08em;text-align:center;">'+t.code+'</div>'+
                 '<button class="mv-copy-btn" data-code="'+t.code+'" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
-                '<a href="'+(typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[t.code]?TIER_SHOP_URLS[t.code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/')+'" class="mv-use-btn" data-code="'+t.code+'" data-disc="'+t.disc+'" style="flex-shrink:0;background:#403b3b;color:#fff;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER \u2192</a>'+
+                '<a href="'+(typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[t.code]?TIER_SHOP_URLS[t.code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/')+'" class="mv-use-btn" target="_blank" rel="noopener" data-code="'+t.code+'" data-disc="'+t.disc+'" style="flex-shrink:0;background:#403b3b;color:#fff;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER \u2192</a>'+
               '</div>'+
               '<div style="margin-top:3px;text-align:right;font-size:clamp(8px,1.9vw,9px);color:#e68800;font-family:var(--H2);">\u23f1 Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'
             :'')+
@@ -3272,7 +3272,7 @@ function renderMyVouchers(fromGame){
         <div style="display:flex;align-items:center;gap:6px;">
           <div style="flex:1;background:rgba(255,255,255,.15);border:1.5px dashed rgba(255,255,255,.5);border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#fff;font-family:var(--H1);letter-spacing:.08em;text-align:center;">NJA25</div>
           <button class="mv-copy-btn" data-code="NJA25" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;">COPIER</button>
-          <a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER →</a>
+          <a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn" target="_blank" rel="noopener" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER →</a>
         </div>
       </div>
 
@@ -3293,7 +3293,17 @@ function renderMyVouchers(fromGame){
 
   // Wire use/CTA buttons via data attributes
   document.querySelectorAll('.mv-use-btn').forEach(function(el){
-    el.addEventListener('click',function(e){_sendVoucher(this);});
+    el.addEventListener('click',function(e){
+      var self=this;
+      var href=self.getAttribute('href');
+      var code=self.dataset.code;
+      var disc=self.dataset.disc;
+      setTimeout(function(){
+        try{window.parent.postMessage({type:'jumia_voucher',code:code,discount:disc},'*');}catch(x){}
+      },0);
+      if(href){try{window.open(href,'_blank','noopener');}catch(x){window.location.href=href;}}
+      e.preventDefault();
+    });
   });
 
   // Start expiry countdowns
