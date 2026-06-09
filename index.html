@@ -531,18 +531,21 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 /* ── Lobby action cards (Classement + Mes bons) ── */
 .lb-action-cards{
   display:flex;
-  flex-direction:column;
+  flex-direction:row;
   gap:10px;
-  padding:clamp(14px,3.5vw,18px) clamp(20px,5vw,28px) clamp(20px,5vw,28px);
+  padding:clamp(14px,3.5vw,18px) clamp(20px,5vw,28px) clamp(18px,4.5vw,24px);
 }
 .lb-action-card{
+  flex:1 1 0;
+  min-width:0;
   display:flex;
-  align-items:center;
-  gap:14px;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:7px;
   background:#ffffff;
   border:1.5px solid #E4E4E6;
   border-radius:14px;
-  padding:clamp(10px,2.5vw,13px) clamp(14px,3.5vw,18px);
+  padding:clamp(12px,3.2vw,15px) clamp(13px,3.4vw,16px);
   cursor:pointer;
   transition:border-color .15s,box-shadow .15s,transform .1s;
   -webkit-tap-highlight-color:transparent;
@@ -552,11 +555,12 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lb-action-card--voucher{border-color:rgba(255,153,0,.4);background:#fff8ee;}
 .lb-action-card--voucher:active{border-color:#ff9900;}
 .lb-action-card__icon{font-size:clamp(24px,6vw,30px);flex-shrink:0;line-height:1;}
-.lb-action-card__body{flex:1;min-width:0;}
-.lb-action-card__title{font-size:clamp(14px,3.8vw,17px);font-weight:900;color:#403b3b;font-family:var(--H1);text-transform:uppercase;letter-spacing:.02em;line-height:1;margin-bottom:3px;}
-.lb-action-card__sub{font-size:clamp(10px,2.6vw,12px);color:#777777;font-family:var(--H2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-action-card__icon svg{width:clamp(26px,6.6vw,32px);height:auto;}
+.lb-action-card__body{flex:1;min-width:0;width:100%;}
+.lb-action-card__title{font-size:clamp(15px,4vw,18px);font-weight:900;color:#403b3b;font-family:var(--H1);text-transform:uppercase;letter-spacing:.02em;line-height:1;margin-bottom:4px;}
+.lb-action-card__sub{font-size:clamp(11px,2.9vw,12.5px);color:#6a6a6a;font-family:var(--H2);font-weight:600;line-height:1.25;}
 .lb-action-card--voucher .lb-action-card__sub{color:#e68800;font-weight:700;}
-.lb-action-card__arrow{font-size:clamp(20px,5vw,24px);font-weight:900;color:#777777;font-family:var(--H1);flex-shrink:0;line-height:1;}
+.lb-action-card__arrow{display:none;}
 
 /* ── VIRTUAL KEYBOARD — Android Material style ─────────────── */
 #vkb-overlay{position:fixed;inset:0;z-index:9998;display:none;background:transparent;}
@@ -726,15 +730,15 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 }
 
 /* ════ PRIZE BOARD (Top-3 cash vouchers) ════════════════════════ */
-.prize-board{background:#fff;border:1px solid var(--border);border-radius:14px;padding:clamp(12px,3vw,15px) clamp(13px,3.4vw,16px) clamp(10px,2.6vw,12px);margin:clamp(10px,2.6vw,14px) 0;}
+.prize-board{background:#fff;border:1px solid var(--border);border-radius:14px;padding:clamp(9px,2.3vw,11px) clamp(12px,3vw,15px) clamp(7px,1.8vw,9px);margin:clamp(8px,2vw,11px) 0;}
 .prize-board.dark{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);}
-.pb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:clamp(9px,2.4vw,11px);}
+.pb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:clamp(6px,1.6vw,8px);}
 .pb-title{display:inline-flex;align-items:center;gap:6px;font-family:var(--H1);font-weight:900;text-transform:uppercase;font-size:clamp(12px,3vw,14px);letter-spacing:.01em;color:var(--navy);}
 .pb-title svg{width:1.05em;height:1.05em;color:#ff9900;}
 .prize-board.dark .pb-title{color:#fff;}
 .pb-slot{flex-shrink:0;font-family:var(--H2);font-weight:700;font-size:clamp(9px,2.3vw,10px);text-transform:uppercase;letter-spacing:.06em;color:#e68800;background:#fff8ee;border:1px solid rgba(255,153,0,.3);border-radius:9999px;padding:3px 9px;}
 .prize-board.dark .pb-slot{color:#ffd24a;background:rgba(255,153,0,.14);border-color:rgba(255,153,0,.35);}
-.pb-row{display:flex;align-items:center;gap:clamp(9px,2.4vw,12px);padding:clamp(7px,1.9vw,9px) 0;border-top:1px solid var(--border);}
+.pb-row{display:flex;align-items:center;gap:clamp(9px,2.4vw,12px);padding:clamp(5px,1.4vw,7px) 0;border-top:1px solid var(--border);}
 .prize-board.dark .pb-row{border-top-color:rgba(255,255,255,.1);}
 .pb-row:first-of-type{border-top:none;}
 .pb-rank{flex-shrink:0;width:clamp(22px,5.6vw,26px);height:clamp(22px,5.6vw,26px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--H1);font-weight:900;font-size:clamp(12px,3vw,14px);color:#403b3b;}
@@ -743,7 +747,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .pb-amt{flex-shrink:0;font-family:var(--H1);font-weight:900;font-size:clamp(15px,4vw,19px);color:#ff9900;letter-spacing:-.01em;}
 .pb-row.win{background:#fff8ee;margin:0 clamp(-7px,-1.8vw,-9px);padding-left:clamp(7px,1.8vw,9px);padding-right:clamp(7px,1.8vw,9px);border-radius:9px;border-top:none;}
 .prize-board.dark .pb-row.win{background:rgba(255,153,0,.16);}
-.pb-foot{margin-top:clamp(8px,2.2vw,10px);padding-top:clamp(8px,2.2vw,10px);border-top:1px solid var(--border);font-family:var(--H2);font-size:clamp(9.5px,2.4vw,11px);line-height:1.45;color:var(--muted);text-wrap:pretty;}
+.pb-foot{margin-top:clamp(6px,1.6vw,8px);padding-top:clamp(6px,1.6vw,8px);border-top:1px solid var(--border);font-family:var(--H2);font-size:clamp(9.5px,2.4vw,11px);line-height:1.4;color:var(--muted);text-wrap:pretty;}
 .prize-board.dark .pb-foot{border-top-color:rgba(255,255,255,.1);color:rgba(255,255,255,.55);}
 
 /* ════ LOCK SCREEN (outside live windows) ═══════════════════════ */
@@ -787,6 +791,54 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .mv-voucher-card.dark::after{background:linear-gradient(100deg,transparent,rgba(255,255,255,.32),transparent);}
 .mv-voucher-card>*{position:relative;z-index:2;}
 @media (prefers-reduced-motion: reduce){.mv-voucher-card::after{display:none;}}
+
+/* ════ VOUCHERS PAGE — hero + swipe carousel + first-order ════ */
+.mv-body{flex:1 1 auto;overflow:visible;padding:clamp(12px,3.6vw,16px) clamp(13px,4vw,18px) clamp(14px,4vw,20px);}
+.mv-sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:clamp(15px,4vw,20px) 2px clamp(8px,2.2vw,11px);}
+.mv-sec-head>.t{font-family:var(--H1);font-weight:900;text-transform:uppercase;font-size:clamp(13px,3.5vw,15px);color:#403b3b;letter-spacing:.01em;}
+.mv-swipe-hint{font-family:var(--H2);font-weight:700;font-size:clamp(10px,2.7vw,11px);color:#e68800;text-transform:uppercase;letter-spacing:.04em;display:inline-flex;align-items:center;gap:4px;}
+.mv-swipe-hint svg{width:14px;height:14px;animation:swipeNudge 1.5s ease-in-out infinite;}
+@keyframes swipeNudge{0%,100%{transform:translateX(0);}50%{transform:translateX(4px);}}
+@media (prefers-reduced-motion: reduce){.mv-swipe-hint svg{animation:none;}}
+
+.mv-hero{background:#fff;border:2px solid #ff9900;border-radius:16px;padding:clamp(15px,4.4vw,20px) clamp(15px,4.4vw,20px) clamp(13px,3.6vw,16px);box-shadow:0 8px 24px rgba(255,153,0,.16);}
+.mv-hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.mv-hero-disc{font-family:var(--H1);font-weight:900;color:#ff9900;line-height:.86;font-size:clamp(42px,13vw,58px);letter-spacing:-.02em;}
+.mv-hero-disc small{display:block;font-size:.28em;color:#403b3b;letter-spacing:.04em;margin-top:5px;}
+.mv-hero-tag{flex-shrink:0;background:#ff9900;color:#fff;font-family:var(--H2);font-weight:700;font-size:clamp(9px,2.4vw,10px);text-transform:uppercase;letter-spacing:.05em;border-radius:6px;padding:5px 9px;margin-top:5px;}
+.mv-hero-min{font-family:var(--H2);font-size:clamp(12px,3.3vw,14px);color:#6a6a6a;margin:clamp(10px,2.6vw,12px) 0 clamp(12px,3vw,14px);}
+.mv-hero-min b{color:#403b3b;font-weight:700;}
+.mv-hero-empty{border-color:#E4E4E6;box-shadow:none;text-align:center;}
+
+.mv-code-row{display:flex;align-items:stretch;gap:8px;}
+.mv-code{flex:1;background:#fff8ee;border:1.5px dashed #ff9900;border-radius:8px;padding:clamp(11px,3vw,14px);font-family:var(--H1);font-weight:900;color:#403b3b;letter-spacing:.12em;text-align:center;font-size:clamp(16px,4.6vw,20px);display:flex;align-items:center;justify-content:center;}
+.mv-copy-lg{flex-shrink:0;background:#403b3b;color:#fff;border:none;border-radius:8px;padding:0 clamp(16px,4.6vw,22px);font-family:var(--H1);font-weight:900;font-size:clamp(11px,3vw,13px);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.mv-use-hero{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;background:#ff9900;color:#fff;border:none;border-radius:9999px;padding:clamp(13px,3.6vw,16px);margin-top:clamp(10px,2.6vw,12px);font-family:var(--H1);font-weight:900;font-size:clamp(14px,3.9vw,16px);text-transform:uppercase;text-decoration:none;letter-spacing:.02em;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 14px rgba(255,153,0,.32);cursor:pointer;}
+.mv-expiry{text-align:center;margin-top:clamp(8px,2.1vw,10px);font-family:var(--H2);font-size:clamp(10px,2.7vw,11px);color:#e68800;font-weight:700;}
+
+.mv-carousel{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 0 4px;}
+.mv-carousel::-webkit-scrollbar{display:none;}
+.mv-ccard{scroll-snap-align:start;flex:0 0 80%;background:#fff;border:1px solid #E4E4E6;border-radius:14px;padding:clamp(13px,3.6vw,16px);}
+.mv-cc-disc{font-family:var(--H1);font-weight:900;color:#ff9900;font-size:clamp(24px,7vw,30px);line-height:1;}
+.mv-cc-min{font-family:var(--H2);font-size:clamp(11px,2.9vw,12px);color:#6a6a6a;margin:3px 0 10px;}
+.mv-code-sm{font-size:clamp(13px,3.7vw,15px);padding:9px;}
+.mv-cc-actions{display:flex;gap:7px;margin-top:9px;}
+.mv-cc-copy{flex:1;background:#403b3b;color:#fff;border:none;border-radius:8px;padding:11px 6px;font-family:var(--H1);font-weight:900;font-size:clamp(10px,2.7vw,12px);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.mv-cc-use{flex:1;text-align:center;background:#ff9900;color:#fff;border-radius:8px;padding:11px 6px;font-family:var(--H1);font-weight:900;font-size:clamp(10px,2.7vw,12px);text-transform:uppercase;text-decoration:none;-webkit-tap-highlight-color:transparent;}
+.mv-expiry-sm{text-align:left;margin-top:8px;}
+
+.mv-first{background:#633185;border-radius:16px;padding:clamp(15px,4.4vw,20px);}
+.mv-first-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.mv-first-disc{font-family:var(--H1);font-weight:900;color:#fff;line-height:.86;font-size:clamp(34px,10vw,46px);letter-spacing:-.02em;}
+.mv-first-disc small{display:block;font-size:.30em;color:rgba(255,255,255,.7);letter-spacing:.04em;margin-top:4px;}
+.mv-first-tag{flex-shrink:0;background:rgba(255,255,255,.2);color:#fff;font-family:var(--H2);font-weight:700;font-size:clamp(9px,2.4vw,10px);text-transform:uppercase;letter-spacing:.05em;border-radius:6px;padding:5px 9px;margin-top:4px;}
+.mv-first-min{font-family:var(--H2);font-size:clamp(12px,3.3vw,14px);color:rgba(255,255,255,.8);margin:clamp(9px,2.4vw,11px) 0 clamp(11px,2.8vw,13px);}
+.mv-first-min b{color:#fff;font-weight:700;}
+.mv-code-light{background:rgba(255,255,255,.14);border:1.5px dashed rgba(255,255,255,.55);color:#fff;}
+.mv-use-first{display:flex;align-items:center;justify-content:center;width:100%;min-height:46px;background:#fff;color:#633185;border-radius:9999px;padding:clamp(12px,3.4vw,15px);margin-top:clamp(10px,2.6vw,12px);font-family:var(--H1);font-weight:900;font-size:clamp(13px,3.7vw,15px);text-transform:uppercase;text-decoration:none;-webkit-tap-highlight-color:transparent;}
+
+.mv-lbd-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:#fff;border:1px solid #E4E4E6;border-radius:10px;padding:clamp(12px,3vw,14px);font-size:clamp(12px,3.1vw,14px);font-weight:700;color:#403b3b;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.03em;margin-top:clamp(14px,3.6vw,18px);-webkit-tap-highlight-color:transparent;}
+.mv-lbd-btn svg{width:1.1em;height:1.1em;color:#ff9900;}
 
 </style>
 </head>
@@ -1844,7 +1896,7 @@ window.setHero=function(h){window.LOBBY_HERO=h;try{localStorage.setItem('jg_hero
 //  it down (with width compensation so it still fills the width).
 //  On tall screens it stays 1× and the normal flex layout applies.
 // ════════════════════════════════════════════════════════════════
-var FIT_SCREENS=['screen-lobby','screen-result','screen-lock','screen-login'];
+var FIT_SCREENS=['screen-lobby','screen-result','screen-lock','screen-login','screen-vouchers'];
 
 function fitScreen(screenEl){
   if(!screenEl)return;
@@ -3186,6 +3238,73 @@ function renderMyVouchers(fromGame){
       '</div>';
   }
 
+  // ── Build hero (biggest won) + swipe carousel (others) + first-order ──
+  function _shopUrl(code){return (typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[code])?TIER_SHOP_URLS[code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/';}
+  var _unlocked = tierDisplay.filter(function(t){return t.unlocked;});
+  var _hero = _unlocked[0]||null;
+  var _others = _unlocked.slice(1);
+
+  var _heroHTML;
+  if(_hero){
+    _heroHTML =
+    '<div class="mv-hero mv-voucher-card">'+
+      '<div class="mv-hero-head">'+
+        '<div class="mv-hero-disc">'+_hero.disc.replace(' DH','')+'<small>DH OFF</small></div>'+
+        '<div class="mv-hero-tag">TON MEILLEUR BON</div>'+
+      '</div>'+
+      '<div class="mv-hero-min">Valable d\xe8s <b>'+Number(_hero.min).toLocaleString('fr-FR')+' DH</b> d\'achat</div>'+
+      '<div class="mv-code-row">'+
+        '<div class="mv-code">'+_hero.code+'</div>'+
+        '<button class="mv-copy-btn mv-copy-lg" data-code="'+_hero.code+'">COPIER</button>'+
+      '</div>'+
+      '<a href="'+_shopUrl(_hero.code)+'" class="mv-use-btn mv-use-hero" data-code="'+_hero.code+'" data-disc="'+_hero.disc+'">UTILISER MON BON \u2192</a>'+
+      '<div class="mv-expiry">Expire dans <span id="expiry-'+_hero.code+'">--:--:--</span></div>'+
+    '</div>';
+  } else {
+    _heroHTML =
+    '<div class="mv-hero mv-hero-empty">'+
+      '<div class="mv-hero-disc" style="color:#ff9900;">JOUE</div>'+
+      '<div class="mv-hero-min">Marque des points pour gagner ton premier bon de r\xe9duction.</div>'+
+      (attLeft>0?'<button class="mv-use-hero" id="mv-hero-replay">LANCER LA PARTIE \u2192</button>':'')+
+    '</div>';
+  }
+
+  var _carouselHTML='';
+  if(_others.length){
+    _carouselHTML =
+    '<div class="mv-sec-head"><span class="t">Tes autres bons</span><span class="mv-swipe-hint">glisse'+
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>'+
+    '<div class="mv-carousel">'+
+      _others.map(function(t){
+        return '<div class="mv-ccard mv-voucher-card">'+
+          '<div class="mv-cc-disc">'+t.disc+' OFF</div>'+
+          '<div class="mv-cc-min">d\xe8s '+Number(t.min).toLocaleString('fr-FR')+' DH d\'achat</div>'+
+          '<div class="mv-code-row"><div class="mv-code mv-code-sm">'+t.code+'</div></div>'+
+          '<div class="mv-cc-actions">'+
+            '<button class="mv-copy-btn mv-cc-copy" data-code="'+t.code+'">COPIER</button>'+
+            '<a href="'+_shopUrl(t.code)+'" class="mv-use-btn mv-cc-use" data-code="'+t.code+'" data-disc="'+t.disc+'">UTILISER</a>'+
+          '</div>'+
+          '<div class="mv-expiry mv-expiry-sm">Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  var _firstOrderHTML =
+    '<div class="mv-sec-head"><span class="t">Bon 1\xe8re commande</span></div>'+
+    '<div class="mv-first mv-voucher-card dark">'+
+      '<div class="mv-first-head">'+
+        '<div class="mv-first-disc">30<small>DH OFF</small></div>'+
+        '<div class="mv-first-tag">1\xc8RE COMMANDE</div>'+
+      '</div>'+
+      '<div class="mv-first-min">Valable d\xe8s <b>199 DH</b> d\'achat</div>'+
+      '<div class="mv-code-row">'+
+        '<div class="mv-code mv-code-light">NJA25</div>'+
+        '<button class="mv-copy-btn mv-copy-lg" data-code="NJA25">COPIER</button>'+
+      '</div>'+
+      '<a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn mv-use-first" data-code="NJA25" data-disc="30 DH">UTILISER \u2192</a>'+
+    '</div>';
+
   $('app').innerHTML=`
   <div id="screen-vouchers" style="position:fixed;inset:0;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;animation:fadeIn .25s ease;">
 
@@ -3199,103 +3318,24 @@ function renderMyVouchers(fromGame){
           <div style="font-size:clamp(13px,3.8vw,17px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(fromGame||hasPlayedOnce)?resultLabel:'MES BONS'}</div>
           <div style="font-size:clamp(8px,2vw,9px);color:rgba(255,255,255,.7);font-family:var(--H2);margin-top:1px;">${(fromGame||hasPlayedOnce)?'Tes bons exclusifs t\'attendent !':'Tes bons exclusifs sont actifs'}</div>
         </div>
-        ${attLeft>0?'<button id="mv-btn-replay" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#ffffff;border-radius:6px;padding:4px 10px;font-size:clamp(9px,2.3vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;flex-shrink:0;">\u26bd REJOUER</button>':''}
-      </div>
-      ${(fromGame||hasPlayedOnce)?
-        '<div style="display:flex;gap:5px;margin-bottom:6px;">'+
-          '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 2px;text-align:center;">'+
-            '<div id="mv-pts-anim" style="font-size:clamp(12px,3.5vw,15px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">'+Number(s).toLocaleString('fr-FR')+'</div>'+
-            '<div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">PTS</div>'+
-          '</div>'+
-          '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 2px;text-align:center;">'+
-            '<div style="font-size:clamp(12px,3.5vw,15px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">\xd7'+Math.min(maxComboVal,3)+'</div>'+
-            '<div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">COMBO</div>'+
-          '</div>'+
-          '<div style="flex:1;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 2px;text-align:center;">'+
-            '<div style="font-size:clamp(12px,3.5vw,15px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">'+Math.floor(elapsedSec)+'s</div>'+
-            '<div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.6);font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">SURVIE</div>'+
-          '</div>'+
-        '</div>'
-        :''}
-      <div style="display:flex;gap:5px;align-items:center;">
-        ${tierDisplay.map(function(t){return '<div style="flex:1;height:3px;border-radius:2px;background:'+(t.unlocked?'#ffffff':'rgba(255,255,255,.25)')+'"></div>';}).join('')}
+        ${attLeft>0?'<button id="mv-btn-replay" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#ffffff;border-radius:6px;padding:5px 11px;font-size:clamp(10px,2.5vw,12px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;flex-shrink:0;">REJOUER</button>':''}
       </div>
     </div>
 
-    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px clamp(10px,3vw,16px) 8px;">
-
-      ${bestTierIdx>-1
-        ?'<div style="background:#fff8ee;border:1px solid rgba(255,153,0,.4);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:clamp(10px,2.5vw,12px);color:#403b3b;font-family:var(--H2);">\ud83c\udf9f\ufe0f Ton <b style="color:#ff9900;">'+tierDisplay[bestTierIdx].disc+' OFF</b> d\xe9bloque tous les bons en dessous !</div>'
-        :(isLow
-          ?'<div style="background:#fff0f0;border:1px solid rgba(236,35,38,.3);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:clamp(10px,2.5vw,12px);color:#ec2326;font-family:var(--H2);font-weight:700;">\u26a1 Il te faut 300 pts pour ton 1er bon !</div>'
-          :(ptsToNext>0
-            ?'<div style="background:#fff8ee;border:1px solid rgba(255,153,0,.35);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:clamp(10px,2.5vw,12px);color:#403b3b;font-family:var(--H2);">\u26a1 Plus que <b style="color:#ff9900;">'+Number(ptsToNext).toLocaleString('fr-FR')+' pts</b> pour d\xe9bloquer '+nextLockedTier.disc+' !</div>'
-            :''))}
-
-      ${tierDisplay.map(function(t,i){
-        var isBest=(i===bestTierIdx);
-        var border=isBest?'1.5px solid #ff9900':(t.cascaded?'1px solid rgba(255,153,0,.3)':'1px solid #E4E4E6');
-        var bg=isBest?'#ffffff':(t.cascaded?'#fdfaf5':'#ffffff');
-        var opacity=t.unlocked?'1':'0.38';
-        var discColor=t.unlocked?'#ff9900':'#ADADAD';
-        var minColor=t.unlocked?'#403b3b':'#ADADAD';
-        var badgeHtml=isBest
-          ?'<div style="background:#ff9900;color:#fff;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">D\xc9BLOQU\xc9</div>'
-          :t.cascaded
-            ?'<div style="background:rgba(255,153,0,.15);color:#e68800;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">INCLUS</div>'
-            :'<div style="background:#EBEBEB;color:#777777;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;">'+(t.pts>0?Number(t.pts).toLocaleString('fr-FR')+' pts':'Gratuit')+'</div>';
-        var exHint=(typeof TIER_EXAMPLES!=='undefined'&&TIER_EXAMPLES[t.code])?TIER_EXAMPLES[t.code]:'';
-        return '<div class="'+(t.unlocked?'mv-voucher-card':'')+'" style="background:'+bg+';border:'+border+';border-radius:10px;padding:clamp(10px,2.6vw,13px) clamp(11px,2.8vw,14px);margin-bottom:10px;opacity:'+opacity+';">'+
-          '<div style="display:flex;align-items:center;gap:6px;">'+
-            '<div style="font-size:clamp(18px,5.5vw,24px);font-weight:900;color:'+discColor+';font-family:var(--H1);line-height:1;flex-shrink:0;">'+t.disc+' OFF</div>'+
-            badgeHtml+
-            '<div style="flex:1;"></div>'+
-            '<div style="text-align:right;flex-shrink:0;">'+
-              '<div style="font-size:clamp(12px,3.3vw,14px);font-weight:900;color:'+minColor+';font-family:var(--H1);line-height:1;">'+Number(t.min).toLocaleString('fr-FR')+' DH</div>'+
-              '<div style="font-size:clamp(8.5px,2.1vw,10px);color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.05em;">minimum</div>'+
-            '</div>'+
-          '</div>'+
-          (exHint?'<div style="font-size:clamp(10px,2.4vw,11px);color:#6a6a6a;font-family:var(--H2);margin-top:3px;">'+exHint+'</div>':'')+
-          (t.unlocked
-            ?'<div style="display:flex;align-items:center;gap:6px;margin-top:7px;">'+
-                '<div style="flex:1;background:#fff8ee;border:1.5px dashed #ff9900;border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);letter-spacing:.08em;text-align:center;">'+t.code+'</div>'+
-                '<button class="mv-copy-btn" data-code="'+t.code+'" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;">COPIER</button>'+
-                '<a href="'+(typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[t.code]?TIER_SHOP_URLS[t.code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/')+'" class="mv-use-btn" data-code="'+t.code+'" data-disc="'+t.disc+'" style="flex-shrink:0;background:#403b3b;color:#fff;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER \u2192</a>'+
-              '</div>'+
-              '<div style="margin-top:3px;text-align:right;font-size:clamp(9px,2.2vw,10px);color:#e68800;font-family:var(--H2);">\u23f1 Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'
-            :'')+
-        '</div>';
-      }).join('')}
-
-      <div style="display:flex;align-items:center;gap:8px;margin:4px 0 7px;">
-        <div style="flex:1;height:1px;background:#E4E4E6;"></div>
-        <div style="font-size:clamp(8.5px,2.1vw,10px);font-weight:700;color:#777777;font-family:var(--H2);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;">\ud83c\udf81 1\xe8re commande</div>
-        <div style="flex:1;height:1px;background:#E4E4E6;"></div>
-      </div>
-      <div class="mv-voucher-card dark" style="background:linear-gradient(135deg,#5b2d8e,#7b3db5);border-radius:10px;padding:clamp(10px,2.6vw,13px) clamp(11px,2.8vw,14px);margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-          <div style="font-size:clamp(16px,4.8vw,20px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">30 DH OFF</div>
-          <div style="background:rgba(255,255,255,.2);color:#fff;font-size:clamp(8.5px,2.1vw,10px);font-weight:900;font-family:var(--H2);border-radius:3px;padding:1px 5px;white-space:nowrap;">1\xc8RE COMMANDE</div>
-          <div style="flex:1;"></div>
-          <div style="text-align:right;flex-shrink:0;"><div style="font-size:clamp(12px,3.3vw,14px);font-weight:900;color:#fff;font-family:var(--H1);line-height:1;">199 DH</div><div style="font-size:clamp(8.5px,2.1vw,10px);color:rgba(255,255,255,.5);font-family:var(--H2);text-transform:uppercase;">minimum</div></div>
-        </div>
-        <div style="font-size:clamp(8px,2vw,9px);color:rgba(255,255,255,.55);font-family:var(--H2);margin-bottom:6px;">-10% limit\xe9 \xe0 30 DH \xb7 ex. cosm\xe9tiques, mode, accessoires</div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div style="flex:1;background:rgba(255,255,255,.15);border:1.5px dashed rgba(255,255,255,.5);border-radius:6px;padding:6px 8px;font-size:clamp(11px,3vw,13px);font-weight:900;color:#fff;font-family:var(--H1);letter-spacing:.08em;text-align:center;">NJA25</div>
-          <button class="mv-copy-btn" data-code="NJA25" style="flex-shrink:0;background:#ff9900;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;">COPIER</button>
-          <a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn" data-code="NJA25" data-disc="30 DH" style="flex-shrink:0;background:#fff;color:#5b2d8e;border-radius:6px;padding:6px 10px;font-size:clamp(10px,2.5vw,11px);font-weight:900;font-family:var(--H1);text-transform:uppercase;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;">UTILISER →</a>
-        </div>
-      </div>
-
+    <div class="mv-body">
+      ${_heroHTML}
+      ${_carouselHTML}
+      ${_firstOrderHTML}
       <div id="mv-rank-nudge"></div>
-      <button onclick="goTo(renderLeaderboard)" style="display:block;width:100%;background:#fff;border:1px solid #E4E4E6;border-radius:8px;padding:clamp(9px,2.3vw,11px);font-size:clamp(11px,2.8vw,13px);font-weight:700;color:#403b3b;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;" id="mv-lbd-btn">\ud83c\udfc6 VOIR LE CLASSEMENT</button>
-
+      <button onclick="goTo(renderLeaderboard)" class="mv-lbd-btn" id="mv-lbd-btn">${IC.trophy} VOIR LE CLASSEMENT</button>
     </div>
 
   </div>`
   // Wire REJOUER
   var rb=document.getElementById('mv-btn-replay');
   if(rb)rb.addEventListener('pointerdown',function(){goTo(startGame);});
+  var hr=document.getElementById('mv-hero-replay');
+  if(hr)hr.addEventListener('click',function(){goTo(startGame);});
 
   // Wire copy buttons via data-code
   document.querySelectorAll('.mv-copy-btn').forEach(function(btn){
@@ -3341,24 +3381,25 @@ function renderMyVouchers(fromGame){
 
     var html='';
     if(myRank===1){
-      html='<div style="background:#fff8ee;border:1.5px solid #ff9900;border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">🥇 TU ES EN TÊTE DU CLASSEMENT !</div>';
+      html='<div style="background:#fff8ee;border:1.5px solid #ff9900;border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">TU ES EN TÊTE DU CLASSEMENT !</div>';
       if(lbdBtnEl)lbdBtnEl.innerHTML=IC.trophy+' TU ES #1 — VOIR LE CLASSEMENT';
     } else if(myRank===2){
       var gap=players[0].score-myScore;
-      html='<div style="background:#fff8ee;border:1.5px solid #ff9900;border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">🥈 TU ES 2ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:2px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> du 1er — rejoue !</div></div>';
+      html='<div style="background:#fff8ee;border:1.5px solid #ff9900;border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">TU ES 2ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:2px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> du 1er — rejoue !</div></div>';
       if(lbdBtnEl)lbdBtnEl.innerHTML=IC.trophy+' #2 — À '+Number(gap).toLocaleString('fr-FR')+' pts du 1er';
     } else if(myRank===3){
       var gap=players[1].score-myScore;
-      html='<div style="background:#fff8ee;border:1.5px solid #ff9900;border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">🥉 TU ES 3ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:2px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> de la 2ème place !</div></div>';
+      html='<div style="background:#fff8ee;border:1.5px solid #ff9900;border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">TU ES 3ÈME !</div><div style="font-size:clamp(10px,2.5vw,11px);color:#e68800;font-family:var(--H2);font-weight:700;margin-top:2px;">À <b>'+Number(gap).toLocaleString('fr-FR')+' pts</b> de la 2ème place !</div></div>';
       if(lbdBtnEl)lbdBtnEl.innerHTML=IC.trophy+' #3 — À '+Number(gap).toLocaleString('fr-FR')+' pts du 2ème';
     } else if(p3){
       var gap3=p3.score-myScore;
       if(gap3>0){
-        html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.5);border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">À <b style="color:#ff9900;">'+Number(gap3).toLocaleString('fr-FR')+' pts</b> de la 3ème place 🥉</div><div style="font-size:clamp(10px,2.5vw,11px);color:#777777;font-family:var(--H2);font-weight:700;margin-top:2px;">Rejoue pour entrer dans le Top 3 !</div></div>';
+        html='<div style="background:#fff8ee;border:1.5px solid rgba(255,153,0,.5);border-radius:10px;padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,16px);margin-bottom:12px;text-align:center;"><div style="font-size:clamp(11px,2.8vw,13px);font-weight:900;color:#403b3b;font-family:var(--H1);">À <b style="color:#ff9900;">'+Number(gap3).toLocaleString('fr-FR')+' pts</b> de la 3ème place</div><div style="font-size:clamp(10px,2.5vw,11px);color:#777777;font-family:var(--H2);font-weight:700;margin-top:2px;">Rejoue pour entrer dans le Top 3 !</div></div>';
         if(lbdBtnEl)lbdBtnEl.innerHTML=IC.trophy+' TOP 3 À '+Number(gap3).toLocaleString('fr-FR')+' pts — CLASSEMENT';
       }
     }
     if(nudgeEl&&html)nudgeEl.innerHTML=html;
+    if(typeof fitCurrent==='function')fitCurrent();
   }).catch(function(){});
 }
 
