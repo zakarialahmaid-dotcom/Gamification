@@ -3277,7 +3277,19 @@ function renderMyVouchers(fromGame){
 
   // Wire use/CTA buttons via data attributes
   document.querySelectorAll('.mv-use-btn').forEach(function(el){
-    el.addEventListener('click',function(e){_sendVoucher(this);});
+    el.addEventListener('click',function(e){
+      e.preventDefault();
+      _sendVoucher(this);
+      var url=this.getAttribute('href')||'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/';
+      // Open at top level so it doesn't load into the (blank) iframe context
+      try{
+        var w=window.open(url,'_blank');
+        if(!w){ if(window.top){window.top.location.href=url;}else{window.location.href=url;} }
+      }catch(err){
+        try{window.parent.postMessage({type:'jumia_open_url',url:url},'*');}catch(e2){}
+        try{window.top.location.href=url;}catch(e3){window.location.href=url;}
+      }
+    });
   });
 
   // Start expiry countdowns
