@@ -882,22 +882,22 @@ const IMG_TROPHY="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' v
 // ── VOUCHER TIERS (score thresholds ×2.5 vs original) ─────────────────────
 // Original → New:  300→750  |  800→2000  |  2000→5000
 function getVoucher(s){
-  if(s>=5000)return{disc:"60 DH",code:"GWOF-602024",label:"LÉGENDE",min:600};
-  if(s>=2000) return{disc:"50 DH",code:"GWOF-509162",label:"CHAMPION",min:500};
-  if(s>=750) return{disc:"30 DH",code:"GWOF-304364",label:"MATCH READY",min:300};
-  if(s>=300) return{disc:"20 DH",code:"GWOF-200789",label:"DÉBUTANT",min:200};
-  return          {disc:"10 DH",code:"GWOF-107655",label:"STARTER",min:100};
+  if(s>=5000)return{disc:"60 DH",code:"GWC-602514",label:"LÉGENDE",min:750};
+  if(s>=2000) return{disc:"50 DH",code:"GWC-500580",label:"CHAMPION",min:600};
+  if(s>=750) return{disc:"30 DH",code:"GWC-302154",label:"MATCH READY",min:400};
+  if(s>=300) return{disc:"20 DH",code:"GWC-205689",label:"DÉBUTANT",min:240};
+  return          {disc:"10 DH",code:"GWC-107926",label:"STARTER",min:120};
 }
 
 // All vouchers unlocked at a given score (best tier + every lower tier — cascade).
 // Lets the result screen show every coupon the player can actually use.
 function allVouchersForScore(s){
   var TIERS=[
-    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',min:600,pts:5000},
-    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',min:500,pts:2000},
-    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:300,pts:750},
-    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',min:200,pts:300},
-    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',min:100,pts:0},
+    {disc:'60 DH',code:'GWC-602514',label:'LÉGENDE',min:750,pts:5000},
+    {disc:'50 DH',code:'GWC-500580',label:'CHAMPION',min:600,pts:2000},
+    {disc:'30 DH',code:'GWC-302154',label:'MATCH READY',min:400,pts:750},
+    {disc:'20 DH',code:'GWC-205689',label:'DÉBUTANT',min:240,pts:300},
+    {disc:'10 DH',code:'GWC-107926',label:'STARTER',min:120,pts:0},
   ];
   for(var i=0;i<TIERS.length;i++){ if(s>=TIERS[i].pts) return TIERS.slice(i); }
   return [];
@@ -987,22 +987,22 @@ function prizeBoardHTML(opts){
 // Replace SHOP_URL with real Jumia boutique URLs
 // Voucher "Utiliser" buttons → félicitations / remise landing page
 const TIER_SHOP_URLS = {
-  'GWOF-602024': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWOF-509162': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWOF-304364': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWOF-200789': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWOF-107655': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-602514': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-500580': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-302154': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-205689': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-107926': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
   // ── NJA25 → same félicitations landing page as the others ──
   'NJA25':       'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
 };
 
 // "What you can buy" — aligned with top user search needs
 const TIER_EXAMPLES = {
-  'GWOF-602024': 'chaussures de sport, sandales, mode',
-  'GWOF-509162': 'robes, vêtements femme, chaussures',
-  'GWOF-304364': "sandales femmes, robes d'été, mode",
-  'GWOF-200789': 'sandales, maillots de bain, beauté',
-  'GWOF-107655': 'soins visage, hygiène, crèmes solaires',
+  'GWC-602514': 'chaussures de sport, sandales, mode',
+  'GWC-500580': 'robes, vêtements femme, chaussures',
+  'GWC-302154': "sandales femmes, robes d'été, mode",
+  'GWC-205689': 'sandales, maillots de bain, beauté',
+  'GWC-107926': 'soins visage, hygiène, crèmes solaires',
 };
 
 const SPONSORS = [
@@ -1095,11 +1095,11 @@ function clearSession(){
 function vouchersFromScore(score){
   var result=[];
   var TIERS=[
-    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',min:600,pts:5000},
-    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',min:500,pts:2000},
-    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:300,pts:750},
-    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',min:200,pts:300},
-    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',min:100,pts:0},
+    {disc:'60 DH',code:'GWC-602514',label:'LÉGENDE',min:750,pts:5000},
+    {disc:'50 DH',code:'GWC-500580',label:'CHAMPION',min:600,pts:2000},
+    {disc:'30 DH',code:'GWC-302154',label:'MATCH READY',min:400,pts:750},
+    {disc:'20 DH',code:'GWC-205689',label:'DÉBUTANT',min:240,pts:300},
+    {disc:'10 DH',code:'GWC-107926',label:'STARTER',min:120,pts:0},
   ];
   for(var i=0;i<TIERS.length;i++){
     if(score>=TIERS[i].pts){
@@ -2065,21 +2065,6 @@ function renderLobby(){
            <button class="btn-kickoff" id="btn-start">${IC.ball} LANCER LA PARTIE</button>
          </div>`}
     <div style="padding:0 clamp(16px,4vw,18px);">${prizeBoardHTML({variant:'light'})}</div>
-    <!-- ── Sponsor strip ── -->
-    <div class="lb-sponsors">
-      <div class="lb-sponsors-title">Boutiques partenaires</div>
-      <div class="lb-sponsors-track" id="lb-sponsors-track">
-        <div class="lb-sponsors-inner" id="lb-sponsors-inner">
-          ${(SPONSORS.concat(SPONSORS)).map(function(sp,si){
-            var realIdx = si % SPONSORS.length;
-            var logoInner = sp.logo
-              ? '<img src="'+sp.logo+'" alt="'+sp.name+'" draggable="false" loading="eager">'
-              : '<div class="lb-sponsor-tile-placeholder">'+sp.name.slice(0,2).toUpperCase()+'</div>';
-                        return '<a class="lb-sponsor-tile" href="'+(sp.shop||'https://www.jumia.ma/')+'" target="_blank" data-brand="'+sp.name+'" onclick="_track(\x27sponsor_click\x27,{brand:this.dataset.brand,screen:\x27lobby\x27})">'+logoInner+'</a>';
-          }).join('')}
-        </div>
-      </div>
-    </div>
 
     <!-- ── Prominent action cards ── -->
     <div class="lb-action-cards">
@@ -2168,58 +2153,6 @@ function renderLobby(){
   }
   // Start countdown if no attempts left
   if(att===0) startAttemptsCountdown();
-
-  // ── Sponsor strip: CSS marquee + touch drag ────────────────
-  (function(){
-    var inner = document.getElementById('lb-sponsors-inner');
-    var track = document.getElementById('lb-sponsors-track');
-    if(!inner || !track) return;
-
-    var touchStartX = 0;
-    var dragOffset  = 0;   // accumulated manual drag in px
-    var isDragging  = false;
-
-    // On touchstart: pause animation, snapshot current visual position
-    track.addEventListener('touchstart', function(e){
-      touchStartX = e.touches[0].clientX;
-      isDragging  = false;
-      dragOffset  = 0;
-      // Pause CSS animation — freeze at current frame
-      inner.classList.add('paused');
-    }, {passive:true});
-
-    track.addEventListener('touchmove', function(e){
-      var dx = e.touches[0].clientX - touchStartX;
-      if(Math.abs(dx) > 4) isDragging = true;
-      if(!isDragging) return;
-      dragOffset = dx;
-      // Apply manual offset on top of CSS animation freeze
-      inner.style.marginLeft = dx + 'px';
-    }, {passive:true});
-
-    track.addEventListener('touchend', function(){
-      if(isDragging){
-        // Keep the offset momentarily then resume animation
-        // Reset marginLeft and let animation take over
-        inner.style.marginLeft = '0px';
-        // Small delay so the snap isn't jarring
-        setTimeout(function(){
-          inner.style.marginLeft = '';
-          inner.classList.remove('paused');
-        }, 80);
-      } else {
-        // Pure tap — resume immediately
-        inner.classList.remove('paused');
-      }
-      isDragging = false;
-    }, {passive:true});
-
-    // Pause when tab hidden
-    document.addEventListener('visibilitychange', function(){
-      if(document.hidden) inner.classList.add('paused');
-      else inner.classList.remove('paused');
-    });
-  })();
 }
 
 function showTutorialScreen(){
@@ -3182,11 +3115,11 @@ function renderMyVouchers(fromGame){
   // fromGame = true when arriving straight from endGame/submitForm
   // ── TIERS with ×2.5 pts thresholds ─────────────────────────
   var TIERS=[
-    {disc:'60 DH',code:'GWOF-602024',label:'LÉGENDE',    min:600, pts:5000},
-    {disc:'50 DH',code:'GWOF-509162',label:'CHAMPION',   min:500, pts:2000},
-    {disc:'30 DH',code:'GWOF-304364',label:'MATCH READY',min:300, pts:750 },
-    {disc:'20 DH',code:'GWOF-200789',label:'DÉBUTANT',   min:200, pts:300 },
-    {disc:'10 DH',code:'GWOF-107655',label:'STARTER',      min:100, pts:0   },
+    {disc:'60 DH',code:'GWC-602514',label:'LÉGENDE',    min:750, pts:5000},
+    {disc:'50 DH',code:'GWC-500580',label:'CHAMPION',   min:600, pts:2000},
+    {disc:'30 DH',code:'GWC-302154',label:'MATCH READY',min:400, pts:750 },
+    {disc:'20 DH',code:'GWC-205689',label:'DÉBUTANT',   min:240, pts:300 },
+    {disc:'10 DH',code:'GWC-107926',label:'STARTER',      min:120, pts:0   },
   ];
 
   // ── CASCADE RULE ────────────────────────────────────────────
