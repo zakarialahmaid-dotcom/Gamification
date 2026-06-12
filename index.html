@@ -1150,12 +1150,35 @@ function vouchersFromScore(score){
 
 // Fetch this player's name + best score from the sheet by email
 var _myServerData = null; // {name,lastName,email,score,rank} for the current player
+
+// ── JSONP helper: bypasses CORS on Apps Script GET responses ──
+function _jsonp(action, params){
+  return new Promise(function(resolve){
+    var cb = "_jgcb_" + action + "_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
+    var done = false;
+    var s = document.createElement("script");
+    var timer = setTimeout(function(){ finish(null); }, 8000);
+    function cleanup(){
+      try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+      if(s && s.parentNode) s.parentNode.removeChild(s);
+    }
+    function finish(val){
+      if(done) return; done = true;
+      clearTimeout(timer); cleanup(); resolve(val);
+    }
+    window[cb] = function(json){ finish(json); };
+    s.onerror = function(){ finish(null); };
+    var qs = "?action=" + encodeURIComponent(action) + "&callback=" + cb + "&_t=" + Date.now();
+    if(params){ for(var k in params){ if(params.hasOwnProperty(k)) qs += "&" + k + "=" + encodeURIComponent(params[k]); } }
+    s.src = SHEET_URL + qs;
+    document.body.appendChild(s);
+  });
+}
+
 async function fetchPlayerScore(email){
   var normalised = email.toLowerCase().trim();
   try{
-    const url=`${SHEET_URL}?action=playerscore&email=${encodeURIComponent(normalised)}&_t=${Date.now()}`;
-    const res=await fetch(url);
-    const json=await res.json();
+    const json = await _jsonp("playerscore", { email: normalised });
     if(!json || json.status!=='ok' || !json.score){ _myServerData=null; return null; }
     _myServerData={
       name:     json.name     || '',
@@ -1755,11 +1778,9 @@ var _playerIndex = {}; // nameKey → {name,lastName,score} — display lookup t
 
 async function fetchLeaderboard(){
   if(_lbdCache && (Date.now()-_lbdCacheTs)<30000) return _lbdCache;
-  // Read the email-free game board from the Apps Script (sheet stays private)
-  const url=`${SHEET_URL}?action=gameboard&_t=${Date.now()}`;
+  // Read the email-free game board via JSONP (sheet stays private, no CORS issue)
   try{
-    const res=await fetch(url);
-    const json=await res.json();
+    const json = await _jsonp("gameboard");
     const rows=(json&&json.leaderboard)?json.leaderboard:[];
     if(!rows.length){_lbdCache=[];_lbdCacheTs=Date.now();return[];}
 
