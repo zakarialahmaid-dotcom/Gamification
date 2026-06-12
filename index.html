@@ -950,8 +950,7 @@ let playerName='',playerLastName='',playerEmail='',playerCity='',playerPhone='';
 let hasPlayedOnce=false,touchHintDismissed=false,lastTierReached=0;
 
 const SHEET_URL="https://script.google.com/macros/s/AKfycbxJEDLHPklXgQ-xhYvzmd4muxIohfyhSJkhk-zl3jpjxdsGoRbCu55Zx6IFpnXHM-tT2Q/exec";
-const SHEET_ID='1rxe1kBDCycxpKCddQ7OusMvz_Y8137CZsZz6ISAiJtE';
-const SHEET_GID='0';
+
 
 // ════════════════════════════════════════════════════════════════
 //  COMPETITION SCHEDULE & PRIZES
@@ -1150,20 +1149,22 @@ function vouchersFromScore(score){
 }
 
 // Fetch this player's name + best score from the sheet by email
+var _myServerData = null; // {name,lastName,email,score,rank} for the current player
 async function fetchPlayerScore(email){
   var normalised = email.toLowerCase().trim();
   try{
-    // Ensure leaderboard is fetched — this populates _playerIndex
-    await fetchLeaderboard();
-    // Direct O(1) lookup by email
-    var match = _playerIndex[normalised];
-    if(!match||!match.score) return null;
-    return {
-      name:     match.name     || '',
-      lastName: match.lastName || '',
-      email:    match.email    || normalised,
-      score:    match.score,
+    const url=`${SHEET_URL}?action=playerscore&email=${encodeURIComponent(normalised)}&_t=${Date.now()}`;
+    const res=await fetch(url);
+    const json=await res.json();
+    if(!json || json.status!=='ok' || !json.score){ _myServerData=null; return null; }
+    _myServerData={
+      name:     json.name     || '',
+      lastName: json.lastName || '',
+      email:    normalised,
+      score:    json.score,
+      rank:     json.rank || null
     };
+    return _myServerData;
   }catch(e){ return null; }
 }
 
@@ -1715,10 +1716,10 @@ function _getRankMessage(rank, total){
 
 function _checkRankMotivation(){
   if(!playerEmail||!_playerIndex) return;
-  // Get current rank from _playerIndex by comparing score
-  var myEmail=playerEmail.toLowerCase().trim();
+  // Match the player by full-name key (board no longer carries emails)
+  var myKey=((playerName||'')+' '+(playerLastName||'')).trim().toLowerCase();
   var allSorted=Object.values(_playerIndex).sort(function(a,b){return b.score-a.score;});
-  var myIdx=allSorted.findIndex(function(p){return(p.email||'').toLowerCase()===myEmail;});
+  var myIdx=allSorted.findIndex(function(p){return((p.name||'')+' '+(p.lastName||'')).trim().toLowerCase()===myKey;});
   if(myIdx<0) return;
   var rank=myIdx+1;
   var total=allSorted.length;
@@ -1748,37 +1749,33 @@ function goTo(fn){
   },60);},440);
 }
 
-// ── Leaderboard cache — 30s TTL to avoid hammering the sheet ──
+// ── Leaderboard cache — 30s TTL to avoid hammering the endpoint ──
 var _lbdCache = null, _lbdCacheTs = 0;
-var _playerIndex = {}; // email → {name,lastName,score} — full lookup table
+var _playerIndex = {}; // nameKey → {name,lastName,score} — display lookup table
 
 async function fetchLeaderboard(){
   if(_lbdCache && (Date.now()-_lbdCacheTs)<30000) return _lbdCache;
-  // Fetch more rows so fetchPlayerScore can find anyone, not just top 50
-  const tq=encodeURIComponent('SELECT B,C,E ORDER BY E DESC LIMIT 100');
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&tq=${tq}`;
+  // Read the email-free game board from the Apps Script (sheet stays private)
+  const url=`${SHEET_URL}?action=gameboard&_t=${Date.now()}`;
   try{
-    const res=await fetch(url);const text=await res.text();
-    const json=JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
-    if(!json.table||!json.table.rows){_lbdCache=[];_lbdCacheTs=Date.now();return[];}
+    const res=await fetch(url);
+    const json=await res.json();
+    const rows=(json&&json.leaderboard)?json.leaderboard:[];
+    if(!rows.length){_lbdCache=[];_lbdCacheTs=Date.now();return[];}
 
-    // Build full player index keyed by email (best score per email)
+    // Build display index keyed by full lowercased name (no emails server-side)
     _playerIndex = {};
-    json.table.rows
-      .filter(function(r){return r.c&&r.c[2]&&r.c[2].v!=null;})
-      .forEach(function(r){
-        var name  = String((r.c[0]&&r.c[0].v)||'').trim();
-        var email = String((r.c[1]&&r.c[1].v)||'').toLowerCase().trim();
-        var score = Number(String((r.c[2]&&r.c[2].v)||0).replace(/[\s,]/g,''))||0;
-        if(!email) return;
-        if(!_playerIndex[email] || score > _playerIndex[email].score){
-          var parts = name.split(' ');
-          _playerIndex[email] = {name:parts[0]||'', lastName:parts.slice(1).join(' ')||'', email:email, score:score};
-        }
-      });
+    rows.forEach(function(p){
+      var name=String(p.name||'').trim();
+      var lastName=String(p.lastName||'').trim();
+      var score=Number(p.score)||0;
+      var fullKey=(name+' '+lastName).trim().toLowerCase();
+      if(!fullKey) return;
+      if(!_playerIndex[fullKey] || score>_playerIndex[fullKey].score){
+        _playerIndex[fullKey]={name:name, lastName:lastName, email:'', score:score};
+      }
+    });
 
-    // Leaderboard display: deduplicate by email (best score per player), keep top 50
-    // Using _playerIndex which already holds best score per email
     var result = Object.values(_playerIndex)
       .sort(function(a,b){return b.score-a.score;})
       .slice(0,50);
@@ -1815,9 +1812,10 @@ function renderLeaderboard(){
     let rows=players.map((p,i)=>{
       const rank=i+1;
       const mc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'other';
-      const emailMatch = myEmail && (p.email||'').toLowerCase().trim()===myEmail;
-      const nameMatch  = !myEmail && myName && (p.name||'').toLowerCase().trim()===myName;
-      const isMe = (emailMatch||nameMatch) && (hasPlayedOnce||myEmail);
+      // Board no longer carries emails — match the current player by full name.
+      const rowFull = [p.name, p.lastName].filter(Boolean).join(' ').toLowerCase().trim();
+      const nameMatch = myName && rowFull===myName;
+      const isMe = nameMatch && (hasPlayedOnce||myEmail);
       if(isMe && myIdx===-1) myIdx=i;
       const fullName = [p.name, p.lastName].filter(Boolean).join(' ') || 'Joueur';
       const pts=Number(p.score).toLocaleString('fr-FR')+' pts';
@@ -1857,26 +1855,21 @@ function renderLeaderboard(){
       }
     }
 
-    // ── PLAYER OUTSIDE TOP 100 — sticky card at bottom ─────────
+    // ── PLAYER OUTSIDE TOP 50 — sticky card at bottom ─────────
     if(myIdx===-1 && myEmail && bestScore>0){
-      // Find true rank from _playerIndex (has all players sorted by score)
-      var allSorted = Object.values(_playerIndex).sort(function(a,b){return b.score-a.score;});
-      var trueRank = allSorted.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmail;});
-      var myData = _playerIndex[myEmail];
-      if(trueRank>=0 && myData){
-        var trueRankNum = trueRank+1;
+      var doStickyCard=function(myData){
+        if(!myData || !myData.score) return;
+        var trueRankNum = myData.rank || null;
         var myPts = Number(myData.score).toLocaleString('fr-FR');
-        var last3 = players.slice(-3); // last 3 in top 100 for gap reference
         var last = players[players.length-1];
-        var gapToTop100 = last ? last.score - myData.score : null;
-        var gapMsg = gapToTop100>0
-          ? 'Il te manque <b>'+Number(gapToTop100).toLocaleString('fr-FR')+' pts</b> pour entrer dans le Top 100'
-          : 'Tu es à la limite du Top 100 !';
-        // Add ellipsis separator
+        var gapToBoard = last ? last.score - myData.score : null;
+        var gapMsg = gapToBoard>0
+          ? 'Il te manque <b>'+Number(gapToBoard).toLocaleString('fr-FR')+' pts</b> pour entrer dans le Top 50'
+          : 'Tu es à la limite du Top 50 !';
         var sep='<div style="text-align:center;padding:8px 0;color:#777777;font-size:18px;letter-spacing:4px;">···</div>';
-        // Sticky self row
+        var rankCell = trueRankNum ? trueRankNum : '#';
         var selfRow='<div class="lbd-row mine" style="position:sticky;bottom:0;background:#fff8ee;border:2px solid #ff9900;box-shadow:0 -4px 16px rgba(255,153,0,.2);">'+
-          '<div class="lbd-medal other" style="background:#ff9900;color:#fff;">'+trueRankNum+'</div>'+
+          '<div class="lbd-medal other" style="background:#ff9900;color:#fff;">'+rankCell+'</div>'+
           '<div class="lbd-name">'+(playerName&&playerLastName?playerName+' '+playerLastName:playerName||'Toi')+
             '<span class="lbd-you-badge">TOI</span></div>'+
           '<div class="lbd-score">'+myPts+' pts</div>'+
@@ -1885,17 +1878,24 @@ function renderLeaderboard(){
         var div=document.createElement('div');
         div.innerHTML=sep+selfRow;
         card.appendChild(div);
+      };
+      if(_myServerData && _myServerData.email===myEmail){
+        doStickyCard(_myServerData);
+      } else {
+        fetchPlayerScore(myEmail).then(doStickyCard);
       }
     }
 
-    // Inject rank into voucher header badge
+    // Inject rank into voucher header badge (from player's own server data)
     var rankBadge=document.getElementById('mv-rank-badge');
     if(rankBadge&&playerEmail){
-      var myEmailR=playerEmail.toLowerCase().trim();
-      var myIdxR=players.findIndex(function(p){return(p.email||'').toLowerCase().trim()===myEmailR;});
-      if(myIdxR>=0){
-        rankBadge.textContent='#'+(myIdxR+1)+' au classement';
-        rankBadge.style.display='inline-block';
+      var applyBadge=function(d){
+        if(d&&d.rank){ rankBadge.textContent='#'+d.rank+' au classement'; rankBadge.style.display='inline-block'; }
+      };
+      if(_myServerData && _myServerData.email===playerEmail.toLowerCase().trim()){
+        applyBadge(_myServerData);
+      } else {
+        fetchPlayerScore(playerEmail.toLowerCase().trim()).then(applyBadge);
       }
     }
 
@@ -2638,9 +2638,11 @@ function tick(ts){
     _catchCount++;
     if(_catchCount%10===0){
       if(playerEmail&&_playerIndex){
-        var _me=playerEmail.toLowerCase().trim();
-        if(_playerIndex[_me]) _playerIndex[_me].score=scoreVal;
-        else _playerIndex[_me]={name:playerName||'Joueur',lastName:playerLastName||'',email:_me,score:scoreVal};
+        var _meKey=((playerName||'')+' '+(playerLastName||'')).trim().toLowerCase();
+        if(_meKey){
+          if(_playerIndex[_meKey]) _playerIndex[_meKey].score=scoreVal;
+          else _playerIndex[_meKey]={name:playerName||'Joueur',lastName:playerLastName||'',email:'',score:scoreVal};
+        }
       }
       _checkRankMotivation();
     }
@@ -2721,10 +2723,10 @@ function endGame(final){
   }catch(e){}
   // Inject player into _playerIndex immediately so they appear in leaderboard
   // even before the sheet has processed the submission
-  if(playerEmail){
-    var _myEmail=playerEmail.toLowerCase().trim();
-    if(!_playerIndex[_myEmail]||final>(_playerIndex[_myEmail].score||0)){
-      _playerIndex[_myEmail]={name:playerName||'Joueur',lastName:playerLastName||'',email:_myEmail,score:final};
+  if(playerName){
+    var _myKey=((playerName||'')+' '+(playerLastName||'')).trim().toLowerCase();
+    if(_myKey && (!_playerIndex[_myKey]||final>(_playerIndex[_myKey].score||0))){
+      _playerIndex[_myKey]={name:playerName||'Joueur',lastName:playerLastName||'',email:'',score:final};
     }
   }
   if(SHEET_URL.startsWith('https://')&&playerName){
@@ -2916,7 +2918,8 @@ function submitForm(){
         fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
       }
       _lbdCache=null;_lbdCacheTs=0;
-      _playerIndex[normEmail]={name:playerName,lastName:playerLastName,email:normEmail,score:bestScore};
+      var _kRet=((playerName||'')+' '+(playerLastName||'')).trim().toLowerCase();
+      if(_kRet)_playerIndex[_kRet]={name:playerName,lastName:playerLastName,email:'',score:bestScore};
       goTo(function(){renderMyVouchers(true)});
 
     } else {
@@ -2925,7 +2928,8 @@ function submitForm(){
       _track('form_submit',{email:normEmail,score:scoreVal,is_new:true});
       saveSession();
       _lbdCache=null;_lbdCacheTs=0;
-      _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
+      var _kNew=((name||'')+' '+(lastname||'')).trim().toLowerCase();
+      if(_kNew)_playerIndex[_kNew]={name:name,lastName:lastname,email:'',score:scoreVal};
       if(SHEET_URL.startsWith('https://')){
         const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,phone:playerPhone,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
         if(suspicious) p.set('suspicious','true');
@@ -2938,7 +2942,8 @@ function submitForm(){
     playerName=name;playerLastName=lastname;playerEmail=normEmail;playerCity=city;playerPhone=phone;
     saveSession();
     _lbdCache=null;_lbdCacheTs=0;
-    _playerIndex[normEmail]={name:name,lastName:lastname,email:normEmail,score:scoreVal};
+    var _kFb=((name||'')+' '+(lastname||'')).trim().toLowerCase();
+    if(_kFb)_playerIndex[_kFb]={name:name,lastName:lastname,email:'',score:scoreVal};
     if(SHEET_URL.startsWith('https://')){
       const p=new URLSearchParams({timestamp:new Date().toISOString(),name:playerName+' '+playerLastName,phone:playerPhone,email:playerEmail,city:playerCity,score:scoreVal,combo:Math.min(maxComboVal,3),survie:Math.floor(elapsedSec),voucher:getVoucher(scoreVal).code,source:'JumiaGardienDeBut'});
       if(suspicious) p.set('suspicious','true');
