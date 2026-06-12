@@ -1023,15 +1023,16 @@ function prizeBoardHTML(opts){
 // ── SPONSOR CONFIG ─────────────────────────────────────────────
 // Replace LOGO_URL with real URLs when available
 // Replace SHOP_URL with real Jumia boutique URLs
-// Voucher "Utiliser" buttons → félicitations / remise landing page
+// Voucher "Utiliser" buttons → Adjust tracking link (redirects into the app via adjust_deeplink)
+const FELICITATIONS_URL = 'https://aal4.adj.st?adjust_t=itk4eyn_9sytz8o&adjust_campaign=MA&adjust_adgroup=wcgame&adjust_creative=game&adjust_deeplink=jumia%3A%2F%2Fma%2F&adjust_redirect=';
 const TIER_SHOP_URLS = {
-  'GWC-602514': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-500580': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-302154': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-205689': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-107926': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
-  // ── NJA25 → same félicitations landing page as the others ──
-  'NJA25':       'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-602514': FELICITATIONS_URL,
+  'GWC-500580': FELICITATIONS_URL,
+  'GWC-302154': FELICITATIONS_URL,
+  'GWC-205689': FELICITATIONS_URL,
+  'GWC-107926': FELICITATIONS_URL,
+  // ── NJA25 → same félicitations destination as the others ──
+  'NJA25':       FELICITATIONS_URL,
 };
 
 // "What you can buy" — aligned with top user search needs
@@ -3210,7 +3211,7 @@ function renderMyVouchers(fromGame){
   }
 
   // ── Build ONE big full-screen carousel: every voucher = one slide ──
-  function _shopUrl(code){return (typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[code])?TIER_SHOP_URLS[code]:'jumia://ma/mlp-felicitations-profitez-de-votre-remise/';}
+  function _shopUrl(code){return (typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[code])?TIER_SHOP_URLS[code]:FELICITATIONS_URL;}
   var _unlocked = tierDisplay.filter(function(t){return t.unlocked;});
 
   // Helper: build a single full-screen voucher slide
@@ -3250,7 +3251,7 @@ function renderMyVouchers(fromGame){
     min: '199',
     code: 'NJA25',
     disc: '30 DH',
-    url: 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+    url: FELICITATIONS_URL,
     dark: true,
     expiry: false
   }));
@@ -3316,25 +3317,16 @@ function renderMyVouchers(fromGame){
     el.addEventListener('click',function(e){
       e.preventDefault();
       _sendVoucher(this);
-      var url=this.getAttribute('href')||'jumia://ma/mlp-felicitations-profitez-de-votre-remise/';
-      // Custom-scheme deep links (jumia://) must navigate the top-level location;
-      // window.open('_blank') is unreliable for non-http schemes inside a WebView.
-      var isDeepLink=/^[a-z][a-z0-9+.-]*:/i.test(url) && url.indexOf('http')!==0;
-      if(isDeepLink){
-        try{ if(window.top){window.top.location.href=url;}else{window.location.href=url;} }
-        catch(err){
-          try{window.parent.postMessage({type:'jumia_open_url',url:url},'*');}catch(e2){}
-          try{window.location.href=url;}catch(e3){}
-        }
-        return;
-      }
-      // Open at top level so it doesn't load into the (blank) iframe context
+      var url=this.getAttribute('href')||FELICITATIONS_URL;
+      // Voucher destination (Adjust tracking link, which redirects into the app)
+      // must navigate the top-level location — a _blank popup can be blocked in a
+      // WebView and would break the Adjust click → deeplink handoff.
       try{
-        var w=window.open(url,'_blank');
-        if(!w){ if(window.top){window.top.location.href=url;}else{window.location.href=url;} }
+        if(window.top){window.top.location.href=url;}else{window.location.href=url;}
       }catch(err){
+        // Sandboxed iframe: ask the native host to open it, then best-effort fallback.
         try{window.parent.postMessage({type:'jumia_open_url',url:url},'*');}catch(e2){}
-        try{window.top.location.href=url;}catch(e3){window.location.href=url;}
+        try{window.location.href=url;}catch(e3){}
       }
     });
   });
