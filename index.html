@@ -50,11 +50,11 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#F1F1F2;overscroll-behavior:none;touch-action:none;-webkit-overflow-scrolling:touch;}
+html,body{width:100%;height:100%;overflow:hidden;background:#F1F1F2;overscroll-behavior:none;touch-action:pan-y;-webkit-overflow-scrolling:touch;}
 /* Allow WebView keyboard to open on input focus */
 input,textarea,select{touch-action:auto;-webkit-user-select:text;user-select:text;}
 body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select:none;user-select:none;background:#F1F1F2;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
-#app{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;font-family:var(--H1);position:relative;touch-action:none;}
+#app{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;background:#F1F1F2;overflow:hidden;font-family:var(--H1);position:relative;touch-action:pan-y;}
 
 @keyframes fadeIn{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-60px) scale(.8)}}
@@ -206,7 +206,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .tuto-screen-btn{width:100%;max-width:340px;background:#ff9900;color:#ffffff;border:none;border-radius:12px;padding:clamp(18px,5vw,22px);font-size:clamp(17px,4.8vw,21px);font-weight:900;font-family:var(--H1);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;box-shadow:0 4px 0 #e68800;transition:transform .1s,box-shadow .1s;margin-top:6px;}
 .tuto-screen-btn:active{transform:translateY(4px);box-shadow:0 0 0 #e68800;}
 
-#screen-form{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;}
+#screen-form{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;animation:fadeIn .25s ease;}
 .fm-top{flex:0 0 auto;background:#ff9900;padding:clamp(10px,2.5vw,14px) clamp(16px,4vw,22px) clamp(10px,2.5vw,14px);text-align:center;position:relative;}
 .fm-back{position:absolute;left:clamp(10px,3vw,16px);top:clamp(10px,3vw,15px);width:36px;height:36px;border-radius:9999px;border:none;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:3;transition:background .15s;}
 .fm-back:active{background:rgba(255,255,255,.32);}
@@ -230,7 +230,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .fm-legal{padding:clamp(10px,2.5vw,14px) clamp(20px,5vw,28px) clamp(24px,6vw,32px);text-align:center;font-size:clamp(9px,2.3vw,10px);color:#777777;font-family:var(--H2);line-height:1.5;}
 .spinner{width:18px;height:18px;border:2.5px solid #E4E4E6;border-top-color:#ff9900;border-radius:50%;animation:spin .7s linear infinite;display:none;}
 
-#screen-result{flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:fadeIn .25s ease;}
+#screen-result{flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;animation:fadeIn .25s ease;}
 .rs-top{flex:0 0 auto;position:sticky;top:0;z-index:20;background:#ff9900;padding:clamp(18px,4.5vw,24px) clamp(20px,5vw,28px) clamp(14px,3.5vw,18px);text-align:center;}
 .rs-eyebrow{font-size:clamp(9px,2.4vw,11px);font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.86);font-family:var(--H2);text-transform:uppercase;margin-bottom:6px;}
 .rs-title{font-size:clamp(30px,8.5vw,42px);font-weight:900;color:#ffffff;line-height:.9;font-family:var(--H1);text-transform:uppercase;letter-spacing:-.01em;}
@@ -274,7 +274,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .lbd-title{font-size:clamp(20px,5.5vw,26px);font-weight:900;color:#ffffff;font-family:var(--H1);text-transform:uppercase;}
 .lbd-live{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:clamp(9px,2.3vw,11px);font-weight:700;color:rgba(255,255,255,.75);font-family:var(--H2);}
 .lbd-live::before{content:'';width:6px;height:6px;border-radius:50%;background:#ffffff;display:inline-block;animation:dotPulse 1.4s ease infinite;}
-.lbd-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:clamp(14px,3.5vw,18px) clamp(16px,4vw,22px);}
+.lbd-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:clamp(14px,3.5vw,18px) clamp(16px,4vw,22px);}
 .lbd-scroll::-webkit-scrollbar{display:none;}
 .lbd-card{background:#ffffff;border:1px solid #E4E4E6;border-radius:12px;overflow:hidden;}
 .lbd-row{display:flex;align-items:center;padding:clamp(8px,2vw,11px) clamp(12px,3vw,15px);gap:12px;border-bottom:1px solid #F1F1F2;}
@@ -314,6 +314,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
   animation:fadeIn .25s ease;
   overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
 }
 
 .lb-header-bar{
@@ -751,7 +752,7 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .prize-board.dark .pb-foot{border-top-color:rgba(255,255,255,.1);color:rgba(255,255,255,.55);}
 
 /* ════ LOCK SCREEN (outside live windows) ═══════════════════════ */
-#screen-lock{flex:1;display:flex;flex-direction:column;background:#403b3b;color:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#screen-lock{flex:1;display:flex;flex-direction:column;background:#403b3b;color:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
 .lk-hero{flex:0 0 auto;text-align:center;padding:clamp(26px,7vw,40px) clamp(20px,5vw,28px) clamp(18px,4.6vw,24px);position:relative;overflow:hidden;}
 .lk-logo{height:clamp(16px,4.4vw,20px);width:auto;display:block;margin:0 auto clamp(16px,4.2vw,22px);}
 .lk-star{position:absolute;right:-30px;top:-30px;width:clamp(120px,32vw,150px);opacity:.10;transform:rotate(-10deg);pointer-events:none;}
@@ -839,6 +840,41 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 
 .mv-lbd-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:#fff;border:1px solid #E4E4E6;border-radius:10px;padding:clamp(12px,3vw,14px);font-size:clamp(12px,3.1vw,14px);font-weight:700;color:#403b3b;cursor:pointer;font-family:var(--H2);text-transform:uppercase;letter-spacing:.03em;margin-top:clamp(14px,3.6vw,18px);-webkit-tap-highlight-color:transparent;}
 .mv-lbd-btn svg{width:1.1em;height:1.1em;color:#ff9900;}
+
+/* ── FULL-SCREEN VOUCHER CAROUSEL ──────────────────────────── */
+.vc-wrap{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.vc-track{flex:1 1 auto;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;min-height:0;}
+.vc-track::-webkit-scrollbar{display:none;}
+.vc-slide{scroll-snap-align:center;flex:0 0 100%;width:100%;box-sizing:border-box;padding:clamp(16px,4.5vw,26px);display:flex;flex-direction:column;justify-content:safe center;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.vc-card{background:#fff;border:3px solid #ff9900;border-radius:22px;padding:clamp(22px,6vw,34px) clamp(20px,5.5vw,30px);box-shadow:0 10px 30px rgba(255,153,0,.18);display:flex;flex-direction:column;}
+.vc-card.dark{background:#633185;border-color:#633185;box-shadow:0 10px 30px rgba(99,49,133,.28);}
+.vc-card.empty{border-color:#E4E4E6;box-shadow:none;text-align:center;}
+.vc-tag{align-self:flex-start;background:#ff9900;color:#fff;font-family:var(--H2);font-weight:800;font-size:clamp(12px,3.4vw,15px);text-transform:uppercase;letter-spacing:.05em;border-radius:8px;padding:7px 13px;margin-bottom:clamp(12px,3.5vw,18px);}
+.vc-card.dark .vc-tag{background:rgba(255,255,255,.22);}
+.vc-disc{font-family:var(--H1);font-weight:900;color:#ff9900;line-height:.85;font-size:clamp(64px,22vw,120px);letter-spacing:-.02em;}
+.vc-card.dark .vc-disc{color:#fff;}
+.vc-disc small{display:block;font-size:.26em;color:#403b3b;letter-spacing:.05em;margin-top:8px;font-weight:900;}
+.vc-card.dark .vc-disc small{color:rgba(255,255,255,.8);}
+.vc-min{font-family:var(--H2);font-size:clamp(17px,4.8vw,22px);color:#6a6a6a;margin:clamp(14px,4vw,20px) 0 clamp(16px,4.5vw,22px);line-height:1.35;}
+.vc-min b{color:#403b3b;font-weight:800;}
+.vc-card.dark .vc-min{color:rgba(255,255,255,.82);}
+.vc-card.dark .vc-min b{color:#fff;}
+.vc-code-row{display:flex;align-items:stretch;gap:10px;}
+.vc-code{flex:1;background:#fff8ee;border:2.5px dashed #ff9900;border-radius:12px;padding:clamp(16px,4.5vw,22px);font-family:var(--H1);font-weight:900;color:#403b3b;letter-spacing:.14em;text-align:center;font-size:clamp(26px,7.5vw,38px);display:flex;align-items:center;justify-content:center;}
+.vc-card.dark .vc-code{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.55);color:#fff;}
+.vc-copy{flex-shrink:0;background:#403b3b;color:#fff;border:none;border-radius:12px;padding:0 clamp(20px,5.5vw,28px);font-family:var(--H1);font-weight:900;font-size:clamp(14px,3.8vw,17px);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.vc-card.dark .vc-copy{background:#fff;color:#633185;}
+.vc-use{display:flex;align-items:center;justify-content:center;width:100%;min-height:60px;background:#ff9900;color:#fff;border:none;border-radius:9999px;padding:clamp(17px,4.6vw,22px);margin-top:clamp(14px,4vw,20px);font-family:var(--H1);font-weight:900;font-size:clamp(18px,5vw,24px);text-transform:uppercase;text-decoration:none;letter-spacing:.02em;-webkit-tap-highlight-color:transparent;box-shadow:0 5px 18px rgba(255,153,0,.34);cursor:pointer;}
+.vc-card.dark .vc-use{background:#fff;color:#633185;box-shadow:0 5px 18px rgba(0,0,0,.18);}
+.vc-expiry{text-align:center;margin-top:clamp(12px,3.4vw,16px);font-family:var(--H2);font-size:clamp(14px,3.9vw,17px);color:#e68800;font-weight:800;}
+.vc-card.dark .vc-expiry{color:rgba(255,255,255,.85);}
+.vc-empty-replay{display:inline-flex;align-items:center;justify-content:center;background:#ff9900;color:#fff;border:none;border-radius:9999px;padding:clamp(16px,4.5vw,22px) clamp(26px,7vw,38px);margin-top:clamp(14px,4vw,20px);font-family:var(--H1);font-weight:900;font-size:clamp(17px,4.8vw,22px);text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.vc-dots{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;padding:clamp(10px,2.6vw,14px) 0 clamp(6px,1.6vw,10px);}
+.vc-dot{width:9px;height:9px;border-radius:50%;background:#d8d4d4;transition:all .25s ease;}
+.vc-dot.active{background:#ff9900;width:26px;border-radius:5px;}
+.vc-swipe-hint{flex:0 0 auto;text-align:center;font-family:var(--H2);font-weight:700;font-size:clamp(12px,3.2vw,14px);color:#e68800;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;gap:6px;padding-bottom:clamp(6px,1.6vw,10px);}
+.vc-swipe-hint svg{width:18px;height:18px;animation:swipeNudge 1.5s ease-in-out infinite;}
+@media (prefers-reduced-motion: reduce){.vc-swipe-hint svg{animation:none;}}
 
 </style>
 </head>
@@ -987,13 +1023,13 @@ function prizeBoardHTML(opts){
 // Replace SHOP_URL with real Jumia boutique URLs
 // Voucher "Utiliser" buttons → félicitations / remise landing page
 const TIER_SHOP_URLS = {
-  'GWC-602514': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-500580': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-302154': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-205689': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
-  'GWC-107926': 'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-602514': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-500580': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-302154': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-205689': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+  'GWC-107926': 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
   // ── NJA25 → same félicitations landing page as the others ──
-  'NJA25':       'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/',
+  'NJA25':       'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
 };
 
 // "What you can buy" — aligned with top user search needs
@@ -1142,7 +1178,7 @@ const IC={
 // ── LOGIN SCREEN ─────────────────────────────────────────────
 function renderLogin(){
   $('app').innerHTML=`
-  <div id="screen-login" style="flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:fadeIn .25s ease;">
+  <div id="screen-login" style="flex:1;display:flex;flex-direction:column;background:#F1F1F2;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;animation:fadeIn .25s ease;">
 
     <!-- Orange header -->
     <div style="flex:0 0 auto;background:#ff9900;padding:clamp(12px,3vw,16px) clamp(20px,5vw,28px) clamp(14px,3.5vw,18px);text-align:center;">
@@ -1896,7 +1932,7 @@ window.setHero=function(h){window.LOBBY_HERO=h;try{localStorage.setItem('jg_hero
 //  it down (with width compensation so it still fills the width).
 //  On tall screens it stays 1× and the normal flex layout applies.
 // ════════════════════════════════════════════════════════════════
-var FIT_SCREENS=['screen-lobby','screen-result','screen-lock','screen-login','screen-vouchers'];
+var FIT_SCREENS=['screen-lobby','screen-result','screen-lock','screen-login'];
 
 function fitScreen(screenEl){
   if(!screenEl)return;
@@ -3171,71 +3207,70 @@ function renderMyVouchers(fromGame){
       '</div>';
   }
 
-  // ── Build hero (biggest won) + swipe carousel (others) + first-order ──
-  function _shopUrl(code){return (typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[code])?TIER_SHOP_URLS[code]:'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/';}
+  // ── Build ONE big full-screen carousel: every voucher = one slide ──
+  function _shopUrl(code){return (typeof TIER_SHOP_URLS!=='undefined'&&TIER_SHOP_URLS[code])?TIER_SHOP_URLS[code]:'jumia://ma/mlp-felicitations-profitez-de-votre-remise/';}
   var _unlocked = tierDisplay.filter(function(t){return t.unlocked;});
-  var _hero = _unlocked[0]||null;
-  var _others = _unlocked.slice(1);
 
-  var _heroHTML;
-  if(_hero){
-    _heroHTML =
-    '<div class="mv-hero mv-voucher-card">'+
-      '<div class="mv-hero-head">'+
-        '<div class="mv-hero-disc">'+_hero.disc.replace(' DH','')+'<small>DH OFF</small></div>'+
-        '<div class="mv-hero-tag">TON MEILLEUR BON</div>'+
-      '</div>'+
-      '<div class="mv-hero-min">Valable d\xe8s <b>'+Number(_hero.min).toLocaleString('fr-FR')+' DH</b> d\'achat</div>'+
-      '<div class="mv-code-row">'+
-        '<div class="mv-code">'+_hero.code+'</div>'+
-        '<button class="mv-copy-btn mv-copy-lg" data-code="'+_hero.code+'">COPIER</button>'+
-      '</div>'+
-      '<a href="'+_shopUrl(_hero.code)+'" class="mv-use-btn mv-use-hero" data-code="'+_hero.code+'" data-disc="'+_hero.disc+'">UTILISER MON BON \u2192</a>'+
-      '<div class="mv-expiry">Expire dans <span id="expiry-'+_hero.code+'">--:--:--</span></div>'+
-    '</div>';
-  } else {
-    _heroHTML =
-    '<div class="mv-hero mv-hero-empty">'+
-      '<div class="mv-hero-disc" style="color:#ff9900;">JOUE</div>'+
-      '<div class="mv-hero-min">Marque des points pour gagner ton premier bon de r\xe9duction.</div>'+
-      (attLeft>0?'<button class="mv-use-hero" id="mv-hero-replay">LANCER LA PARTIE \u2192</button>':'')+
-    '</div>';
+  // Helper: build a single full-screen voucher slide
+  function _slide(opts){
+    return '<div class="vc-slide"><div class="vc-card'+(opts.dark?' dark':'')+'">'+
+        '<span class="vc-tag">'+opts.tag+'</span>'+
+        '<div class="vc-disc">'+opts.discNum+'<small>DH OFF</small></div>'+
+        '<div class="vc-min">Valable d\xe8s <b>'+opts.min+' DH</b> d\'achat</div>'+
+        '<div class="vc-code-row">'+
+          '<div class="vc-code">'+opts.code+'</div>'+
+          '<button class="mv-copy-btn vc-copy" data-code="'+opts.code+'">COPIER</button>'+
+        '</div>'+
+        '<a href="'+opts.url+'" class="mv-use-btn vc-use" data-code="'+opts.code+'" data-disc="'+opts.disc+'">UTILISER MON BON \u2192</a>'+
+        (opts.expiry?'<div class="vc-expiry">Expire dans <span id="expiry-'+opts.code+'">--:--:--</span></div>':'')+
+      '</div></div>';
   }
 
-  var _carouselHTML='';
-  if(_others.length){
-    _carouselHTML =
-    '<div class="mv-sec-head"><span class="t">Tes autres bons</span><span class="mv-swipe-hint">glisse'+
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>'+
-    '<div class="mv-carousel">'+
-      _others.map(function(t){
-        return '<div class="mv-ccard mv-voucher-card">'+
-          '<div class="mv-cc-disc">'+t.disc+' OFF</div>'+
-          '<div class="mv-cc-min">d\xe8s '+Number(t.min).toLocaleString('fr-FR')+' DH d\'achat</div>'+
-          '<div class="mv-code-row"><div class="mv-code mv-code-sm">'+t.code+'</div></div>'+
-          '<div class="mv-cc-actions">'+
-            '<button class="mv-copy-btn mv-cc-copy" data-code="'+t.code+'">COPIER</button>'+
-            '<a href="'+_shopUrl(t.code)+'" class="mv-use-btn mv-cc-use" data-code="'+t.code+'" data-disc="'+t.disc+'">UTILISER</a>'+
-          '</div>'+
-          '<div class="mv-expiry mv-expiry-sm">Expire dans <span id="expiry-'+t.code+'">--:--:--</span></div>'+
-        '</div>';
-      }).join('')+
-    '</div>';
+  var _slides = [];
+
+  // Won vouchers (best first), each its own big slide
+  _unlocked.forEach(function(t, i){
+    _slides.push(_slide({
+      tag: i===0 ? 'TON MEILLEUR BON' : 'BON D\xc9BLOQU\xc9',
+      discNum: t.disc.replace(' DH',''),
+      min: Number(t.min).toLocaleString('fr-FR'),
+      code: t.code,
+      disc: t.disc,
+      url: _shopUrl(t.code),
+      expiry: true
+    }));
+  });
+
+  // First-order voucher always as last slide
+  _slides.push(_slide({
+    tag: '1\xc8RE COMMANDE',
+    discNum: '30',
+    min: '199',
+    code: 'NJA25',
+    disc: '30 DH',
+    url: 'jumia://ma/mlp-felicitations-profitez-de-votre-remise/',
+    dark: true,
+    expiry: false
+  }));
+
+  // If no voucher won yet, lead with an encouraging "play" slide
+  if(!_unlocked.length){
+    _slides.unshift(
+      '<div class="vc-slide"><div class="vc-card empty">'+
+        '<div class="vc-disc" style="color:#ff9900;">JOUE</div>'+
+        '<div class="vc-min" style="text-align:center;">Marque des points pour gagner ton premier bon de r\xe9duction.</div>'+
+        (attLeft>0?'<button class="vc-empty-replay" id="mv-hero-replay" style="align-self:center;">LANCER LA PARTIE \u2192</button>':'')+
+      '</div></div>'
+    );
   }
 
-  var _firstOrderHTML =
-    '<div class="mv-sec-head"><span class="t">Bon 1\xe8re commande</span></div>'+
-    '<div class="mv-first mv-voucher-card dark">'+
-      '<div class="mv-first-head">'+
-        '<div class="mv-first-disc">30<small>DH OFF</small></div>'+
-        '<div class="mv-first-tag">1\xc8RE COMMANDE</div>'+
-      '</div>'+
-      '<div class="mv-first-min">Valable d\xe8s <b>199 DH</b> d\'achat</div>'+
-      '<div class="mv-code-row">'+
-        '<div class="mv-code mv-code-light">NJA25</div>'+
-        '<button class="mv-copy-btn mv-copy-lg" data-code="NJA25">COPIER</button>'+
-      '</div>'+
-      '<a href="https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/" class="mv-use-btn mv-use-first" data-code="NJA25" data-disc="30 DH">UTILISER \u2192</a>'+
+  var _dotsHTML = _slides.map(function(_,i){return '<span class="vc-dot'+(i===0?' active':'')+'"></span>';}).join('');
+  var _carouselHTML =
+    '<div class="vc-wrap">'+
+      (_slides.length>1?'<div class="vc-swipe-hint">glisse pour voir tes bons'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>':'')+
+      '<div class="vc-track" id="vc-track">'+_slides.join('')+'</div>'+
+      (_slides.length>1?'<div class="vc-dots" id="vc-dots">'+_dotsHTML+'</div>':'')+
     '</div>';
 
   $('app').innerHTML=`
@@ -3255,12 +3290,11 @@ function renderMyVouchers(fromGame){
       </div>
     </div>
 
-    <div class="mv-body">
-      ${_heroHTML}
-      ${_carouselHTML}
-      ${_firstOrderHTML}
+    ${_carouselHTML}
+
+    <div style="flex:0 0 auto;padding:clamp(8px,2vw,12px) clamp(16px,4vw,22px) clamp(16px,4.5vw,24px);background:#F1F1F2;">
       <div id="mv-rank-nudge"></div>
-      <button onclick="goTo(renderLeaderboard)" class="mv-lbd-btn" id="mv-lbd-btn">${IC.trophy} VOIR LE CLASSEMENT</button>
+      <button onclick="goTo(renderLeaderboard)" class="mv-lbd-btn" id="mv-lbd-btn" style="margin-top:0;">${IC.trophy} VOIR LE CLASSEMENT</button>
     </div>
 
   </div>`
@@ -3280,7 +3314,18 @@ function renderMyVouchers(fromGame){
     el.addEventListener('click',function(e){
       e.preventDefault();
       _sendVoucher(this);
-      var url=this.getAttribute('href')||'https://www.jumia.ma/mlp-felicitations-profitez-de-votre-remise/';
+      var url=this.getAttribute('href')||'jumia://ma/mlp-felicitations-profitez-de-votre-remise/';
+      // Custom-scheme deep links (jumia://) must navigate the top-level location;
+      // window.open('_blank') is unreliable for non-http schemes inside a WebView.
+      var isDeepLink=/^[a-z][a-z0-9+.-]*:/i.test(url) && url.indexOf('http')!==0;
+      if(isDeepLink){
+        try{ if(window.top){window.top.location.href=url;}else{window.location.href=url;} }
+        catch(err){
+          try{window.parent.postMessage({type:'jumia_open_url',url:url},'*');}catch(e2){}
+          try{window.location.href=url;}catch(e3){}
+        }
+        return;
+      }
       // Open at top level so it doesn't load into the (blank) iframe context
       try{
         var w=window.open(url,'_blank');
@@ -3294,6 +3339,27 @@ function renderMyVouchers(fromGame){
 
   // Start expiry countdowns
   setTimeout(startExpiryCountdowns, 100);
+
+  // Sync carousel dots with scroll position
+  (function(){
+    var track=document.getElementById('vc-track');
+    var dotsWrap=document.getElementById('vc-dots');
+    if(!track||!dotsWrap)return;
+    var dots=dotsWrap.querySelectorAll('.vc-dot');
+    var _raf;
+    track.addEventListener('scroll',function(){
+      if(_raf)cancelAnimationFrame(_raf);
+      _raf=requestAnimationFrame(function(){
+        var idx=Math.round(track.scrollLeft/track.clientWidth);
+        idx=Math.max(0,Math.min(dots.length-1,idx));
+        dots.forEach(function(d,i){d.classList.toggle('active',i===idx);});
+      });
+    },{passive:true});
+    dots.forEach(function(d,i){
+      d.style.cursor='pointer';
+      d.addEventListener('click',function(){track.scrollTo({left:i*track.clientWidth,behavior:'smooth'});});
+    });
+  })();
 
   // Show new record burst if applicable
   if(window._newRecord){window._newRecord=false;setTimeout(showNewRecord,600);}
