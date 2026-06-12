@@ -3428,14 +3428,15 @@ function startAttemptsCountdown(){
 function startExpiryCountdowns(){
   var spans=document.querySelectorAll('[id^="expiry-"]');
   if(!spans.length)return;
+  var endDate=new Date(2026,5,15,0,0,0); // June 15, 2026 at 12:00 AM (midnight)
   function update(){
     var now=new Date();
-    var midnight=new Date(now);midnight.setHours(24,0,0,0);
-    var diff=Math.max(0,midnight-now);
-    var h=Math.floor(diff/3600000);
+    var diff=Math.max(0,endDate-now);
+    var d=Math.floor(diff/86400000);
+    var h=Math.floor((diff%86400000)/3600000);
     var m=Math.floor((diff%3600000)/60000);
     var s=Math.floor((diff%60000)/1000);
-    var str=String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
+    var str=(d>0?String(d)+'j ':'')+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
     document.querySelectorAll('[id^="expiry-"]').forEach(function(sp){sp.textContent=str;});
   }
   update();
