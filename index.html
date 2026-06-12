@@ -95,7 +95,8 @@ body{display:flex;align-items:stretch;justify-content:center;-webkit-user-select
 .gm-title span{color:rgba(255,255,255,.86);}
 .combo-badge{background:#ff9900;color:#ffffff;border-radius:6px;padding:3px 10px;font-size:clamp(10px,2.6vw,12px);font-weight:900;display:none;font-family:var(--H1);white-space:nowrap;pointer-events:none;margin-left:auto;}
 
-#game-field{flex:1;position:relative;overflow:hidden;touch-action:none;-ms-touch-action:none;background-color:#3a7d3a;background-image:url('https://raw.githubusercontent.com/Madzack69/Icons/main/GAME_BG.gif'),url('https://raw.githubusercontent.com/Madzack69/Icons/main/TERRAIN.webp');background-position:center,center;background-size:cover,cover;background-repeat:no-repeat,no-repeat;}
+#game-field{flex:1;position:relative;overflow:hidden;touch-action:none;-ms-touch-action:none;background-color:#3a7d3a;background-image:url('https://raw.githubusercontent.com/Madzack69/Icons/main/TERRAIN.webp');background-position:center;background-size:cover;background-repeat:no-repeat;}
+#game-bg-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;}
 
 #game-overlay{position:absolute;top:clamp(10px,2.5vw,14px);right:clamp(10px,2.5vw,14px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vw,12px);z-index:8;}
 .score-circle{width:clamp(60px,15vw,74px);height:clamp(60px,15vw,74px);background:#ffffff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 4px 16px rgba(0,0,0,.25);flex-shrink:0;}
@@ -2259,6 +2260,9 @@ function renderGame(){
       <div class="combo-badge" id="combo-badge"></div>
     </div>
     <div id="game-field">
+      <video id="game-bg-video" autoplay loop muted playsinline preload="auto" disablepictureinpicture>
+        <source src="https://raw.githubusercontent.com/Madzack69/Icons/main/BG_SPONSORS.mp4" type="video/mp4">
+      </video>
       <div id="goal-zone"><div id="goal-posts"><div class="goal-post"></div><div class="goal-post"></div></div></div>
       <div id="glove-el"><div id="glove-shake"><img src="${IMG_GLOVES}" alt="gloves"></div></div>
       <div id="catch-ring"></div>
