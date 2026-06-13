@@ -924,6 +924,11 @@ const H2="'HelveticaText','Gotham',Arial,sans-serif";
 function getFW(){return document.getElementById('app').offsetWidth||window.innerWidth||390;}
 function getFH(){var _gf=document.getElementById('game-field');return _gf?_gf.offsetHeight:340;}
 const GW=90,GH=52;
+// Red-card hitbox: narrower than the glove so a card grazing the LEFT or RIGHT
+// edge is a near-miss (no life lost). You only lose a life when a red card comes
+// down on the TOP of the glove — i.e. its center is within this central band.
+// Balls/golden still use the full GW width so catching stays generous.
+const RED_HIT_W=46;
 function CATCH_Y(fh){return fh-GH-90;}
 const BALL_SIZE=44,CARD_W=66,CARD_H=90;
 
@@ -2672,7 +2677,12 @@ function tick(ts){
     item.y+=item.speed*dt;
     var el=document.getElementById('w-'+item.id);
     if(el) el.style.top=Math.round(item.y)+'px';
-    var cx=item.x+item.width/2, inGlove=cx>=gloveX-GW/2&&cx<=gloveX+GW/2;
+    var cx=item.x+item.width/2;
+    // Balls/golden: full glove width — catching stays generous.
+    var inGlove=cx>=gloveX-GW/2&&cx<=gloveX+GW/2;
+    // Red cards: only the central TOP band counts as a hit. A card overlapping
+    // just the left/right edge of the glove slips past harmlessly.
+    var inRedZone=cx>=gloveX-RED_HIT_W/2&&cx<=gloveX+RED_HIT_W/2;
 
     // Danger proximity for red cards
     if(item.type==='redcard'){
@@ -2683,29 +2693,28 @@ function tick(ts){
 
     var caught=false, remove=false;
     if(item.y+item.height*.5>=cy && item.y<cy+GH){
-      if(inGlove){
-        caught=true;
-        if(item.type==='ball'){
-          newCombo++;var pts=Math.round((25+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
-          _catchesTotal++;_ptsAccrued+=pts;
-          showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' ARRÊT !',true);sfxCatch();triggerRing(gloveX,cy);
-          if(ge){ge.classList.add('catching');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('catching');},300);}
-        }else if(item.type==='golden'){
-          newCombo++;var pts=Math.round((75+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
-          _catchesTotal++;_ptsAccrued+=pts;
-          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'BONUS +'+pts,true);sfxGolden();triggerRing(gloveX,cy);
-          if(ge){ge.classList.add('catching');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('catching');},300);}
-        }else{
-          // Red card — check swipe dodge
-          if(Date.now()-lastPressTime<180){caught=false;remove=true;}
-          else{
-            newCombo=0;livesLost++;
-            showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'ROUGE !',false);sfxRedCard();
-            var sg=_dom('screen-game');if(sg){sg.classList.add('hit-flash');setTimeout(function(){var s=_dom('screen-game');if(s)s.classList.remove('hit-flash');},400);}
-            var gs=_dom('glove-shake');if(gs){gs.classList.remove('big-shake');void gs.offsetWidth;gs.classList.add('big-shake');setTimeout(function(){var s=_dom('glove-shake');if(s)s.classList.remove('big-shake');},500);}
-          }
+      if(item.type==='ball' && inGlove){
+        caught=true;remove=true;
+        newCombo++;var pts=Math.round((25+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
+        _catchesTotal++;_ptsAccrued+=pts;
+        showFlash(Math.min(Math.max(cx-30,0),fw-80),cy-44,'+'+pts+' ARRÊT !',true);sfxCatch();triggerRing(gloveX,cy);
+        if(ge){ge.classList.add('catching');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('catching');},300);}
+      }else if(item.type==='golden' && inGlove){
+        caught=true;remove=true;
+        newCombo++;var pts=Math.round((75+Math.floor(elapsedSec)*.3)*Math.min(newCombo,3));ptsGained+=pts;
+        _catchesTotal++;_ptsAccrued+=pts;
+        showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-44,'BONUS +'+pts,true);sfxGolden();triggerRing(gloveX,cy);
+        if(ge){ge.classList.add('catching');setTimeout(function(){var g=_dom('glove-el');if(g)g.classList.remove('catching');},300);}
+      }else if(item.type==='redcard' && inRedZone){
+        // Red card hits the TOP of the glove (central band only).
+        if(Date.now()-lastPressTime<180){remove=true;} // swipe dodge still works
+        else{
+          remove=true;
+          newCombo=0;livesLost++;
+          showFlash(Math.min(Math.max(cx-40,0),fw-100),cy-50,'ROUGE !',false);sfxRedCard();
+          var sg=_dom('screen-game');if(sg){sg.classList.add('hit-flash');setTimeout(function(){var s=_dom('screen-game');if(s)s.classList.remove('hit-flash');},400);}
+          var gs=_dom('glove-shake');if(gs){gs.classList.remove('big-shake');void gs.offsetWidth;gs.classList.add('big-shake');setTimeout(function(){var s=_dom('glove-shake');if(s)s.classList.remove('big-shake');},500);}
         }
-        remove=true;
       }
     }
     if(!remove && item.y>fh+10){
