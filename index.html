@@ -985,11 +985,12 @@ let _moveDeltas=[];      // px moved per event (for movement-variety analysis)
 let _usedTouch=false;    // did ANY real touch event fire this round?
 let _usedMouse=false;    // did ANY mouse/pointer (non-touch) event fire?
 // Hard cap on how long a single game can run. The game auto-ends here. Set to
-// 1200s (20 min) to sit above the longest real player observed (~937s) while
-// making the 45-89 minute cheat runs impossible at the source. Matches the
-// server's MAX_SURVIVE_SEC. Reaching it is a legitimate (if rare) end-of-game,
-// NOT a cheat — so it is not flagged on submit.
-const MAX_SURVIVE_SEC=1200;
+// 1800s (30 min): real players were being cut off at the old 1200s limit
+// (two reached exactly 20:00 still alive), so this gives skilled players room
+// while staying well below the ~2700s (45 min) mark where the original cheat
+// runs began. Matches the server's MAX_SURVIVE_SEC. Reaching it is a
+// legitimate end-of-game, NOT a cheat — so it is not flagged on submit.
+const MAX_SURVIVE_SEC=1800;
 let pressDir=null,done=false,animId=null,lastT=null,lastSpawn=0,spawnInt=2000;
 let lastPressTime=0,wid=0;
 let playerName='',playerLastName='',playerEmail='',playerCity='',playerPhone='';
