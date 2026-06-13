@@ -2852,7 +2852,7 @@ function endGame(final){
     if(_cheat) p.set('cheat',_cheat);
 
     if(_envFlags&&_envFlags.length) p.set('env',_envFlags.join('|'));
-    fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+    _signAndSend(p);
   }
   if(!playerName){goTo(renderFormPost);}else{goTo(function(){renderMyVouchers(true)});}
 }
@@ -3050,6 +3050,51 @@ function _safeSurvie(){
   return Math.max(0, Math.min(Math.floor(elapsedSec), MAX_SURVIVE_SEC));
 }
 
+// ── SIGNED SUBMISSION ────────────────────────────────────────
+// Each score submission is signed with HMAC-SHA256 over score|survie|timestamp
+// using a shared secret. The server recomputes the signature and rejects any
+// submission whose signature doesn't match — so a score typed directly into the
+// /exec URL (without the secret) can't be accepted. The timestamp is part of
+// the signed payload and the server rejects stale ones, preventing replay of a
+// captured valid request.
+//
+// NOTE: this secret lives in client code, so it is not unbreakable — a
+// determined reverse-engineer can extract it. It defeats URL-replay and casual
+// cheating (which is what the data shows), not a full decompile. Keep it the
+// SAME string here and in the Apps Script SHARED_SECRET.
+const SUBMIT_SECRET = "GdB-2026-jumia-ma-x7Qk2vRpL9wZ";
+
+// HMAC-SHA256(message, secret) -> lowercase hex string. Uses Web Crypto.
+async function _hmacHex(message, secret){
+  try{
+    var enc = new TextEncoder();
+    var key = await crypto.subtle.importKey(
+      "raw", enc.encode(secret),
+      {name:"HMAC", hash:"SHA-256"}, false, ["sign"]);
+    var buf = await crypto.subtle.sign("HMAC", key, enc.encode(message));
+    var bytes = new Uint8Array(buf);
+    var hex = "";
+    for(var i=0;i<bytes.length;i++) hex += bytes[i].toString(16).padStart(2,"0");
+    return hex;
+  }catch(e){ return ""; }
+}
+
+// Signs the params (binding score|survie|timestamp) and fires the request.
+// Fire-and-forget: mode:'no-cors', result is never read, so callers don't await.
+async function _signAndSend(p){
+  try{
+    var ts = p.get("timestamp") || new Date().toISOString();
+    p.set("timestamp", ts);
+    var msg = (p.get("score")||"0") + "|" + (p.get("survie")||"0") + "|" + ts;
+    var sig = await _hmacHex(msg, SUBMIT_SECRET);
+    if(sig) p.set("sig", sig);
+    fetch(SHEET_URL + "?" + p.toString(), {method:"GET", mode:"no-cors"}).catch(function(){});
+  }catch(e){
+    // If signing fails for any reason, still send (server will flag missing sig).
+    try{ fetch(SHEET_URL + "?" + p.toString(), {method:"GET", mode:"no-cors"}).catch(function(){}); }catch(e2){}
+  }
+}
+
 // Returns null if the score looks legit, else a short reason code.
 function _scoreCheatReason(){
   var sec=Math.floor(elapsedSec);
@@ -3240,7 +3285,7 @@ function submitForm(){
 
 
         if(_envFlags&&_envFlags.length) p.set('env',_envFlags.join('|'));
-        fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+        _signAndSend(p);
       }
       _lbdCache=null;_lbdCacheTs=0;
       _playerIndex[normEmail]={name:playerName,lastName:playerLastName,email:normEmail,score:bestScore};
@@ -3261,7 +3306,7 @@ function submitForm(){
 
 
         if(_envFlags&&_envFlags.length) p.set('env',_envFlags.join('|'));
-        fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+        _signAndSend(p);
       }
       goTo(function(){renderMyVouchers(true)});
     }
@@ -3279,7 +3324,7 @@ function submitForm(){
 
 
       if(_envFlags&&_envFlags.length) p.set('env',_envFlags.join('|'));
-      fetch(SHEET_URL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(()=>{});
+      _signAndSend(p);
     }
     goTo(function(){renderMyVouchers(true)});
   });
