@@ -969,7 +969,6 @@ let _ptsAccrued=0;       // points accrued via the legit catch path
 let _frameCount=0;       // animation frames actually rendered
 let _inputEvents=0;      // real pointer/touch/key inputs during the round
 let _gameStartMs=0;      // wall-clock start of the round
-let _survivalCapHit=false; // true if the hard survival ceiling forced game end
 // ── EMULATOR / BOT TELEMETRY ──────────────────────────────────
 // Captured once per round at start. Heuristic only — a determined emulator
 // can spoof these, but they catch the lazy/common cases cheaply.
@@ -980,11 +979,12 @@ let _moveTimes=[];       // timestamps of move events (for inter-event timing)
 let _moveDeltas=[];      // px moved per event (for movement-variety analysis)
 let _usedTouch=false;    // did ANY real touch event fire this round?
 let _usedMouse=false;    // did ANY mouse/pointer (non-touch) event fire?
-// No legitimate run survives past this. 600s is ~2.4x the 99th-percentile of
-// 1,300+ real players and below the single best observed run, giving huge
-// headroom for a genuinely exceptional player while making 45-89 minute
-// cheat runs impossible.
-const MAX_SURVIVE_SEC=600;
+// Hard cap on how long a single game can run. The game auto-ends here. Set to
+// 1200s (20 min) to sit above the longest real player observed (~937s) while
+// making the 45-89 minute cheat runs impossible at the source. Matches the
+// server's MAX_SURVIVE_SEC. Reaching it is a legitimate (if rare) end-of-game,
+// NOT a cheat — so it is not flagged on submit.
+const MAX_SURVIVE_SEC=1200;
 let pressDir=null,done=false,animId=null,lastT=null,lastSpawn=0,spawnInt=2000;
 let lastPressTime=0,wid=0;
 let playerName='',playerLastName='',playerEmail='',playerCity='',playerPhone='';
@@ -2537,7 +2537,7 @@ function startGame(){
   startMusic();
   done=false;wid=0;itemsArr=[];
   livesVal=3;scoreVal=0;comboVal=0;maxComboVal=0;speedVal=1.1;elapsedSec=0;lastTierReached=0;
-  _catchesTotal=0;_ptsAccrued=0;_frameCount=0;_inputEvents=0;_gameStartMs=Date.now();_survivalCapHit=false;
+  _catchesTotal=0;_ptsAccrued=0;_frameCount=0;_inputEvents=0;_gameStartMs=Date.now();
   _moveTimes=[];_moveDeltas=[];_usedTouch=false;_usedMouse=false;
   _envFlags=_captureEnvFlags();
   _catchCount=0;_lastRankShown=-1;
@@ -2600,13 +2600,12 @@ function tick(ts){
   // clock by at most 3/60s. This prevents a tampered timestamp from jumping
   // elapsedSec forward to inflate the time-based score ceiling.
   elapsedSec+=dt/60;
-  // ── HARD SURVIVAL CEILING ────────────────────────────────────
-  // The difficulty curve makes survival past a few minutes impossible.
-  // Across 1,300+ real players the 99th percentile was ~270s and the single
-  // best run was ~937s. Anything beyond MAX_SURVIVE_SEC cannot be legitimate,
-  // so we force the game to end and the run will be flagged on submit.
+  // ── AUTO-END TIMER (silent hard stop) ────────────────────────
+  // A single game cannot run longer than MAX_SURVIVE_SEC (20 min). This makes
+  // the "survived 45 minutes" cheat impossible at the source rather than only
+  // caught on the server. Reaching it is a normal end-of-game — the player
+  // keeps the score they earned, and it is NOT flagged as a cheat.
   if(elapsedSec > MAX_SURVIVE_SEC){
-    _survivalCapHit=true;
     endGame(scoreVal);
     return;
   }
@@ -3055,10 +3054,11 @@ function _safeSurvie(){
 function _scoreCheatReason(){
   var sec=Math.floor(elapsedSec);
 
-  // 0) Hard survival ceiling. The CSV cheaters all reported 45-89 MINUTES of
-  //    survival in a game that is unsurvivable past a few minutes. This is the
-  //    single most reliable tell, independent of score.
-  if(_survivalCapHit || sec > MAX_SURVIVE_SEC) return 'survive_too_long';
+  // 0) Survival sanity. The game auto-ends at MAX_SURVIVE_SEC, so a normal run
+  //    can legitimately reach (but not exceed) it. Only flag if the clock somehow
+  //    ran past the cap by a clear margin — that means the timer was tampered
+  //    with, since the loop should have ended the game at the cap.
+  if(sec > MAX_SURVIVE_SEC + 5) return 'survive_too_long';
 
   // 1) No game was actually played but a score exists.
   if(scoreVal>0 && _frameCount<30) return 'no_frames';
